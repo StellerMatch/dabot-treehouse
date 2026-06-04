@@ -48,17 +48,18 @@ function Index() {
         <nav className="pointer-events-auto flex items-center gap-2 text-xs">
           <Link
             to="/dashboard"
-            className="rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-white/90 backdrop-blur-md transition hover:bg-white/20"
+            className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
           >
             Dashboard
           </Link>
           <Link
             to="/signin"
-            className="rounded-md bg-white px-3 py-1.5 text-neutral-900 transition hover:bg-white/90"
+            className="rounded-full border border-amber-200/40 bg-gradient-to-b from-amber-100/15 to-amber-200/5 px-3.5 py-1.5 text-amber-50 shadow-[0_0_22px_-4px_rgba(255,180,90,0.55)] backdrop-blur-md transition hover:from-amber-100/25 hover:to-amber-200/10 hover:text-white"
           >
             Sign in
           </Link>
         </nav>
+
       </header>
 
       {/* Intake panel */}
