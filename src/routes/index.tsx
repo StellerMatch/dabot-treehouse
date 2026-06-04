@@ -48,34 +48,55 @@ function Index() {
         <nav className="pointer-events-auto flex items-center gap-2 text-xs">
           <Link
             to="/dashboard"
-            className="rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-white/90 backdrop-blur-md transition hover:bg-white/20"
+            className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
           >
             Dashboard
           </Link>
           <Link
             to="/signin"
-            className="rounded-md bg-white px-3 py-1.5 text-neutral-900 transition hover:bg-white/90"
+            className="rounded-full border border-amber-200/40 bg-gradient-to-b from-amber-100/15 to-amber-200/5 px-3.5 py-1.5 text-amber-50 shadow-[0_0_22px_-4px_rgba(255,180,90,0.55)] backdrop-blur-md transition hover:from-amber-100/25 hover:to-amber-200/10 hover:text-white"
           >
             Sign in
           </Link>
         </nav>
+
       </header>
 
       {/* Intake panel */}
       <section className="relative z-10 mx-4 mb-8 w-full max-w-2xl sm:mb-14">
-        <div className="mb-3 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/70">
+        {/* Soft warm light spill behind the panel */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[140%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-[50%]"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(255,180,90,0.32) 0%, rgba(255,140,40,0.12) 40%, rgba(0,0,0,0) 70%)",
+            filter: "blur(8px)",
+          }}
+        />
+
+        <div className="mb-4 text-center">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-amber-100/75">
             Step in
           </p>
-          <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">
+          <h1
+            className="mt-2 text-2xl font-semibold leading-tight sm:text-3xl"
+            style={{ textShadow: "0 1px 24px rgba(255,170,80,0.35)" }}
+          >
             Tell us the idea in your own words.
           </h1>
-          <p className="mt-1 text-sm text-white/70">
+          <p className="mt-1.5 text-sm text-white/75">
             Start messy. DaBotTree will help shape the path.
           </p>
         </div>
 
-        <div className="rounded-lg border border-white/15 bg-black/40 p-3 shadow-2xl backdrop-blur-md">
+        <div
+          className="relative rounded-2xl border border-amber-200/20 bg-[rgba(28,16,8,0.45)] p-4 backdrop-blur-xl"
+          style={{
+            boxShadow:
+              "0 0 60px -10px rgba(255,160,70,0.35), inset 0 1px 0 rgba(255,220,180,0.08)",
+          }}
+        >
           <label htmlFor="idea" className="sr-only">
             Your idea
           </label>
@@ -85,10 +106,10 @@ function Index() {
             onChange={(e) => setIdea(e.target.value)}
             placeholder="A drill, a shed, a neighborhood that shares… start anywhere."
             rows={4}
-            className="block w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-white/40 focus:outline-none"
+            className="block w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-amber-100/35 focus:outline-none"
           />
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="text-[11px] text-white/50">
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-amber-200/10 pt-3">
+            <div className="text-[11px] text-amber-100/55">
               {idea.length === 0
                 ? "Listening when you're ready."
                 : `${words} words · ${idea.length} chars${
@@ -98,7 +119,7 @@ function Index() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 transition hover:bg-white/10"
+                className="rounded-full border border-amber-200/20 bg-white/[0.04] px-3 py-1.5 text-xs text-white/75 backdrop-blur-md transition hover:border-amber-200/40 hover:bg-white/[0.08] hover:text-white"
               >
                 Add files or notes
               </button>
@@ -114,10 +135,10 @@ function Index() {
                   }
                 }}
                 className={
-                  "rounded-md px-4 py-1.5 text-sm font-medium transition " +
+                  "rounded-full border px-4 py-1.5 text-sm font-medium backdrop-blur-md transition " +
                   (ready
-                    ? "bg-white text-neutral-900 hover:bg-white/90"
-                    : "cursor-not-allowed bg-white/30 text-white/60")
+                    ? "border-amber-200/60 bg-gradient-to-b from-amber-200/90 to-amber-400/80 text-neutral-900 shadow-[0_0_28px_-4px_rgba(255,180,80,0.85)] hover:from-amber-100 hover:to-amber-300"
+                    : "cursor-not-allowed border-amber-200/15 bg-white/[0.05] text-white/40")
                 }
               >
                 Start shaping →
@@ -126,10 +147,11 @@ function Index() {
           </div>
         </div>
 
-        <p className="mt-3 text-center text-[11px] text-white/50">
+        <p className="mt-3 text-center text-[11px] text-amber-100/45">
           No payment, no commitments. This is the doorway.
         </p>
       </section>
+
     </main>
   );
 }
