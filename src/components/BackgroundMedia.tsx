@@ -113,7 +113,7 @@ export function BackgroundMedia({ config, className }: Props) {
         style={{
           background:
             "radial-gradient(circle, rgba(255,160,60,0.22) 0%, rgba(255,120,40,0.08) 35%, rgba(0,0,0,0) 65%)",
-          animation: "dabottree-glow-pulse 9s ease-in-out infinite",
+          animation: "dabottree-glow-pulse 14s ease-in-out infinite",
           mixBlendMode: "screen",
         }}
       />
