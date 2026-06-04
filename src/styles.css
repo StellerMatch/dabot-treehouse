@@ -144,75 +144,65 @@
 }
 
 /* ---------- DaBotTree cinematic motion ---------- */
+/* Slow primary ember breath — uneven keyframes for organic flicker */
 @keyframes dabottree-core-flicker {
-  0%,
-  100% {
-    opacity: 0.55;
-    filter: blur(40px);
-  }
-  40% {
-    opacity: 0.75;
-    filter: blur(46px);
-  }
-  62% {
-    opacity: 0.5;
-    filter: blur(38px);
-  }
-  78% {
-    opacity: 0.8;
-    filter: blur(50px);
-  }
+  0% { opacity: 0.55; filter: blur(40px); transform: translate(-50%, -50%) scale(1); }
+  13% { opacity: 0.68; filter: blur(44px); transform: translate(-50%, -50%) scale(1.02); }
+  27% { opacity: 0.5; filter: blur(38px); transform: translate(-50%, -50%) scale(0.99); }
+  41% { opacity: 0.78; filter: blur(48px); transform: translate(-50%, -50%) scale(1.04); }
+  56% { opacity: 0.6; filter: blur(42px); transform: translate(-50%, -50%) scale(1.01); }
+  68% { opacity: 0.82; filter: blur(50px); transform: translate(-50%, -50%) scale(1.05); }
+  79% { opacity: 0.58; filter: blur(40px); transform: translate(-50%, -50%) scale(1); }
+  91% { opacity: 0.72; filter: blur(46px); transform: translate(-50%, -50%) scale(1.03); }
+  100% { opacity: 0.55; filter: blur(40px); transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Faster, smaller inner ember layer — adds the live "flame" jitter */
+@keyframes dabottree-ember-flicker {
+  0% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+  17% { opacity: 0.85; transform: translate(-50%, -51%) scale(1.06); }
+  32% { opacity: 0.5; transform: translate(-50%, -49.5%) scale(0.97); }
+  48% { opacity: 0.9; transform: translate(-50%, -50.5%) scale(1.08); }
+  63% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.01); }
+  81% { opacity: 0.95; transform: translate(-50%, -51%) scale(1.07); }
+  100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
 }
 
 @keyframes dabottree-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: translate(-50%, -50%) scale(1.08);
-  }
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.1); }
 }
 
 @keyframes dabottree-spark-drift {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 20px, 0) scale(0.6);
-  }
-  15% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(var(--spark-x, 40px), -180px, 0) scale(1);
-  }
+  0% { opacity: 0; transform: translate3d(0, 20px, 0) scale(0.6); }
+  15% { opacity: 1; }
+  80% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate3d(var(--spark-x, 40px), -180px, 0) scale(1); }
+}
+
+/* Warm dust motes — slow lateral drift near the tree opening */
+@keyframes dabottree-mote-drift {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  20% { opacity: 0.7; }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; transform: translate3d(var(--mote-x, 25px), -60px, 0); }
 }
 
 @keyframes dabottree-mist-drift {
-  0% {
-    transform: translate3d(-2%, 0, 0);
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.4;
-  }
-  100% {
-    transform: translate3d(2%, -1%, 0);
-    opacity: 0.25;
-  }
+  0% { transform: translate3d(-2%, 0, 0); opacity: 0.25; }
+  50% { opacity: 0.4; }
+  100% { transform: translate3d(2%, -1%, 0); opacity: 0.25; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .dabottree-core-flicker,
+  .dabottree-ember-flicker,
   .dabottree-glow-pulse,
   .dabottree-spark,
+  .dabottree-mote,
   .dabottree-mist {
     animation: none !important;
   }
+  .dabottree-ember-flicker { opacity: 0.7 !important; }
 }
 
