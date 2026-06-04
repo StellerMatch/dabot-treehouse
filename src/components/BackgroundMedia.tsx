@@ -85,13 +85,13 @@ export function BackgroundMedia({ config, className }: Props) {
           transform: "translate(-50%, -50%)",
         }}
       />
-      {/* Inner ember flicker (faster, smaller, hotter) */}
+      {/* Inner ember flicker (slow, gentle flame) */}
       <div
         className="dabottree-ember-flicker absolute left-1/2 top-[53%] h-[26vh] w-[26vh] rounded-full"
         style={{
           background:
             "radial-gradient(circle, rgba(255,225,170,0.85) 0%, rgba(255,160,60,0.55) 35%, rgba(255,90,20,0.18) 65%, rgba(0,0,0,0) 78%)",
-          animation: "dabottree-ember-flicker 2.6s ease-in-out infinite",
+          animation: "dabottree-ember-flicker 5s ease-in-out infinite",
           mixBlendMode: "screen",
           filter: "blur(18px)",
         }}
@@ -102,7 +102,7 @@ export function BackgroundMedia({ config, className }: Props) {
         style={{
           background:
             "radial-gradient(circle, rgba(255,210,140,0.7) 0%, rgba(255,130,40,0.35) 50%, rgba(0,0,0,0) 80%)",
-          animation: "dabottree-ember-flicker 4.1s ease-in-out -1.3s infinite",
+          animation: "dabottree-ember-flicker 7.5s ease-in-out -2.5s infinite",
           mixBlendMode: "screen",
           filter: "blur(14px)",
         }}
