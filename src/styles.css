@@ -157,15 +157,14 @@
   100% { opacity: 0.55; filter: blur(40px); transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Faster, smaller inner ember layer — adds the live "flame" jitter */
+/* Slow inner ember layer — gentle live flame */
 @keyframes dabottree-ember-flicker {
-  0% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
-  17% { opacity: 0.85; transform: translate(-50%, -51%) scale(1.06); }
-  32% { opacity: 0.5; transform: translate(-50%, -49.5%) scale(0.97); }
-  48% { opacity: 0.9; transform: translate(-50%, -50.5%) scale(1.08); }
-  63% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.01); }
-  81% { opacity: 0.95; transform: translate(-50%, -51%) scale(1.07); }
-  100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+  0% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  20% { opacity: 0.82; transform: translate(-50%, -50.8%) scale(1.04); }
+  40% { opacity: 0.55; transform: translate(-50%, -49.5%) scale(0.98); }
+  60% { opacity: 0.88; transform: translate(-50%, -50.3%) scale(1.05); }
+  80% { opacity: 0.62; transform: translate(-50%, -50%) scale(1.01); }
+  100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
 }
 
 @keyframes dabottree-glow-pulse {
