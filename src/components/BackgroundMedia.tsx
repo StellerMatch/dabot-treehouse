@@ -1,38 +1,41 @@
 import { useEffect, useRef, useState } from "react";
-import { backgrounds, type BackgroundItem } from "@/lib/backgrounds";
+import { frontPageBackground, type BackgroundConfig } from "@/lib/backgrounds";
 
 type Props = {
-  activeId?: string;
+  config?: BackgroundConfig;
   className?: string;
 };
 
-export function BackgroundMedia({ activeId, className }: Props) {
-  const item: BackgroundItem | undefined =
-    backgrounds.find((b) => b.id === activeId) ?? backgrounds[0];
+/**
+ * Full-viewport cinematic background layer.
+ * - Fixed, behind all content (-z-10).
+ * - Supports image or video sources via a single config object.
+ * - Adds a dark readable overlay above the media for white text legibility.
+ */
+export function BackgroundMedia({ config, className }: Props) {
+  const item = config ?? frontPageBackground;
   const [failed, setFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     setFailed(false);
-  }, [item?.id]);
+  }, [item.src]);
 
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || !item || item.type !== "video") return;
+    if (!v || item.type !== "video" || !item.playOnce) return;
     const onEnded = () => {
-      if (item.playback === "once") {
-        v.pause();
-        // hold last frame
-        try {
-          v.currentTime = Math.max(0, v.duration - 0.05);
-        } catch {}
-      }
+      v.pause();
+      try {
+        v.currentTime = Math.max(0, v.duration - 0.05);
+      } catch {}
     };
     v.addEventListener("ended", onEnded);
     return () => v.removeEventListener("ended", onEnded);
-  }, [item?.id, item?.playback]);
+  }, [item.src, item.type, item.playOnce]);
 
-  const fitClass = item?.fit === "contain" ? "object-contain" : "object-cover";
+  const fitClass =
+    item.objectFit === "contain" ? "object-contain" : "object-cover";
 
   return (
     <div
@@ -42,33 +45,33 @@ export function BackgroundMedia({ activeId, className }: Props) {
         (className ?? "")
       }
     >
-      {item && !failed && item.type === "image" && (
+      {!failed && item.type === "image" && (
         <img
           src={item.src}
           alt=""
-          className={`h-full w-full ${fitClass}`}
+          className={`h-full w-full ${fitClass} object-center`}
           onError={() => setFailed(true)}
         />
       )}
-      {item && !failed && item.type === "video" && (
+      {!failed && item.type === "video" && (
         <video
           ref={videoRef}
-          className={`h-full w-full ${fitClass}`}
+          className={`h-full w-full ${fitClass} object-center`}
           src={item.src}
           poster={item.poster}
-          autoPlay
+          autoPlay={item.autoplay ?? true}
           muted={item.muted ?? true}
           playsInline
-          loop={item.playback === "loop"}
+          loop={item.playOnce ? false : (item.loop ?? true)}
           onError={() => setFailed(true)}
         />
       )}
-      {/* Fallback gradient if media missing */}
-      {(failed || !item) && (
-        <div className="h-full w-full bg-[radial-gradient(ellipse_at_center,_#1f2937_0%,_#0b0f1a_70%)]" />
+      {/* Fallback cinematic gradient if media missing */}
+      {failed && (
+        <div className="h-full w-full bg-[radial-gradient(ellipse_at_center,_#3a2410_0%,_#0b0f1a_70%)]" />
       )}
-      {/* Subtle readable overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/55" />
+      {/* Dark readable overlay — sits above media, below content */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/70" />
     </div>
   );
 }
