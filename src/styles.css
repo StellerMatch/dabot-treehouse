@@ -142,3 +142,77 @@
     color: var(--color-foreground);
   }
 }
+
+/* ---------- DaBotTree cinematic motion ---------- */
+@keyframes dabottree-core-flicker {
+  0%,
+  100% {
+    opacity: 0.55;
+    filter: blur(40px);
+  }
+  40% {
+    opacity: 0.75;
+    filter: blur(46px);
+  }
+  62% {
+    opacity: 0.5;
+    filter: blur(38px);
+  }
+  78% {
+    opacity: 0.8;
+    filter: blur(50px);
+  }
+}
+
+@keyframes dabottree-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes dabottree-spark-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--spark-x, 40px), -180px, 0) scale(1);
+  }
+}
+
+@keyframes dabottree-mist-drift {
+  0% {
+    transform: translate3d(-2%, 0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate3d(2%, -1%, 0);
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dabottree-core-flicker,
+  .dabottree-glow-pulse,
+  .dabottree-spark,
+  .dabottree-mist {
+    animation: none !important;
+  }
+}
+
