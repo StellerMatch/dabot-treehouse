@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
-import { backgrounds, defaultBackgroundId } from "@/lib/backgrounds";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,7 +23,6 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [idea, setIdea] = useState("");
-  const [bgId, setBgId] = useState<string | undefined>(defaultBackgroundId);
 
   const words = useMemo(
     () => idea.trim().split(/\s+/).filter(Boolean).length,
@@ -37,7 +35,7 @@ function Index() {
       className="relative flex w-screen items-end justify-center overflow-hidden text-white"
       style={{ height: "100dvh" }}
     >
-      <BackgroundMedia activeId={bgId} />
+      <BackgroundMedia />
 
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
@@ -62,24 +60,6 @@ function Index() {
           </Link>
         </nav>
       </header>
-
-      {/* Background switcher */}
-      <div className="pointer-events-auto absolute left-1/2 top-16 flex -translate-x-1/2 gap-1.5 rounded-full border border-white/15 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-wider text-white/70 backdrop-blur-md sm:top-20">
-        {backgrounds.map((b) => (
-          <button
-            key={b.id}
-            onClick={() => setBgId(b.id)}
-            className={
-              "rounded-full px-2.5 py-1 transition " +
-              (b.id === bgId
-                ? "bg-white text-neutral-900"
-                : "hover:bg-white/10")
-            }
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
 
       {/* Intake panel */}
       <section className="relative z-10 mx-4 mb-8 w-full max-w-2xl sm:mb-14">
