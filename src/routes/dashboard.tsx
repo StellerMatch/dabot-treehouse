@@ -3286,7 +3286,8 @@ function PostItCard({
   pct?: number;
 }) {
   const [open, setOpen] = useState(false);
-  const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
+  const fallback: CategoryKey = "core-idea";
+  void kind;
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
   // earthy paper: warm grain + subtle fiber flecks layered over the palette color
