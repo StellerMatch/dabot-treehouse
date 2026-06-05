@@ -706,8 +706,9 @@ function Dashboard() {
           />
         </div>
 
-        {/* RIGHT: Organize / Next Stage */}
-        <div className="order-2 flex items-center justify-end gap-3 lg:order-3">
+        {/* RIGHT: Avatar + Organize / Next Stage */}
+        <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
+          <ProfileAvatarButton />
           <OrganizeButton
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
