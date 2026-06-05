@@ -43,12 +43,13 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
     hint: "Turn messy notes into a clear plan",
   },
   { key: "market", label: "Audience", hint: "Who it's for" },
-  { key: "build", label: "Build Plan", hint: "How it gets made" },
-  { key: "design", label: "Design Notes", hint: "How it looks & feels" },
-  { key: "money", label: "Money Notes", hint: "How it sustains" },
+  { key: "design", label: "Design", hint: "How it looks & feels" },
+  { key: "money", label: "Money", hint: "How it sustains" },
   { key: "risks", label: "Risks", hint: "What to watch out for" },
-  { key: "ready", label: "Ready for Project", hint: "Greenlight gate" },
+  { key: "build", label: "Build Plan", hint: "How it gets made" },
+  { key: "ready", label: "Ready", hint: "Greenlight for project" },
 ];
+
 
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
