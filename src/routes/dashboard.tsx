@@ -503,16 +503,14 @@ function Dashboard() {
         src={claritySquirrel}
         alt="Clarity"
         aria-hidden
-        className="pointer-events-none fixed z-10 select-none"
+        className="pointer-events-none fixed z-10 select-none right-[-40px] bottom-[260px] h-[200px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
         style={{
-          right: "clamp(0.5rem, 3vw, 4rem)",
-          bottom: "clamp(7rem, 16vh, 10rem)",
-          height: "clamp(260px, 62vh, 720px)",
           width: "auto",
           filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
           animation: "clarity-float 6s ease-in-out infinite",
         }}
       />
+
 
 
 
