@@ -156,6 +156,8 @@ function Index() {
                   if (typeof window !== "undefined") {
                     try {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
+                      if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
+                      else sessionStorage.removeItem("dabottree:draftIdeaType");
                     } catch {}
                   }
                 }}
