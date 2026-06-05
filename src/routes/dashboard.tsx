@@ -11,6 +11,7 @@ const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BookOpen, Paperclip, Link2, Plus, Lightbulb, Sparkles, ArrowRight, Pencil } from "lucide-react";
 
@@ -41,20 +42,61 @@ type CategoryKey =
   | "risks"
   | "ready";
 
-const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
-  { key: "lightbulb", label: "Idea Notes", hint: "Dump everything you know" },
-  { key: "pre-clarity", label: "Info Gathered", hint: "Files, links, context" },
+const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: string }[] = [
+  {
+    key: "lightbulb",
+    label: "Idea Notes",
+    hint: "Dump everything you know",
+    guidance: "Add any loose thoughts, reminders, or pieces of the idea.",
+  },
+  {
+    key: "pre-clarity",
+    label: "Info Gathered",
+    hint: "Files, links, context",
+    guidance: "Add useful facts, details, links, examples, or background for this idea.",
+  },
   {
     key: "clarity",
     label: "Clarity",
     hint: "Turn messy notes into a clear plan",
+    guidance: "Talk about what is still confusing, missing, or not fully decided.",
   },
-  { key: "market", label: "Audience", hint: "Who it's for" },
-  { key: "design", label: "Design", hint: "How it looks & feels" },
-  { key: "money", label: "Money", hint: "How it sustains" },
-  { key: "risks", label: "Risks", hint: "What to watch out for" },
-  { key: "build", label: "Build Plan", hint: "How it gets made" },
-  { key: "ready", label: "Ready", hint: "Greenlight for project" },
+  {
+    key: "market",
+    label: "Audience",
+    hint: "Who it's for",
+    guidance: "Talk about who this idea is for and what problem it helps them with.",
+  },
+  {
+    key: "design",
+    label: "Design",
+    hint: "How it looks & feels",
+    guidance: "Talk about how this idea should look, feel, or be easy to use.",
+  },
+  {
+    key: "money",
+    label: "Money",
+    hint: "How it sustains",
+    guidance: "Talk about how this idea could make money, save money, or become worth paying for.",
+  },
+  {
+    key: "risks",
+    label: "Risks",
+    hint: "What to watch out for",
+    guidance: "Talk about what could go wrong, what might be hard, or what needs protection.",
+  },
+  {
+    key: "build",
+    label: "Build Plan",
+    hint: "How it gets made",
+    guidance: "Talk about the first steps needed to build or test this idea.",
+  },
+  {
+    key: "ready",
+    label: "Ready",
+    hint: "Greenlight for project",
+    guidance: "Talk about what would make this idea ready for the next stage.",
+  },
 ];
 
 
@@ -855,13 +897,15 @@ function MiniLaidBook({
   pct,
   active,
   onClick,
+  guidance,
 }: {
   label: string;
   pct: number;
   active: boolean;
   onClick: () => void;
+  guidance?: string;
 }) {
-  return (
+  const btn = (
     <button
       onClick={onClick}
       title={`${label} — ${pct}%`}
@@ -941,6 +985,27 @@ function MiniLaidBook({
       </span>
     </button>
   );
+  if (!guidance) return btn;
+  return (
+    <HoverCard openDelay={120} closeDelay={80}>
+      <HoverCardTrigger asChild>{btn}</HoverCardTrigger>
+      <HoverCardContent
+        side="right"
+        align="start"
+        sideOffset={8}
+        className="z-50 w-[240px] border-amber-950/70 p-3 font-serif text-[12px] italic text-amber-950 shadow-[0_12px_28px_-12px_rgba(20,8,2,0.7)]"
+        style={{
+          background: "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+          borderRadius: 6,
+        }}
+      >
+        <div className="mb-1 text-[10px] font-semibold uppercase not-italic tracking-[0.2em] text-amber-900/80">
+          {label}
+        </div>
+        {guidance}
+      </HoverCardContent>
+    </HoverCard>
+  );
 }
 
 function ProgressPopover({
@@ -952,7 +1017,7 @@ function ProgressPopover({
   overall,
 }: {
   disabled: boolean;
-  categories: { key: CategoryKey; label: string; hint: string }[];
+  categories: { key: CategoryKey; label: string; hint: string; guidance?: string }[];
   getValue: (k: CategoryKey) => string;
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
@@ -997,6 +1062,7 @@ function ProgressPopover({
                 key={c.key}
                 label={c.label}
                 pct={status.pct}
+                guidance={c.guidance}
                 active={activeCategory === c.key}
                 onClick={() => {
                   setActiveCategory(c.key);
@@ -1177,7 +1243,7 @@ function OrganizeButton({
 }) {
   const unlocked = overall >= 90;
   const stageAdvanced = stage !== "lightbulb";
-  const label = stageAdvanced ? "Next Stage" : "Organize Idea";
+  const label = "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
 
   const handleClick = () => {
@@ -1198,7 +1264,7 @@ function OrganizeButton({
       <div className={unlocked ? "" : "opacity-60 saturate-[0.55]"}>
         <LaidBook
           label={label}
-          sublabel={`${overall}%`}
+          sublabel={unlocked ? "Ready" : "Locked"}
           pct={overall}
           variant={variant}
           glow={unlocked}
