@@ -383,11 +383,13 @@ function Dashboard() {
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
+    const cleaned = text.trim();
     const p: PostIt = {
       id: `post-${Date.now()}`,
       kind,
-      text: text.trim(),
+      text: cleaned,
       ts: Date.now(),
+      categories: detectCategories(cleaned, kind),
     };
     const nextPosts = [p, ...selectedExtras.posts];
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
