@@ -3302,10 +3302,6 @@ function PostItCard({
   const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
-  const preview = (() => {
-    const base = text.replace(/\s+/g, " ").trim();
-    return base.length > 140 ? base.slice(0, 138).replace(/\s+\S*$/, "") + "…" : base;
-  })();
   return (
     <>
       <button
