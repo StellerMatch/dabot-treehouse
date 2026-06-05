@@ -38,8 +38,8 @@ function Index() {
     >
       <BackgroundMedia />
 
-      {/* Hero logo — centered at top */}
-      <div className="pointer-events-none absolute inset-x-0 -top-2 z-10 flex justify-center px-4 sm:-top-4">
+      {/* Hero logo — centered, aligned with top nav */}
+      <div className="pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-center px-4 sm:top-3">
         <img
           src={logoImage}
           alt="DaBotTree"
