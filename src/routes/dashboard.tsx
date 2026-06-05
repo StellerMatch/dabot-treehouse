@@ -3124,17 +3124,22 @@ function NoteDesk(props: {
               categories={["lightbulb"]}
             />
           )}
-          {extras.posts.map((p, i) => (
-            <PostItCard
-              key={p.id}
-              text={p.text}
-              fullText={p.fullText}
-              kind={p.kind}
-              ts={p.ts}
-              hue={i + 1}
-              categories={p.categories}
-            />
-          ))}
+          {extras.posts.map((p, i) => {
+            const catKey = p.categories?.[0];
+            const pct = catKey ? categoryStatus(getCategoryValue(catKey)).pct : 0;
+            return (
+              <PostItCard
+                key={p.id}
+                text={p.text}
+                fullText={p.fullText}
+                kind={p.kind}
+                ts={p.ts}
+                hue={i + 1}
+                categories={p.categories}
+                pct={pct}
+              />
+            );
+          })}
         </div>
       </div>
 
