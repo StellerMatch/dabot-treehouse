@@ -14,6 +14,10 @@ export type LightbulbIdea = {
   updatedAt: number;
   stage: IdeaStage;
   nextAction: string;
+  audience?: string;
+  industry?: string;
+  ideaType?: string;
+  description?: string;
   signals?: {
     shape?: string;
     whoItHelps?: string;
