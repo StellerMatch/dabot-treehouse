@@ -193,6 +193,16 @@
   100% { transform: translate3d(2%, -1%, 0); opacity: 0.25; }
 }
 
+@keyframes clarity-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes clarity-glow-breathe {
+  0%, 100% { box-shadow: 0 0 30px 6px rgba(255,200,90,0.35); }
+  50% { box-shadow: 0 0 50px 14px rgba(255,210,120,0.55); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dabottree-core-flicker,
   .dabottree-ember-flicker,
