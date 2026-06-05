@@ -3226,6 +3226,7 @@ function NoteDesk(props: {
 
 function PostItCard({
   text,
+  fullText,
   kind,
   ts,
   hue,
@@ -3233,6 +3234,7 @@ function PostItCard({
   categories,
 }: {
   text: string;
+  fullText?: string;
   kind: PostIt["kind"];
   ts: number;
   hue: number;
