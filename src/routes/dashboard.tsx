@@ -655,39 +655,8 @@ function Dashboard() {
         </Shelf>
       ))}
 
-      <div className="relative px-2 pt-4">
-        <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
-          · Idea Sparks ·
-        </div>
-      </div>
-      <Shelf widthPct={leftWidths[ideaShelves.length] ?? 90} align="left">
-        {suggestedSeeds.map((seed, i) => (
-          <BookSpine
-            key={seed.id}
-            title={seed.title}
-            meta="Spark"
-            active={false}
-            hue={i + 4}
-            onClick={() => {
-              const id = `idea-${Date.now()}`;
-              setIdeas((prev) => [
-                {
-                  id,
-                  title: seed.title,
-                  messy: "",
-                  shelfReadiness: 5,
-                  updatedAt: Date.now(),
-                  stage: "lightbulb",
-                  nextAction: "Dump your messy idea",
-                },
-                ...prev,
-              ]);
-              setSelectedId(id);
-              setActiveCategory("lightbulb");
-            }}
-          />
-        ))}
-      </Shelf>
+
+
 
       <div className="relative flex justify-center pt-2">
         <button
