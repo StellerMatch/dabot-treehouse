@@ -99,6 +99,53 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: s
   },
 ];
 
+// Soft, post-it-friendly palette keyed to each Idea Progress category.
+const postItCategoryPalette: Record<
+  CategoryKey | "mixed",
+  { bg: string; edge: string; tape: string; chip: string; label: string }
+> = {
+  lightbulb:    { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Idea Notes" },
+  "pre-clarity":{ bg: "linear-gradient(180deg,#f6e3c0 0%,#e6c98c 100%)", edge: "#9a7128", tape: "rgba(120,80,30,0.55)", chip: "#f7e6c2", label: "Info Gathered" },
+  clarity:      { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Clarity" },
+  market:       { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
+  design:       { bg: "linear-gradient(180deg,#dfe5fb 0%,#b8c4f0 100%)", edge: "#4f5fa3", tape: "rgba(40,40,90,0.5)",   chip: "#e3e8fb", label: "Design" },
+  money:        { bg: "linear-gradient(180deg,#d6efd6 0%,#a8d8a8 100%)", edge: "#3f7a3f", tape: "rgba(30,80,30,0.55)",  chip: "#dcefdc", label: "Money" },
+  risks:        { bg: "linear-gradient(180deg,#fbd2cf 0%,#f0a39c 100%)", edge: "#9c3a32", tape: "rgba(100,30,20,0.55)", chip: "#fcdad6", label: "Risks" },
+  build:        { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Build Plan" },
+  ready:        { bg: "linear-gradient(180deg,#d2efe6 0%,#9ed6c1 100%)", edge: "#317a64", tape: "rgba(20,80,60,0.55)",  chip: "#dbf2e9", label: "Ready" },
+  mixed:        { bg: "linear-gradient(180deg,#f0e6d4 0%,#d7c5a0 100%)", edge: "#7a6238", tape: "rgba(80,60,20,0.55)",  chip: "#efe4c8", label: "Mixed" },
+};
+
+const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
+  lightbulb:    [/\bidea\b/i, /\bspark\b/i, /\bthought\b/i],
+  "pre-clarity":[/https?:\/\//i, /\blink\b/i, /\barticle\b/i, /\bsource\b/i, /\bfound\b/i, /\breference\b/i],
+  clarity:      [/\bconfus/i, /\bunclear\b/i, /\bdecide\b/i, /\bstill\b/i, /\bmissing\b/i, /\bnot sure\b/i],
+  market:       [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bpeople\b/i, /\bneighbor/i, /\bcommunit/i],
+  design:       [/\bdesign\b/i, /\blook\b/i, /\bfeel\b/i, /\bui\b/i, /\bcolor\b/i, /\bstyle\b/i, /\blayout\b/i],
+  money:        [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bdonat/i, /\$\d/],
+  risks:        [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bwrong\b/i, /\bfail/i, /\bhard\b/i, /\btheft\b/i, /\bdamage\b/i],
+  build:        [/\bbuild\b/i, /\bstep\b/i, /\bprototype\b/i, /\btest\b/i, /\bmake\b/i, /\bplan\b/i],
+  ready:        [/\bready\b/i, /\blaunch\b/i, /\bship\b/i, /\bgreenlight\b/i, /\bgo live\b/i],
+};
+
+function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
+  const found = new Set<CategoryKey>();
+  for (const [k, regs] of Object.entries(CATEGORY_KEYWORDS) as [CategoryKey, RegExp[]][]) {
+    if (regs.some((r) => r.test(text))) found.add(k);
+  }
+  if (found.size === 0) found.add(kind === "info-gathered" ? "pre-clarity" : "lightbulb");
+  return Array.from(found);
+}
+
+function postItPaletteFor(categories: CategoryKey[] | undefined, fallback: CategoryKey) {
+  const cats = categories && categories.length ? categories : [fallback];
+  const key: CategoryKey | "mixed" = cats.length > 1 ? "mixed" : cats[0];
+  return { palette: postItCategoryPalette[key], label: postItCategoryPalette[key].label, isMixed: cats.length > 1 };
+}
+
+
+
+
 
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
