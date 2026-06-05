@@ -32,70 +32,63 @@ export const Route = createFileRoute("/dashboard")({
 
 // ——— types ———
 type CategoryKey =
-  | "lightbulb"
-  | "pre-clarity"
-  | "clarity"
-  | "market"
-  | "build"
+  | "core-idea"
+  | "problem"
+  | "audience"
+  | "features"
+  | "workflow"
   | "design"
-  | "money"
-  | "risks"
-  | "ready";
+  | "business"
+  | "concerns";
 
 const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: string }[] = [
   {
-    key: "lightbulb",
-    label: "Idea Notes",
-    hint: "Dump everything you know",
-    guidance: "Add any loose thoughts, reminders, or pieces of the idea.",
+    key: "core-idea",
+    label: "Core Idea",
+    hint: "What it is & its purpose",
+    guidance: "Describe what this project, app, or product is and its main purpose.",
   },
   {
-    key: "pre-clarity",
-    label: "Info Gathered",
-    hint: "Files, links, context",
-    guidance: "Add useful facts, details, links, examples, or background for this idea.",
+    key: "problem",
+    label: "Problem",
+    hint: "Why this should exist",
+    guidance: "Describe the pain point, need, opportunity, or reason this should exist.",
   },
   {
-    key: "clarity",
-    label: "Clarity",
-    hint: "Turn messy notes into a clear plan",
-    guidance: "Talk about what is still confusing, missing, or not fully decided.",
-  },
-  {
-    key: "market",
+    key: "audience",
     label: "Audience",
     hint: "Who it's for",
-    guidance: "Talk about who this idea is for and what problem it helps them with.",
+    guidance: "Describe the users, buyers, roles, or customer types this is for.",
+  },
+  {
+    key: "features",
+    label: "Features",
+    hint: "Tools, screens, actions",
+    guidance: "List the tools, functions, screens, actions, and product capabilities.",
+  },
+  {
+    key: "workflow",
+    label: "Workflow",
+    hint: "How the process flows",
+    guidance: "Describe how the user or business process moves from step to step.",
   },
   {
     key: "design",
-    label: "Design",
-    hint: "How it looks & feels",
-    guidance: "Talk about how this idea should look, feel, or be easy to use.",
+    label: "Design / UX",
+    hint: "Layout, feel, interactions",
+    guidance: "Describe layout, visual feel, interactions, usability, and screen behavior.",
   },
   {
-    key: "money",
-    label: "Money",
-    hint: "How it sustains",
-    guidance: "Talk about how this idea could make money, save money, or become worth paying for.",
+    key: "business",
+    label: "Business",
+    hint: "Pricing & commercial angle",
+    guidance: "Describe pricing, revenue model, buyer logic, costs, and market value.",
   },
   {
-    key: "risks",
-    label: "Risks",
-    hint: "What to watch out for",
-    guidance: "Talk about what could go wrong, what might be hard, or what needs protection.",
-  },
-  {
-    key: "build",
-    label: "Build Plan",
-    hint: "How it gets made",
-    guidance: "Talk about the first steps needed to build or test this idea.",
-  },
-  {
-    key: "ready",
-    label: "Ready",
-    hint: "Greenlight for project",
-    guidance: "Talk about what would make this idea ready for the next stage.",
+    key: "concerns",
+    label: "Concerns",
+    hint: "Watch-outs for later",
+    guidance: "Note things to watch, fix later, avoid, validate, or revisit in later phases.",
   },
 ];
 
@@ -104,28 +97,26 @@ const postItCategoryPalette: Record<
   CategoryKey | "mixed",
   { bg: string; edge: string; tape: string; chip: string; label: string }
 > = {
-  lightbulb:    { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Idea Notes" },
-  "pre-clarity":{ bg: "linear-gradient(180deg,#f6e3c0 0%,#e6c98c 100%)", edge: "#9a7128", tape: "rgba(120,80,30,0.55)", chip: "#f7e6c2", label: "Info Gathered" },
-  clarity:      { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Clarity" },
-  market:       { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
-  design:       { bg: "linear-gradient(180deg,#dfe5fb 0%,#b8c4f0 100%)", edge: "#4f5fa3", tape: "rgba(40,40,90,0.5)",   chip: "#e3e8fb", label: "Design" },
-  money:        { bg: "linear-gradient(180deg,#d6efd6 0%,#a8d8a8 100%)", edge: "#3f7a3f", tape: "rgba(30,80,30,0.55)",  chip: "#dcefdc", label: "Money" },
-  risks:        { bg: "linear-gradient(180deg,#fbd2cf 0%,#f0a39c 100%)", edge: "#9c3a32", tape: "rgba(100,30,20,0.55)", chip: "#fcdad6", label: "Risks" },
-  build:        { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Build Plan" },
-  ready:        { bg: "linear-gradient(180deg,#d2efe6 0%,#9ed6c1 100%)", edge: "#317a64", tape: "rgba(20,80,60,0.55)",  chip: "#dbf2e9", label: "Ready" },
-  mixed:        { bg: "linear-gradient(180deg,#f0e6d4 0%,#d7c5a0 100%)", edge: "#7a6238", tape: "rgba(80,60,20,0.55)",  chip: "#efe4c8", label: "Mixed" },
+  "core-idea": { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Core Idea" },
+  problem:     { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Problem" },
+  audience:    { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
+  features:    { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Features" },
+  workflow:    { bg: "linear-gradient(180deg,#cfeaf0 0%,#9bcfd9 100%)", edge: "#34788a", tape: "rgba(20,70,90,0.55)",  chip: "#ddeef2", label: "Workflow" },
+  design:      { bg: "linear-gradient(180deg,#dfe5fb 0%,#b8c4f0 100%)", edge: "#4f5fa3", tape: "rgba(40,40,90,0.5)",   chip: "#e3e8fb", label: "Design / UX" },
+  business:    { bg: "linear-gradient(180deg,#d6efd6 0%,#a8d8a8 100%)", edge: "#3f7a3f", tape: "rgba(30,80,30,0.55)",  chip: "#dcefdc", label: "Business" },
+  concerns:    { bg: "linear-gradient(180deg,#fbd2cf 0%,#f0a39c 100%)", edge: "#9c3a32", tape: "rgba(100,30,20,0.55)", chip: "#fcdad6", label: "Concerns" },
+  mixed:       { bg: "linear-gradient(180deg,#f0e6d4 0%,#d7c5a0 100%)", edge: "#7a6238", tape: "rgba(80,60,20,0.55)",  chip: "#efe4c8", label: "Mixed" },
 };
 
 const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
-  lightbulb:    [/\bidea\b/i, /\bspark\b/i, /\bthought\b/i],
-  "pre-clarity":[/https?:\/\//i, /\blink\b/i, /\barticle\b/i, /\bsource\b/i, /\bfound\b/i, /\breference\b/i],
-  clarity:      [/\bconfus/i, /\bunclear\b/i, /\bdecide\b/i, /\bstill\b/i, /\bmissing\b/i, /\bnot sure\b/i],
-  market:       [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bpeople\b/i, /\bneighbor/i, /\bcommunit/i],
-  design:       [/\bdesign\b/i, /\blook\b/i, /\bfeel\b/i, /\bui\b/i, /\bcolor\b/i, /\bstyle\b/i, /\blayout\b/i],
-  money:        [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bdonat/i, /\$\d/],
-  risks:        [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bwrong\b/i, /\bfail/i, /\bhard\b/i, /\btheft\b/i, /\bdamage\b/i],
-  build:        [/\bbuild\b/i, /\bstep\b/i, /\bprototype\b/i, /\btest\b/i, /\bmake\b/i, /\bplan\b/i],
-  ready:        [/\bready\b/i, /\blaunch\b/i, /\bship\b/i, /\bgreenlight\b/i, /\bgo live\b/i],
+  "core-idea": [/\bidea\b/i, /\bapp\b/i, /\btool\b/i, /\bplatform\b/i, /\bproduct\b/i, /\bpurpose\b/i, /\bsummary\b/i],
+  problem:     [/\bproblem\b/i, /\bpain\b/i, /\bneed\b/i, /\bstruggle\b/i, /\bopportunit/i, /\bbecause\b/i, /\bfrustrat/i],
+  audience:    [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bbuyer/i, /\bpeople\b/i, /\bmanager\b/i, /\bcrew\b/i, /\bworker\b/i, /\bemployee\b/i, /\bteam\b/i, /\bowner\b/i],
+  features:    [/\bfeature/i, /\bfunction\b/i, /\bscreen\b/i, /\bbutton\b/i, /\bform\b/i, /\baction\b/i, /\bcapabilit/i, /\bability\b/i, /\bsupport/i, /\bnotif/i],
+  workflow:    [/\bworkflow\b/i, /\bstep\b/i, /\bprocess\b/i, /\bflow\b/i, /\bschedul/i, /\bassign/i, /\bpipeline\b/i, /\bhandoff\b/i, /\bsequence\b/i],
+  design:      [/\bdesign\b/i, /\blayout\b/i, /\bui\b/i, /\bux\b/i, /\blook\b/i, /\bfeel\b/i, /\bcolor\b/i, /\bstyle\b/i, /\binteraction\b/i, /\busabilit/i],
+  business:    [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bsubscri/i, /\bbusiness model\b/i, /\$\d/],
+  concerns:    [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bavoid\b/i, /\bfail/i, /\blegal\b/i, /\bprivacy\b/i, /\bvalidate\b/i, /\bwatch\b/i],
 };
 
 function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
@@ -133,7 +124,8 @@ function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
   for (const [k, regs] of Object.entries(CATEGORY_KEYWORDS) as [CategoryKey, RegExp[]][]) {
     if (regs.some((r) => r.test(text))) found.add(k);
   }
-  if (found.size === 0) found.add(kind === "info-gathered" ? "pre-clarity" : "lightbulb");
+  if (found.size === 0) found.add("core-idea");
+  void kind;
   return Array.from(found);
 }
 
@@ -240,17 +232,16 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   },
 ];
 
-// Premade Clarity questions per category — used when a user clicks a category book
+// Premade Clarity questions per category — used when a user clicks a category folder
 const CATEGORY_QUESTIONS: Record<CategoryKey, string> = {
-  lightbulb: "What loose thought, reminder, or example should we save for this idea?",
-  "pre-clarity": "What fact, link, example, or background detail would help explain this idea better?",
-  clarity: "What part of this idea still feels unclear or undecided?",
-  market: "Who is this idea mainly for, and what problem does it help them solve?",
-  design: "How should this idea look, feel, or behave so people understand it quickly?",
-  money: "How could this idea make money, save money, or become worth paying for?",
-  risks: "What could go wrong, what might be hard, or what needs protection?",
-  build: "What is the first small step to build, test, or prove this idea?",
-  ready: "What would need to be true before this idea is ready for the next stage?",
+  "core-idea": "In one line, what is this project and what's its main purpose?",
+  problem: "What pain point, need, or opportunity makes this worth building?",
+  audience: "Who exactly is this for — which users, buyers, or roles?",
+  features: "What tools, screens, or actions does this need to do its job?",
+  workflow: "How does someone move through this step by step?",
+  design: "How should this look, feel, and behave so it's easy to use?",
+  business: "How does this make money or become worth paying for?",
+  concerns: "What should we watch out for, validate, or revisit later?",
 };
 
 const IDEA_TYPE_OPTIONS = [
@@ -346,31 +337,29 @@ function generateTitle(text: string, ideaType?: string): string {
 // (a sentence can land in multiple folders). Empty folders get a
 // "Missing…" prompt instead of fabricated content.
 const CATEGORY_ORDER: CategoryKey[] = [
-  "lightbulb", "clarity", "market", "build", "design", "risks", "money", "ready", "pre-clarity",
+  "core-idea", "problem", "audience", "features", "workflow", "design", "business", "concerns",
 ];
 
 const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
-  lightbulb:     /\b(app|tool|platform|system|idea|concept|wants? (?:an?|to)|build(?:s|ing)? (?:an?|the)|create|main purpose|summary)\b/i,
-  clarity:       /\b(problem|solve[sd]?|unclear|uncertain|decid|defin|still needs?|not sure|figure out|sort out|undecided|main goal|trying to)\b/i,
-  market:        /\b(manager|crew|worker|employee|user|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona)\b/i,
-  build:         /\b(feature|workflow|schedul|screen|step|data|field|input|output|function|ability|support|allow|track|assign|notif|integrat|api|database|backend|jobsite|hours|availab|skill|pickup|recommend|backup|action|button|form)\b/i,
-  design:        /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|simple|clean|practical|tone)\b/i,
-  money:         /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value)\b/i,
-  risks:         /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|not\s+(?:payroll|timeclock|hr|route|autonomous))\b/i,
-  ready:         /\b(ready|already decided|confirmed|solid|locked|agreed|launch|greenlight|next step|set in stone|good to go)\b/i,
-  "pre-clarity": /(\?\s*$)|\b(unknown|missing|tbd|need to know|need to define|next question|open question|still need)\b/i,
+  "core-idea": /\b(app|tool|platform|system|idea|concept|product|project|wants? (?:an?|to)|build(?:s|ing)? (?:an?|the)|create|main purpose|summary|core)\b/i,
+  problem:     /\b(problem|pain|need|opportunity|solve[sd]?|struggle|frustrat|because|hours|spend|waste|inefficien|gap|missing)\b/i,
+  audience:    /\b(manager|crew|worker|employee|user|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target)\b/i,
+  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support|allow|track|notif|integrat|api|tool)\b/i,
+  workflow:    /\b(workflow|process|step|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|moves? (?:to|through))\b/i,
+  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone)\b/i,
+  business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin)\b/i,
+  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|watch|validate|fix later)\b/i,
 };
 
 const CATEGORY_MISSING: Record<CategoryKey, string> = {
-  lightbulb:     "Missing: a one-line summary of the core idea.",
-  clarity:       "Missing: the main problem this solves and the next decision to make.",
-  market:        "Missing: who exactly this is for and the pain it removes for them.",
-  build:         "Missing: features, workflow steps, screens, and the data this needs.",
-  design:        "Missing: layout, key screens, and interaction style.",
-  money:         "Missing: pricing, first buyer, and business model.",
-  risks:         "Missing: scope boundaries and things this should not try to do.",
-  ready:         "Missing: what is already decided and ready to move forward.",
-  "pre-clarity": "Next question: what important detail still needs an answer?",
+  "core-idea": "Missing: a one-line summary of what this is and its main purpose.",
+  problem:     "Missing: the pain point, need, or opportunity this exists to address.",
+  audience:    "Missing: who exactly this is for and the role they play.",
+  features:    "Missing: tools, screens, actions, and capabilities this needs.",
+  workflow:    "Missing: how the process moves from step to step.",
+  design:      "Missing: layout, visual feel, and interaction style.",
+  business:    "Missing: pricing, buyer logic, and revenue model.",
+  concerns:    "Missing: things to watch, validate, or revisit later.",
 };
 
 function splitSentences(text: string): string[] {
@@ -384,10 +373,10 @@ function splitSentences(text: string): string[] {
 function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> {
   const sentences = splitSentences(text);
   const out: Record<CategoryKey, string[]> = {
-    lightbulb: [], "pre-clarity": [], clarity: [], market: [],
-    design: [], money: [], risks: [], build: [], ready: [],
+    "core-idea": [], problem: [], audience: [], features: [],
+    workflow: [], design: [], business: [], concerns: [],
   };
-  if (sentences[0]) out.lightbulb.push(sentences[0]);
+  if (sentences[0]) out["core-idea"].push(sentences[0]);
   for (const s of sentences) {
     for (const [k, re] of Object.entries(CAT_PATTERNS) as [CategoryKey, RegExp][]) {
       if (re.test(s) && !out[k].includes(s)) out[k].push(s);
@@ -405,17 +394,18 @@ function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
       : CATEGORY_MISSING[cat];
     return {
       id: `post-${ts}-${cat}`,
-      kind: cat === "pre-clarity" ? "info-gathered" : "idea-notes",
+      kind: "idea-notes",
       text: postItCategoryPalette[cat].label,
       fullText:
-        cat === "lightbulb"
-          ? `${body}\n\n— Original prompt —\n${text}`
+        cat === "core-idea"
+          ? `${body}\n\n— Source Notes —\n${text}`
           : body,
       ts: ts - i,
       categories: [cat],
     };
   });
 }
+
 
 function lightbulbSummaryFrom(text: string): string {
   const first = splitSentences(text)[0] ?? text.trim();
@@ -455,7 +445,7 @@ function Dashboard() {
   const [selectedId, setSelectedId] = useState<string>(seedIdeas[0]?.id ?? "");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
   const [activeCategory, setActiveCategory] =
-    useState<CategoryKey>("lightbulb");
+    useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -635,7 +625,7 @@ function Dashboard() {
     };
     setIdeas((prev) => [fresh, ...prev]);
     setSelectedId(id);
-    setActiveCategory("lightbulb");
+    setActiveCategory("core-idea");
   };
 
   const moveToPreClarity = (id: string) => {
@@ -653,7 +643,7 @@ function Dashboard() {
       ),
     );
     setSelectedId(id);
-    setActiveCategory("pre-clarity");
+    setActiveCategory("core-idea");
   };
 
   const getCategoryValue = (key: CategoryKey): string => {
@@ -662,28 +652,15 @@ function Dashboard() {
       .filter((p) => p.kind === "idea-notes")
       .map((p) => p.text)
       .join("\n");
-    const infoPosts = selectedExtras.posts
-      .filter((p) => p.kind === "info-gathered")
-      .map((p) => p.text)
-      .join("\n");
-    const attachBlob = selectedExtras.attachments.map((a) => a.label).join("\n");
-    if (key === "lightbulb")
+    if (key === "core-idea")
       return [selected.messy, ideaPosts].filter(Boolean).join("\n");
-    if (key === "pre-clarity")
-      return [
-        selectedExtras.notes["pre-clarity"] ?? formatSignals(selected),
-        infoPosts,
-        attachBlob,
-      ]
-        .filter(Boolean)
-        .join("\n");
     return selectedExtras.notes[key] ?? "";
   };
 
 
   const setCategoryValue = (key: CategoryKey, value: string) => {
     if (!selected) return;
-    if (key === "lightbulb") updateSelected({ messy: value });
+    if (key === "core-idea") updateSelected({ messy: value });
     else updateExtras({ notes: { [key]: value } });
   };
 
@@ -3124,7 +3101,7 @@ function NoteDesk(props: {
               ts={selected.updatedAt}
               hue={0}
               pinned
-              categories={["lightbulb"]}
+              categories={["core-idea"]}
             />
           )}
           {extras.posts.map((p, i) => {
@@ -3309,7 +3286,8 @@ function PostItCard({
   pct?: number;
 }) {
   const [open, setOpen] = useState(false);
-  const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
+  const fallback: CategoryKey = "core-idea";
+  void kind;
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
   // earthy paper: warm grain + subtle fiber flecks layered over the palette color
