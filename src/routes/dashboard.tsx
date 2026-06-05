@@ -248,6 +248,11 @@ function Dashboard() {
     });
   };
 
+  const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
+    const answered = new Set(selectedExtras.answeredQuestions);
+    return CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
+  }, [selectedExtras.answeredQuestions]);
+
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
     const p: PostIt = {
@@ -257,12 +262,32 @@ function Dashboard() {
       ts: Date.now(),
     };
     const nextPosts = [p, ...selectedExtras.posts];
-    updateExtras({ posts: nextPosts });
-    // bump idea readiness a little for each captured thought
+    const answeredCurrent = detectAnswered(p.text, currentQuestion);
+    updateExtras({
+      posts: nextPosts,
+      answeredQuestions:
+        answeredCurrent && currentQuestion
+          ? [...selectedExtras.answeredQuestions, currentQuestion.id]
+          : selectedExtras.answeredQuestions,
+    });
     updateSelected({
-      shelfReadiness: Math.min(100, selected.shelfReadiness + 4),
+      shelfReadiness: Math.min(
+        100,
+        selected.shelfReadiness + (answeredCurrent ? 7 : 4),
+      ),
     });
   };
+
+  const skipClarityQuestion = () => {
+    if (!selected || !currentQuestion) return;
+    updateExtras({
+      answeredQuestions: [
+        ...selectedExtras.answeredQuestions,
+        currentQuestion.id,
+      ],
+    });
+  };
+
 
 
   const addIdea = () => {
