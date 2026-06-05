@@ -610,19 +610,13 @@ function Dashboard() {
             updateSelected={updateSelected}
             moveToPreClarity={moveToPreClarity}
             fileInputRef={fileInputRef}
+            currentQuestion={currentQuestion}
+            answeredCount={selectedExtras.answeredQuestions.length}
+            totalQuestions={CLARITY_QUESTIONS.length}
+            onSkipClarityQuestion={skipClarityQuestion}
           />
         )}
       </div>
-
-
-      {/* Clarity guide presence */}
-      <ClarityGuide
-        selected={selected}
-        currentQuestion={currentQuestion}
-        answeredCount={selectedExtras.answeredQuestions.length}
-        totalQuestions={CLARITY_QUESTIONS.length}
-        onSkip={skipClarityQuestion}
-      />
 
       {/* floor shadow */}
       <div
@@ -1887,15 +1881,14 @@ function ClarityGuide({
   return (
     <div
       className={[
-        "pointer-events-none fixed z-30",
-        // Always sit just above the composer on the right
-        "right-3 bottom-[148px] sm:bottom-[160px] lg:right-6 lg:bottom-[140px]",
+        "pointer-events-none absolute z-30",
+        "right-2 bottom-[calc(100%-8px)] sm:right-3 lg:right-3",
       ].join(" ")}
     >
       <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
         {open && !minimized ? (
           <div
-            className="relative w-[min(78vw,18rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:w-72"
+            className="relative w-[min(76vw,18rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:w-72"
             style={{
               background:
                 "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
@@ -1938,9 +1931,9 @@ function ClarityGuide({
             {/* Desktop tail — points down-right toward the squirrel */}
             <div
               aria-hidden
-              className="absolute hidden lg:block"
+              className="absolute"
               style={{
-                right: "1.75rem",
+                right: "1rem",
                 bottom: "-10px",
                 width: 0,
                 height: 0,
@@ -1949,12 +1942,6 @@ function ClarityGuide({
                 borderTop: "16px solid #f0dca5",
                 filter: "drop-shadow(0 1px 0 rgba(60,30,8,0.5))",
               }}
-            />
-            {/* Mobile tail — straight down */}
-            <div
-              aria-hidden
-              className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-b border-r border-amber-950/60 lg:hidden"
-              style={{ background: "#f0dca5" }}
             />
           </div>
         ) : (
@@ -2018,6 +2005,10 @@ function NoteDesk(props: {
   updateSelected: (p: Partial<LightbulbIdea>) => void;
   moveToPreClarity: (id: string) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
+  currentQuestion: ClarityQuestion | undefined;
+  answeredCount: number;
+  totalQuestions: number;
+  onSkipClarityQuestion: () => void;
 }) {
   const {
     selected,
@@ -2027,6 +2018,10 @@ function NoteDesk(props: {
     updateSelected,
     moveToPreClarity,
     fileInputRef,
+    currentQuestion,
+    answeredCount,
+    totalQuestions,
+    onSkipClarityQuestion,
   } = props;
 
   const [draft, setDraft] = useState("");
@@ -2137,6 +2132,13 @@ function NoteDesk(props: {
         >
           {/* wood tray under the parchment */}
           <div className="relative">
+            <ClarityGuide
+              selected={selected}
+              currentQuestion={currentQuestion}
+              answeredCount={answeredCount}
+              totalQuestions={totalQuestions}
+              onSkip={onSkipClarityQuestion}
+            />
             <div
               aria-hidden
               className="pointer-events-none absolute -inset-x-2 -inset-y-1 rounded-[14px]"
