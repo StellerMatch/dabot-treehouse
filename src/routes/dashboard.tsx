@@ -1328,33 +1328,37 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
         />
 
         {/* engraved content: big percent + label */}
-        <span className="relative z-10 flex w-full items-center justify-between gap-3 px-4">
-          <span
-            className="font-serif text-[28px] font-bold leading-none tracking-tight"
-            style={{
-              color: "#ffe9a3",
-              textShadow:
-                "0 1px 0 rgba(0,0,0,0.8), 0 0 14px rgba(255,210,120,0.7), 0 0 2px rgba(255,240,180,0.9)",
-            }}
-          >
-            {fillPct}%
-          </span>
-          <span className="flex flex-col items-end">
+        <span className="relative z-10 flex w-full items-baseline justify-between gap-3 px-4 pb-1">
+          <span className="flex items-baseline gap-1.5">
             <span
-              className="font-serif text-[11px] font-semibold uppercase tracking-[0.25em]"
+              className="font-serif font-bold leading-none tracking-tight"
               style={{
-                color: "#fbe6b8",
-                textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+                fontSize: 40,
+                color: "#ffe9a3",
+                textShadow:
+                  "0 1px 0 rgba(0,0,0,0.85), 0 0 16px rgba(255,210,120,0.85), 0 0 3px rgba(255,240,180,0.95)",
               }}
             >
-              Idea Progress
+              {fillPct}%
             </span>
             <span
-              className="font-serif text-[10px] italic"
-              style={{ color: "rgba(251,230,184,0.75)" }}
+              className="font-serif text-[13px] font-semibold uppercase tracking-[0.18em]"
+              style={{
+                color: "#ffe9a3",
+                textShadow: "0 1px 0 rgba(0,0,0,0.8), 0 0 6px rgba(255,200,110,0.6)",
+              }}
             >
-              {fillPct >= 90 ? "Ready" : fillPct >= 50 ? "Growing" : fillPct > 0 ? "Started" : "Empty"}
+              Ready
             </span>
+          </span>
+          <span
+            className="font-serif text-[10px] font-semibold uppercase tracking-[0.25em]"
+            style={{
+              color: "rgba(251,230,184,0.85)",
+              textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+            }}
+          >
+            Idea Progress
           </span>
         </span>
       </span>
