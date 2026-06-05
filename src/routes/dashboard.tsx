@@ -295,13 +295,104 @@ function categoryStatus(value: string | undefined) {
 }
 
 
-// suggested idea seeds based on a creator field
-const suggestedSeeds = [
-  { id: "seed-1", title: "Kids' bedtime story app" },
-  { id: "seed-2", title: "Local skill swap board" },
-  { id: "seed-3", title: "Plant care reminder game" },
-  { id: "seed-4", title: "Neighborhood pet help loop" },
+// ——— Title generator ———
+const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
+  { match: /\b(construction|jobsite|job site|crew|contractor)\b/i, name: "Construction Crew" },
+  { match: /\brecipe|cook|kitchen\b/i, name: "Family Recipe" },
+  { match: /\bpet|dog|cat\b/i, name: "Pet Care" },
+  { match: /\bplant|garden\b/i, name: "Garden" },
+  { match: /\bworkout|fitness|gym\b/i, name: "Fitness" },
+  { match: /\bclassroom|teacher|student|school\b/i, name: "Classroom" },
+  { match: /\bstory|bedtime\b/i, name: "Storybook" },
+  { match: /\bneighborhood|community\b/i, name: "Neighborhood" },
 ];
+const TITLE_SUFFIXES: Array<{ match: RegExp; name: string }> = [
+  { match: /\bschedul/i, name: "Scheduler" },
+  { match: /\b(plan|planning)\b/i, name: "Planner" },
+  { match: /\btrack/i, name: "Tracker" },
+  { match: /\breminder/i, name: "Reminders" },
+  { match: /\bjournal|diary\b/i, name: "Journal" },
+  { match: /\bboard\b/i, name: "Board" },
+  { match: /\bapp\b/i, name: "App" },
+  { match: /\btool\b/i, name: "Tool" },
+];
+function titleCase(s: string) {
+  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+function generateTitle(text: string, ideaType?: string): string {
+  const t = text.trim();
+  if (!t) return "Untitled Idea";
+  const domain = TITLE_DOMAINS.find((d) => d.match.test(t))?.name;
+  const suffix =
+    TITLE_SUFFIXES.find((p) => p.match.test(t))?.name ??
+    (ideaType && ideaType !== "Undecided" ? ideaType : "App");
+  if (domain) return `${domain} ${suffix}`;
+  const stop = new Set([
+    "a","an","the","to","for","of","and","or","with","this","that","want","wants","need","needs",
+    "i","we","you","they","it","is","are","my","new","app","tool","build","make","using","help","helps",
+  ]);
+  const firstSentence = t.split(/[.!?]/)[0] ?? t;
+  const words = firstSentence
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !stop.has(w.toLowerCase()))
+    .slice(0, 3)
+    .join(" ");
+  return titleCase(`${words || "New"} ${suffix}`);
+}
+
+// ——— Idea analyzer: split a first idea into category-tagged summaries ———
+const ANALYZE_RULES: Array<[CategoryKey, RegExp]> = [
+  ["risks", /\b(not\s+(payroll|timeclock|hr|route|autonomous)|guardrail|avoid|should\s+not|risk|worry|concern|protect|privacy|theft|damage|fail|hard)\b/i],
+  ["money", /\b(price|pricing|paid|subscri|revenue|cost|charge|free|\$\d)\b/i],
+  ["market", /\b(manager|worker|employee|crew|supervisor|customer|user|audience|kids?|parent|team|owner|field team|operator)\b/i],
+  ["design", /\b(draft|published|board|ui|ux|interface|clean|simple|practical|look|feel|easy|control|notification|updates? to (employees|workers))\b/i],
+  ["build", /\b(schedule|address|skill|availability|hours?|notif|recommend|backup|workflow|feature|version|input|enter|pickup|jobsite|build|prototype|step|plan)\b/i],
+  ["clarity", /\b(helps?|so that|because|why|first version|smallest|the idea|the app|the tool)\b/i],
+];
+function summarizeSentences(sents: string[], maxLen = 160): string {
+  if (!sents.length) return "";
+  const joined = sents.join(" ").replace(/\s+/g, " ").trim();
+  if (joined.length <= maxLen) return joined;
+  return joined.slice(0, maxLen - 1).replace(/\s+\S*$/, "") + "…";
+}
+function analyzeIdea(text: string): {
+  buckets: Partial<Record<CategoryKey, string[]>>;
+  summaries: Array<{ category: CategoryKey; summary: string }>;
+  answered: string[];
+} {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  const sentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3);
+  const buckets: Partial<Record<CategoryKey, string[]>> = {};
+  for (const s of sentences) {
+    let added = false;
+    for (const [cat, re] of ANALYZE_RULES) {
+      if (re.test(s)) {
+        (buckets[cat] ||= []).push(s);
+        added = true;
+      }
+    }
+    if (!added) (buckets["lightbulb"] ||= []).push(s);
+  }
+  // Always keep a lightbulb summary of the whole idea
+  if (!buckets["lightbulb"] || buckets["lightbulb"].length === 0) {
+    buckets["lightbulb"] = [sentences[0] ?? cleaned];
+  }
+  const order: CategoryKey[] = ["lightbulb", "clarity", "market", "build", "design", "money", "risks"];
+  const summaries = order
+    .filter((k) => buckets[k] && buckets[k]!.length)
+    .map((k) => ({ category: k, summary: summarizeSentences(buckets[k]!) }));
+  // Mark stock Clarity questions answered when the source text plainly contains them
+  const lower = ` ${cleaned.toLowerCase()} `;
+  const answered = CLARITY_QUESTIONS.filter(
+    (q) => q.keywords.length && q.keywords.some((k) => lower.includes(k.toLowerCase())),
+  ).map((q) => q.id);
+  return { buckets, summaries, answered };
+}
+
+
 
 
 
