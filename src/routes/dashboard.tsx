@@ -298,59 +298,73 @@ function Dashboard() {
       <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
         {/* ============ LEFT BOOKSHELF WALL — My Ideas ============ */}
         <ShelfWall side="left" title="My Ideas" subtitle="Pull a book to open it">
-          {ideaShelves.map((row, rIdx) => (
-            <Shelf key={rIdx}>
-              {row.map((idea, idx) => (
-                <BookSpine
-                  key={idea.id}
-                  title={idea.title}
-                  meta={stageLabels[idea.stage]}
-                  active={idea.id === selected?.id}
-                  hue={rIdx * 3 + idx}
-                  onClick={() => setSelectedId(idea.id)}
-                />
-              ))}
-              {row.length < 3 &&
-                Array.from({ length: 3 - row.length }).map((_, i) => (
-                  <BookGhost key={`g-${i}`} />
+          {(() => {
+            const leftWidths = [60, 70, 90];
+            return (
+              <>
+                {ideaShelves.map((row, rIdx) => (
+                  <Shelf
+                    key={rIdx}
+                    widthPct={leftWidths[rIdx] ?? 90}
+                    align="left"
+                  >
+                    {row.map((idea, idx) => (
+                      <BookSpine
+                        key={idea.id}
+                        title={idea.title}
+                        meta={stageLabels[idea.stage]}
+                        active={idea.id === selected?.id}
+                        hue={rIdx * 3 + idx}
+                        onClick={() => setSelectedId(idea.id)}
+                      />
+                    ))}
+                    {row.length < 3 &&
+                      Array.from({ length: 3 - row.length }).map((_, i) => (
+                        <BookGhost key={`g-${i}`} />
+                      ))}
+                  </Shelf>
                 ))}
-            </Shelf>
-          ))}
 
-          {/* Suggested Seeds sub-section */}
-          <div className="relative px-2 pt-4">
-            <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
-              · Idea Sparks ·
-            </div>
-          </div>
-          <Shelf>
-            {suggestedSeeds.map((seed, i) => (
-              <BookSpine
-                key={seed.id}
-                title={seed.title}
-                meta="Spark"
-                active={false}
-                hue={i + 4}
-                onClick={() => {
-                  const id = `idea-${Date.now()}`;
-                  setIdeas((prev) => [
-                    {
-                      id,
-                      title: seed.title,
-                      messy: "",
-                      shelfReadiness: 5,
-                      updatedAt: Date.now(),
-                      stage: "lightbulb",
-                      nextAction: "Dump your messy idea",
-                    },
-                    ...prev,
-                  ]);
-                  setSelectedId(id);
-                  setActiveCategory("lightbulb");
-                }}
-              />
-            ))}
-          </Shelf>
+                {/* Suggested Seeds sub-section */}
+                <div className="relative px-2 pt-4">
+                  <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
+                    · Idea Sparks ·
+                  </div>
+                </div>
+                <Shelf
+                  widthPct={leftWidths[ideaShelves.length] ?? 90}
+                  align="left"
+                >
+                  {suggestedSeeds.map((seed, i) => (
+                    <BookSpine
+                      key={seed.id}
+                      title={seed.title}
+                      meta="Spark"
+                      active={false}
+                      hue={i + 4}
+                      onClick={() => {
+                        const id = `idea-${Date.now()}`;
+                        setIdeas((prev) => [
+                          {
+                            id,
+                            title: seed.title,
+                            messy: "",
+                            shelfReadiness: 5,
+                            updatedAt: Date.now(),
+                            stage: "lightbulb",
+                            nextAction: "Dump your messy idea",
+                          },
+                          ...prev,
+                        ]);
+                        setSelectedId(id);
+                        setActiveCategory("lightbulb");
+                      }}
+                    />
+                  ))}
+                </Shelf>
+              </>
+            );
+          })()}
 
           {/* tiny + new idea marker at the very bottom */}
           <div className="relative flex justify-center pt-2">
@@ -408,24 +422,31 @@ function Dashboard() {
               Open an idea to see its shelves.
             </div>
           ) : (
-            categoryShelves.map((row, rIdx) => (
-              <Shelf key={rIdx}>
-                {row.map((c) => {
-                  const status = categoryStatus(getCategoryValue(c.key));
-                  return (
-                    <CategoryBook
-                      key={c.key}
-                      label={c.label}
-                      hint={c.hint}
-                      pct={status.pct}
-                      statusLabel={status.label}
-                      active={activeCategory === c.key}
-                      onClick={() => setActiveCategory(c.key)}
-                    />
-                  );
-                })}
-              </Shelf>
-            ))
+            (() => {
+              const rightWidths = [60, 70, 85];
+              return categoryShelves.map((row, rIdx) => (
+                <Shelf
+                  key={rIdx}
+                  widthPct={rightWidths[rIdx] ?? 85}
+                  align="right"
+                >
+                  {row.map((c) => {
+                    const status = categoryStatus(getCategoryValue(c.key));
+                    return (
+                      <CategoryBook
+                        key={c.key}
+                        label={c.label}
+                        hint={c.hint}
+                        pct={status.pct}
+                        statusLabel={status.label}
+                        active={activeCategory === c.key}
+                        onClick={() => setActiveCategory(c.key)}
+                      />
+                    );
+                  })}
+                </Shelf>
+              ));
+            })()
           )}
         </ShelfWall>
       </div>
@@ -546,9 +567,22 @@ function Ivy({ side }: { side: "left" | "right" }) {
 }
 
 
-function Shelf({ children }: { children: React.ReactNode }) {
+function Shelf({
+  children,
+  widthPct = 100,
+  align = "center",
+}: {
+  children: React.ReactNode;
+  widthPct?: number;
+  align?: "left" | "right" | "center";
+}) {
+  const marginClass =
+    align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto";
   return (
-    <div className="relative">
+    <div
+      className={`relative ${marginClass}`}
+      style={{ width: `${widthPct}%` }}
+    >
       {/* books sitting on the plank */}
       <div className="flex items-end justify-center gap-1.5 px-2">
         {children}
