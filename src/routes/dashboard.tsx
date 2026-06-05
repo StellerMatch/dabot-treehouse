@@ -5,7 +5,8 @@ import {
   stageLabels,
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
-import libraryBg from "@/assets/dabottree-library.jpg";
+import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+const libraryBg = libraryBgAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 
 export const Route = createFileRoute("/dashboard")({
