@@ -659,7 +659,7 @@ function Dashboard() {
 
 
       {/* Header — laid-down book controls floating over the library scene */}
-      <header className="relative z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 pt-4 sm:px-6 sm:pt-5">
+      <header className="relative z-30 flex items-center justify-between gap-3 px-3 pt-4 sm:px-6 sm:pt-5">
         {/* LEFT: Logo + Progress book */}
         <div className="relative flex items-center gap-3">
           <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
@@ -676,35 +676,36 @@ function Dashboard() {
           />
         </div>
 
-        {/* CENTER: Avatar + My Library + New Idea */}
-        <div className="relative flex items-center justify-center gap-3">
-          <ProfileAvatarButton />
-          <LibraryPopover
-            ideas={ideas}
-            selectedId={selected?.id ?? ""}
-            onSelect={(id) => setSelectedId(id)}
-          />
-          <NewLightbulbPopover
-            onBlank={addIdea}
-            seeds={suggestedSeeds}
-            onSeed={(title) => {
-              const id = `idea-${Date.now()}`;
-              setIdeas((prev) => [
-                {
-                  id,
-                  title,
-                  messy: "",
-                  shelfReadiness: 5,
-                  updatedAt: Date.now(),
-                  stage: "lightbulb",
-                  nextAction: "Dump your messy idea",
-                },
-                ...prev,
-              ]);
-              setSelectedId(id);
-              setActiveCategory("lightbulb");
-            }}
-          />
+        {/* CENTER: My Library + New Idea — absolutely centered to the page */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-3">
+          <div className="pointer-events-auto flex items-center gap-3">
+            <LibraryPopover
+              ideas={ideas}
+              selectedId={selected?.id ?? ""}
+              onSelect={(id) => setSelectedId(id)}
+            />
+            <NewLightbulbPopover
+              onBlank={addIdea}
+              seeds={suggestedSeeds}
+              onSeed={(title) => {
+                const id = `idea-${Date.now()}`;
+                setIdeas((prev) => [
+                  {
+                    id,
+                    title,
+                    messy: "",
+                    shelfReadiness: 5,
+                    updatedAt: Date.now(),
+                    stage: "lightbulb",
+                    nextAction: "Dump your messy idea",
+                  },
+                  ...prev,
+                ]);
+                setSelectedId(id);
+                setActiveCategory("lightbulb");
+              }}
+            />
+          </div>
         </div>
 
         {/* RIGHT: Organize / Next Stage */}
@@ -716,6 +717,7 @@ function Dashboard() {
           />
         </div>
       </header>
+
 
       {/* Active idea bookplate — compact carved label, centered */}
       {selected && (
