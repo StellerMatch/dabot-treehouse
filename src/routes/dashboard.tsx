@@ -1054,6 +1054,7 @@ function ProgressPopover({
   getValue,
   activeCategory,
   setActiveCategory,
+  onAskCategory,
   overall,
 }: {
   disabled: boolean;
@@ -1061,6 +1062,7 @@ function ProgressPopover({
   getValue: (k: CategoryKey) => string;
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
+  onAskCategory: (k: CategoryKey) => void;
   overall: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -1091,7 +1093,7 @@ function ProgressPopover({
             Category Books
           </span>
           <span className="text-[10px] italic text-amber-900/70">
-            Fill each book by adding notes
+            Click a book to steer Clarity's question
           </span>
         </div>
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -1106,6 +1108,7 @@ function ProgressPopover({
                 active={activeCategory === c.key}
                 onClick={() => {
                   setActiveCategory(c.key);
+                  onAskCategory(c.key);
                   setOpen(false);
                 }}
               />
