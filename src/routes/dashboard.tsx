@@ -185,37 +185,57 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   {
     id: "problem",
     prompt: "What problem is this idea trying to solve?",
-    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because"],
+    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because", "hours", "faster than", "spend"],
   },
   {
     id: "who",
     prompt: "Who is this for? Picture one real person.",
-    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they"],
+    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they", "manager", "worker", "employee", "crew", "team", "owner", "supervisor"],
   },
   {
     id: "why-now",
     prompt: "Why does this matter to you right now?",
-    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care"],
+    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care", "wants", "needs"],
   },
   {
     id: "look-like",
     prompt: "If it existed today, what would it look or feel like?",
-    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual"],
+    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual", "board", "dashboard", "draft", "published"],
   },
   {
     id: "first-step",
     prompt: "What's one tiny first step you could take this week?",
-    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make"],
+    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make", "first version", "v1"],
   },
   {
-    id: "success",
-    prompt: "How would you know it's working? What's a small win?",
-    keywords: ["success", "win", "work", "know", "measure", "sign", "happy", "users"],
+    id: "first-paying-user",
+    prompt: "Who is the first paying user — a small construction company owner, office manager, field supervisor, or crew lead?",
+    keywords: [],
   },
   {
-    id: "obstacle",
-    prompt: "What feels in the way? Name one obstacle.",
-    keywords: ["block", "stuck", "hard", "scared", "afraid", "obstacle", "time", "money", "skill"],
+    id: "smallest-workflow",
+    prompt: "What's the smallest first workflow — one day's schedule, one week's schedule, or assigning workers to one jobsite?",
+    keywords: [],
+  },
+  {
+    id: "v1-fields",
+    prompt: "What employee information is required for version one, and what should be left out for now?",
+    keywords: [],
+  },
+  {
+    id: "auto-vs-suggest",
+    prompt: "What should the app recommend automatically, and what should only be a suggestion the manager approves?",
+    keywords: [],
+  },
+  {
+    id: "publish-channel",
+    prompt: "When a schedule is published, what does each employee receive — SMS, app notification, email, or a simple link?",
+    keywords: [],
+  },
+  {
+    id: "pickup-detail",
+    prompt: "What pickup coordination detail matters most first — who needs a ride, who can drive, the pickup location, or the timing?",
+    keywords: [],
   },
 ];
 
