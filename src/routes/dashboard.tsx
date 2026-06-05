@@ -441,25 +441,23 @@ function Dashboard() {
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
-      const analysis = analyzeIdea(draft);
+      const summaries = buildCategorySummaries(draft, draftType || undefined);
+      const answered = clarityAnsweredFrom(draft);
       const title = generateTitle(draft, draftType || undefined);
-      const lightbulbSummary =
-        analysis.summaries.find((s) => s.category === "lightbulb")?.summary ??
-        summarizeSentences([draft]);
       const ts = Date.now();
-      const posts: PostIt[] = analysis.summaries.map((s, i) => ({
+      const posts: PostIt[] = CATEGORY_ORDER.map((cat, i) => ({
         id: `post-${ts}-${i}`,
-        kind: "idea-notes",
-        text: s.summary,
-        fullText: s.category === "lightbulb" ? draft : undefined,
+        kind: cat === "pre-clarity" ? "info-gathered" : "idea-notes",
+        text: summaries[cat],
+        fullText: cat === "lightbulb" ? draft : undefined,
         ts: ts - i,
-        categories: [s.category],
+        categories: [cat],
       }));
       const newIdea: LightbulbIdea = {
         id,
         title,
-        messy: lightbulbSummary,
-        shelfReadiness: Math.min(60, 22 + analysis.summaries.length * 6),
+        messy: summaries.lightbulb,
+        shelfReadiness: 32,
         updatedAt: ts,
         stage: "lightbulb",
         nextAction: "Answer the next clarity question",
@@ -473,7 +471,7 @@ function Dashboard() {
           notes: {},
           attachments: [],
           posts,
-          answeredQuestions: analysis.answered,
+          answeredQuestions: answered,
           skippedQuestions: [],
         },
       }));
