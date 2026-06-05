@@ -801,202 +801,310 @@ function Journal(props: {
   } = props;
 
   const activeDef = categoryDefs.find((c) => c.key === activeCategory)!;
+  const value = getCategoryValue(activeCategory);
+
+  // Voice dictation
+  const [voiceState, setVoiceState] = React.useState<"idle" | "listening" | "processing">("idle");
+  const recognitionRef = React.useRef<any>(null);
+  const voiceSupported = React.useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  }, []);
+
+  const startVoice = React.useCallback(() => {
+    if (!voiceSupported) {
+      window.alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    let finalText = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      const base = value ? value.replace(/\s+$/, "") + " " : "";
+      setCategoryValue(activeCategory, base + finalText + interim);
+    };
+    rec.onerror = () => setVoiceState("idle");
+    rec.onend = () => {
+      setVoiceState((s) => (s === "listening" ? "processing" : s));
+      setTimeout(() => setVoiceState("idle"), 350);
+    };
+    recognitionRef.current = rec;
+    setVoiceState("listening");
+    try { rec.start(); } catch { setVoiceState("idle"); }
+  }, [voiceSupported, value, activeCategory, setCategoryValue]);
+
+  const stopVoice = React.useCallback(() => {
+    try { recognitionRef.current?.stop(); } catch {}
+    setVoiceState("processing");
+  }, []);
+
+  React.useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
 
   return (
-    <div className="relative mx-auto max-w-[520px]">
-      {/* warm desk pool of light behind the journal */}
+    <div className="relative mx-auto w-full max-w-[760px]">
+      {/* warm desk pool of light behind the desk */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-10 -z-10 rounded-[40%] opacity-80 blur-3xl"
+        className="pointer-events-none absolute -inset-x-16 -inset-y-8 -z-10 rounded-[40%] opacity-70 blur-3xl"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 35%, rgba(255,220,150,0.55), rgba(255,180,90,0.18) 55%, transparent 75%)",
+            "radial-gradient(ellipse at 50% 40%, rgba(255,220,150,0.55), rgba(255,180,90,0.15) 55%, transparent 75%)",
         }}
       />
-      {/* desk shadow under journal */}
+      {/* desk shadow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-x-10 -bottom-10 h-20 rounded-full opacity-80 blur-2xl"
-        style={{ background: "rgba(20,10,2,0.75)" }}
+        className="pointer-events-none absolute -inset-x-10 -bottom-6 h-12 rounded-full opacity-70 blur-2xl"
+        style={{ background: "rgba(20,10,2,0.7)" }}
       />
-      {/* wooden tray under the journal */}
+      {/* wooden writing tray under scroll */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-x-3 -bottom-2 h-5 rounded-sm"
+        className="pointer-events-none absolute -inset-x-4 -bottom-2 h-4 rounded-sm"
         style={{
-          background:
-            "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
-          boxShadow:
-            "0 8px 14px -6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,210,150,0.25)",
+          background: "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+          boxShadow: "0 6px 12px -6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,210,150,0.25)",
         }}
       />
-      {/* journal book */}
+
+      {/* open low journal / scroll */}
       <div
-        className="relative overflow-hidden rounded-[6px] border-2 border-amber-950/70 shadow-[0_30px_60px_-20px_rgba(20,8,2,0.85),0_0_0_1px_rgba(255,210,150,0.15)_inset]"
+        className="relative overflow-hidden rounded-[10px] border border-amber-950/70 shadow-[0_18px_40px_-18px_rgba(20,8,2,0.75)]"
         style={{
           background:
             "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%), radial-gradient(circle at 20% 10%, rgba(255,255,255,0.5), transparent 60%)",
           backgroundBlendMode: "overlay",
         }}
       >
-        {/* carved corner ornaments */}
         <CornerOrnament position="tl" />
         <CornerOrnament position="tr" />
         <CornerOrnament position="bl" />
         <CornerOrnament position="br" />
 
-        {/* leather binding edges */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-3"
-          style={{
-            background:
-              "linear-gradient(90deg, #3a1d08, #6b3f1a 60%, rgba(60,30,8,0))",
-            boxShadow: "inset -1px 0 0 rgba(255,210,150,0.2)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-3"
-          style={{
-            background:
-              "linear-gradient(270deg, #3a1d08, #6b3f1a 60%, rgba(60,30,8,0))",
-          }}
-        />
+        {/* leather edges left/right (thin) */}
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-2"
+          style={{ background: "linear-gradient(90deg, #3a1d08, rgba(60,30,8,0))" }} />
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-2"
+          style={{ background: "linear-gradient(270deg, #3a1d08, rgba(60,30,8,0))" }} />
         {/* parchment grain */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-30"
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-25"
           style={{
-            backgroundImage:
-              "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
             backgroundSize: "12px 12px",
-          }}
-        />
-        {/* deckle/torn page edges via subtle inset */}
-        <div className="relative px-7 py-6">
-          {/* top: title & stage */}
-          <div className="flex items-start justify-between gap-3 border-b border-amber-900/25 pb-4">
+          }} />
+
+        <div className="relative px-5 py-3">
+          {/* compact header row */}
+          <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <div className="font-serif text-[11px] uppercase tracking-[0.25em] text-amber-900/60">
-                Open Journal · Vol. {selected.id.slice(-3)}
+              <div className="font-serif text-[10px] uppercase tracking-[0.25em] text-amber-900/60">
+                Open Desk · {activeDef.label}
               </div>
               <input
                 value={selected.title}
                 onChange={(e) => updateSelected({ title: e.target.value })}
-                className="mt-1 w-full bg-transparent font-serif text-2xl font-semibold text-amber-950 focus:outline-none"
+                className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 focus:outline-none"
                 placeholder="Name this idea…"
               />
-              <div className="mt-1 flex flex-wrap items-center gap-2 font-serif text-xs italic text-amber-900/70">
-                <span className="rounded-sm border border-amber-900/30 bg-amber-200/60 px-2 py-0.5 not-italic uppercase tracking-wider text-amber-900">
-                  {stageLabels[selected.stage]}
-                </span>
-                <span>·</span>
-                <span>Updated {timeAgo(selected.updatedAt)}</span>
-                <span>·</span>
-                <span>Next: {selected.nextAction}</span>
-              </div>
             </div>
+            <span className="hidden shrink-0 rounded-sm border border-amber-900/30 bg-amber-200/60 px-2 py-0.5 font-serif text-[10px] uppercase tracking-wider text-amber-900 sm:inline">
+              {stageLabels[selected.stage]}
+            </span>
             {selected.stage === "lightbulb" && (
               <button
                 onClick={() => moveToPreClarity(selected.id)}
-                className="shrink-0 rounded-sm border border-emerald-900/60 px-3 py-2 font-serif text-xs font-medium text-emerald-50 shadow"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)",
-                }}
+                className="shrink-0 rounded-sm border border-emerald-900/60 px-3 py-1.5 font-serif text-[11px] font-medium text-emerald-50 shadow"
+                style={{ background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)" }}
               >
                 Organize This Idea →
               </button>
             )}
           </div>
 
-          {/* tiny breadcrumb — main switching lives on the right shelf */}
-          <div className="mt-2 font-serif text-[11px] italic text-amber-900/60">
-            Now working on: <span className="not-italic font-semibold text-amber-900">{activeDef.label}</span>
-          </div>
-
-
-          {/* writing area */}
-          <div className="mt-4">
-            <div className="flex items-baseline justify-between">
-              <h3 className="font-serif text-lg font-semibold text-amber-950">
-                {activeDef.label}
-              </h3>
-              <span className="font-serif text-xs italic text-amber-900/70">
-                {activeDef.hint}
+          {/* horizontal writing tray */}
+          <div className="mt-2 rounded-md border border-amber-900/25 bg-amber-50/60 p-2 shadow-inner">
+            <textarea
+              value={value}
+              onChange={(e) => setCategoryValue(activeCategory, e.target.value)}
+              rows={3}
+              placeholder={`Add a thought to ${activeDef.label.toLowerCase()}… type or tap the mic to speak.`}
+              className="block w-full resize-none bg-transparent px-1 font-serif text-[14px] leading-6 text-amber-950 placeholder:text-amber-900/40 focus:outline-none"
+            />
+            {/* tool row */}
+            <div className="mt-1 flex flex-wrap items-center justify-between gap-2 border-t border-amber-900/15 pt-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    files.forEach((f) => addAttachment("file", f.name));
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                />
+                <MicButton
+                  state={voiceState}
+                  onStart={startVoice}
+                  onStop={stopVoice}
+                  supported={voiceSupported}
+                />
+                <DeskIconButton
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach File / Photo"
+                  icon="📎"
+                  label="Attach"
+                />
+                <DeskIconButton
+                  onClick={() => {
+                    const url = window.prompt("Paste a link to attach");
+                    if (url) addAttachment("link", url);
+                  }}
+                  title="Add Link"
+                  icon="🔗"
+                  label="Link"
+                />
+                <DeskIconButton
+                  onClick={() => {
+                    const note = window.prompt("Quick note");
+                    if (note) addAttachment("note", note);
+                  }}
+                  title="Add Note"
+                  icon="📝"
+                  label="Note"
+                />
+              </div>
+              <span className="font-serif text-[10px] italic text-amber-900/60">
+                {voiceState === "listening"
+                  ? "Listening…"
+                  : voiceState === "processing"
+                    ? "Transcribing…"
+                    : activeDef.hint}
               </span>
             </div>
-            <textarea
-              value={getCategoryValue(activeCategory)}
-              onChange={(e) => setCategoryValue(activeCategory, e.target.value)}
-              rows={10}
-              placeholder="Write into the journal. Type, paste, ramble — every word grows the idea."
-              className="mt-3 w-full resize-none rounded-sm border-0 bg-transparent p-2 font-serif text-[15px] leading-7 text-amber-950 placeholder:text-amber-900/40 focus:outline-none"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(180deg, transparent 0 27px, rgba(120,72,20,0.18) 27px 28px)",
-                lineHeight: "28px",
-              }}
-            />
+          </div>
 
-            {/* desk tools */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  files.forEach((f) => addAttachment("file", f.name));
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-              />
-              <DeskButton
-                onClick={() => fileInputRef.current?.click()}
-                label="📎 Files / Photos"
-              />
-              <DeskButton
-                onClick={() => {
-                  const url = window.prompt("Paste a link to attach");
-                  if (url) addAttachment("link", url);
-                }}
-                label="🔗 Link"
-              />
-              <DeskButton
-                onClick={() => {
-                  const note = window.prompt("Quick note");
-                  if (note) addAttachment("note", note);
-                }}
-                label="📝 Note"
-              />
+          {extras.attachments.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="font-serif text-[10px] uppercase tracking-widest text-amber-900/60">
+                Pinned:
+              </span>
+              {extras.attachments.slice(0, 6).map((a) => (
+                <span
+                  key={a.id}
+                  className="inline-flex items-center gap-1 rounded-sm border border-amber-900/30 bg-amber-50 px-1.5 py-0.5 font-serif text-[10px] text-amber-900 shadow-sm"
+                >
+                  <span className="uppercase tracking-wider text-amber-700/80">{a.kind}</span>
+                  <span className="max-w-[140px] truncate">{a.label}</span>
+                </span>
+              ))}
+              {extras.attachments.length > 6 && (
+                <span className="font-serif text-[10px] text-amber-900/60">
+                  +{extras.attachments.length - 6} more
+                </span>
+              )}
             </div>
+          )}
 
-            {extras.attachments.length > 0 && (
-              <div className="mt-4 rounded-sm border border-amber-900/25 bg-amber-100/60 p-3">
-                <div className="font-serif text-[11px] uppercase tracking-widest text-amber-900/70">
-                  Pinned to this page
-                </div>
-                <ul className="mt-2 flex flex-wrap gap-2">
-                  {extras.attachments.map((a) => (
-                    <li
-                      key={a.id}
-                      className="flex items-center gap-1.5 rounded-sm border border-amber-900/30 bg-amber-50 px-2 py-1 font-serif text-[11px] text-amber-900 shadow-sm"
-                    >
-                      <span className="uppercase tracking-wider text-amber-700/80">
-                        {a.kind}
-                      </span>
-                      <span className="max-w-[220px] truncate">{a.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
+            Updated {timeAgo(selected.updatedAt)} · Next: {selected.nextAction}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function MicButton({
+  state,
+  onStart,
+  onStop,
+  supported,
+}: {
+  state: "idle" | "listening" | "processing";
+  onStart: () => void;
+  onStop: () => void;
+  supported: boolean;
+}) {
+  const listening = state === "listening";
+  const processing = state === "processing";
+  return (
+    <button
+      onClick={listening ? onStop : onStart}
+      disabled={processing || !supported}
+      title={
+        !supported
+          ? "Voice not supported in this browser"
+          : listening
+            ? "Stop recording"
+            : "Speak note"
+      }
+      className={
+        "relative inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-serif text-[11px] shadow-sm transition " +
+        (listening
+          ? "border-red-900/60 text-red-50"
+          : "border-amber-900/40 text-amber-950 hover:brightness-105")
+      }
+      style={{
+        background: listening
+          ? "linear-gradient(180deg, #d23a2a 0%, #8a1a10 100%)"
+          : "linear-gradient(180deg, #f3dca3 0%, #d8b06a 60%, #a87a2a 100%)",
+        opacity: !supported ? 0.5 : 1,
+      }}
+    >
+      {listening && (
+        <span
+          aria-hidden
+          className="absolute -inset-0.5 rounded-sm border border-red-400/70"
+          style={{ animation: "pulse 1.2s ease-in-out infinite" }}
+        />
+      )}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3" />
+        <path d="M5 11a7 7 0 0 0 14 0" />
+        <line x1="12" y1="18" x2="12" y2="22" />
+      </svg>
+      <span>
+        {listening ? "Stop" : processing ? "…" : "Speak Note"}
+      </span>
+      {listening && (
+        <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-red-200" style={{ animation: "pulse 0.9s ease-in-out infinite" }} />
+      )}
+    </button>
+  );
+}
+
+function DeskIconButton({
+  onClick,
+  title,
+  icon,
+  label,
+}: {
+  onClick: () => void;
+  title: string;
+  icon: string;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 px-2 py-1.5 font-serif text-[11px] text-amber-950 shadow-sm transition hover:brightness-105"
+      style={{ background: "linear-gradient(180deg, #f3dca3 0%, #d8b06a 60%, #a87a2a 100%)" }}
+    >
+      <span>{icon}</span>
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 
