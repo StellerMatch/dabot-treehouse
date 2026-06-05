@@ -282,6 +282,102 @@ function Dashboard() {
   // chunk categories into shelves of 3
   const categoryShelves = chunk(categoryDefs, 3);
 
+  const leftWidths = [60, 70, 90];
+  const rightWidths = [60, 70, 85];
+
+  const renderLeftShelfContent = () => (
+    <>
+      {ideaShelves.map((row, rIdx) => (
+        <Shelf key={rIdx} widthPct={leftWidths[rIdx] ?? 90} align="left">
+          {row.map((idea, idx) => (
+            <BookSpine
+              key={idea.id}
+              title={idea.title}
+              meta={stageLabels[idea.stage]}
+              active={idea.id === selected?.id}
+              hue={rIdx * 3 + idx}
+              onClick={() => setSelectedId(idea.id)}
+            />
+          ))}
+          {row.length < 3 &&
+            Array.from({ length: 3 - row.length }).map((_, i) => (
+              <BookGhost key={`g-${i}`} />
+            ))}
+        </Shelf>
+      ))}
+
+      <div className="relative px-2 pt-4">
+        <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
+          · Idea Sparks ·
+        </div>
+      </div>
+      <Shelf widthPct={leftWidths[ideaShelves.length] ?? 90} align="left">
+        {suggestedSeeds.map((seed, i) => (
+          <BookSpine
+            key={seed.id}
+            title={seed.title}
+            meta="Spark"
+            active={false}
+            hue={i + 4}
+            onClick={() => {
+              const id = `idea-${Date.now()}`;
+              setIdeas((prev) => [
+                {
+                  id,
+                  title: seed.title,
+                  messy: "",
+                  shelfReadiness: 5,
+                  updatedAt: Date.now(),
+                  stage: "lightbulb",
+                  nextAction: "Dump your messy idea",
+                },
+                ...prev,
+              ]);
+              setSelectedId(id);
+              setActiveCategory("lightbulb");
+            }}
+          />
+        ))}
+      </Shelf>
+
+      <div className="relative flex justify-center pt-2">
+        <button
+          onClick={addIdea}
+          title="Add a new idea book"
+          className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
+        >
+          <Plus className="h-3 w-3" /> New Idea
+        </button>
+      </div>
+    </>
+  );
+
+  const renderRightShelfContent = () =>
+    !selected ? (
+      <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
+        Open an idea to see its progress.
+      </div>
+    ) : (
+      categoryShelves.map((row, rIdx) => (
+        <Shelf key={rIdx} widthPct={rightWidths[rIdx] ?? 85} align="right">
+          {row.map((c) => {
+            const status = categoryStatus(getCategoryValue(c.key));
+            return (
+              <CategoryBook
+                key={c.key}
+                label={c.label}
+                hint={c.hint}
+                pct={status.pct}
+                statusLabel={status.label}
+                active={activeCategory === c.key}
+                onClick={() => setActiveCategory(c.key)}
+              />
+            );
+          })}
+        </Shelf>
+      ))
+    );
+
   return (
     <main
       className="relative flex w-screen flex-col text-amber-950"
@@ -293,7 +389,6 @@ function Dashboard() {
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
-      {/* gentle sun wash — keep background visible */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-20"
@@ -302,8 +397,6 @@ function Dashboard() {
             "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,225,160,0.35), transparent 70%), linear-gradient(180deg, rgba(60,30,8,0.05), rgba(40,18,2,0.15))",
         }}
       />
-
-      {/* floating dust motes */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 opacity-40"
@@ -317,13 +410,38 @@ function Dashboard() {
 
       {/* Header — carved wood beam */}
       <header
-        className="relative flex items-center justify-between px-5 py-3 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)]"
+        className="relative flex items-center justify-between gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-3"
         style={{
           background:
             "linear-gradient(180deg, #3b1f0a 0%, #5a3210 60%, #3b1f0a 100%)",
         }}
       >
         <WoodGrain />
+
+        {/* Mobile: Ideas drawer */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
+              aria-label="Open Ideas"
+            >
+              <Menu className="h-4 w-4" />
+              <span>Ideas</span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
+            style={{
+              background:
+                "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+            }}
+          >
+            <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
+              <SheetTitle className="font-serif text-amber-100">My Ideas</SheetTitle>
+            </SheetHeader>
+            <div className="space-y-6 px-2 py-4">{renderLeftShelfContent()}</div>
+          </SheetContent>
+        </Sheet>
+
         <div className="relative flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="DaBotTree" className="h-7 w-7 object-contain" />
@@ -336,110 +454,61 @@ function Dashboard() {
             Creator Library
           </span>
         </div>
+
         <div className="relative flex items-center gap-2 text-xs">
           <Link
             to="/"
-            className="rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60"
+            className="hidden rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60 sm:inline-block"
           >
             Doorway
           </Link>
           <Link
             to="/signin"
-            className="rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200"
+            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
           >
             Account
           </Link>
+
+          {/* Mobile: Progress drawer */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
+                aria-label="Open Progress"
+              >
+                <BookOpen className="h-4 w-4" />
+                <span>Progress</span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+              }}
+            >
+              <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
+                <SheetTitle className="font-serif text-amber-100">Idea Progress</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-6 px-2 py-4">{renderRightShelfContent()}</div>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 
       {/* Three-column tree-library interior */}
-      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
-        {/* ============ LEFT BOOKSHELF WALL — My Ideas ============ */}
-        <ShelfWall side="left" title="My Ideas" subtitle="Pull a book to open it">
-          {(() => {
-            const leftWidths = [60, 70, 90];
-            return (
-              <>
-                {ideaShelves.map((row, rIdx) => (
-                  <Shelf
-                    key={rIdx}
-                    widthPct={leftWidths[rIdx] ?? 90}
-                    align="left"
-                  >
-                    {row.map((idea, idx) => (
-                      <BookSpine
-                        key={idea.id}
-                        title={idea.title}
-                        meta={stageLabels[idea.stage]}
-                        active={idea.id === selected?.id}
-                        hue={rIdx * 3 + idx}
-                        onClick={() => setSelectedId(idea.id)}
-                      />
-                    ))}
-                    {row.length < 3 &&
-                      Array.from({ length: 3 - row.length }).map((_, i) => (
-                        <BookGhost key={`g-${i}`} />
-                      ))}
-                  </Shelf>
-                ))}
-
-                {/* Suggested Seeds sub-section */}
-                <div className="relative px-2 pt-4">
-                  <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
-                    · Idea Sparks ·
-                  </div>
-                </div>
-                <Shelf
-                  widthPct={leftWidths[ideaShelves.length] ?? 90}
-                  align="left"
-                >
-                  {suggestedSeeds.map((seed, i) => (
-                    <BookSpine
-                      key={seed.id}
-                      title={seed.title}
-                      meta="Spark"
-                      active={false}
-                      hue={i + 4}
-                      onClick={() => {
-                        const id = `idea-${Date.now()}`;
-                        setIdeas((prev) => [
-                          {
-                            id,
-                            title: seed.title,
-                            messy: "",
-                            shelfReadiness: 5,
-                            updatedAt: Date.now(),
-                            stage: "lightbulb",
-                            nextAction: "Dump your messy idea",
-                          },
-                          ...prev,
-                        ]);
-                        setSelectedId(id);
-                        setActiveCategory("lightbulb");
-                      }}
-                    />
-                  ))}
-                </Shelf>
-              </>
-            );
-          })()}
-
-          {/* tiny + new idea marker at the very bottom */}
-          <div className="relative flex justify-center pt-2">
-            <button
-              onClick={addIdea}
-              title="Add a new idea book"
-              className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
-            >
-              <span className="text-base leading-none">+</span> New Idea
-            </button>
-          </div>
+      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[300px_minmax(0,1fr)_320px]">
+        {/* LEFT shelves — desktop only */}
+        <ShelfWall
+          side="left"
+          title="My Ideas"
+          subtitle="Pull a book to open it"
+          className="hidden lg:block"
+        >
+          {renderLeftShelfContent()}
         </ShelfWall>
 
-
-        {/* ============ CENTER — open journal on writing desk ============ */}
-        <section className="relative px-4 py-6 lg:px-8 lg:py-8">
-          {/* sunbeam */}
+        {/* CENTER — Post-it note desk */}
+        <section className="relative flex min-h-[70vh] flex-col px-3 py-4 lg:px-8 lg:py-8">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-10 top-0 h-40 -z-0 opacity-60"
@@ -449,63 +518,30 @@ function Dashboard() {
             }}
           />
           {!selected ? (
-            <div className="relative mx-auto max-w-2xl rounded-md border border-amber-900/40 bg-amber-50/85 p-10 text-center font-serif italic text-amber-900 shadow-2xl">
+            <div className="relative mx-auto max-w-md rounded-md border border-amber-900/40 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
               Pull a book from the shelf to open it on the desk.
             </div>
           ) : (
-            <Journal
+            <NoteDesk
               selected={selected}
-              activeCategory={activeCategory}
-              setActiveCategory={setActiveCategory}
-              getCategoryValue={getCategoryValue}
-              setCategoryValue={setCategoryValue}
+              extras={selectedExtras}
+              addPostIt={addPostIt}
+              addAttachment={addAttachment}
               updateSelected={updateSelected}
               moveToPreClarity={moveToPreClarity}
-              extras={selectedExtras}
-              addAttachment={addAttachment}
               fileInputRef={fileInputRef}
             />
           )}
         </section>
 
-        {/* ============ RIGHT BOOKSHELF WALL ============ */}
+        {/* RIGHT shelves — desktop only */}
         <ShelfWall
           side="right"
           title="Idea Progress"
-          subtitle="Tap a shelf book to work on it"
-
+          subtitle="Each note fills a shelf"
+          className="hidden lg:block"
         >
-          {!selected ? (
-            <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
-              Open an idea to see its shelves.
-            </div>
-          ) : (
-            (() => {
-              const rightWidths = [60, 70, 85];
-              return categoryShelves.map((row, rIdx) => (
-                <Shelf
-                  key={rIdx}
-                  widthPct={rightWidths[rIdx] ?? 85}
-                  align="right"
-                >
-                  {row.map((c) => {
-                    const status = categoryStatus(getCategoryValue(c.key));
-                    return (
-                      <CategoryBook
-                        key={c.key}
-                        label={c.label}
-                        hint={c.hint}
-                        pct={status.pct}
-                        statusLabel={status.label}
-                        active={activeCategory === c.key}
-                        onClick={() => setActiveCategory(c.key)}
-                      />
-                    );
-                  })}
-                </Shelf>
-              ));
-            })()
-          )}
+          {renderRightShelfContent()}
         </ShelfWall>
       </div>
 
@@ -521,6 +557,7 @@ function Dashboard() {
     </main>
   );
 }
+
 
 // ============================================================
 // Wood / shelf primitives
