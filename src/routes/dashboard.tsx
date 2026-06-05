@@ -1123,6 +1123,117 @@ function ProgressPopover({
   );
 }
 
+function ProfileAvatarButton() {
+  const [open, setOpen] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [name, setName] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("dabottree.profile.photo");
+      const n = localStorage.getItem("dabottree.profile.name") ?? "";
+      if (p) setPhoto(p);
+      if (n) setName(n);
+    } catch {}
+  }, []);
+
+  const initials = (name.trim() ? name.trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join("") : "").toUpperCase();
+
+  const onPick = (file: File | null) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result || "");
+      setPhoto(url);
+      try { localStorage.setItem("dabottree.profile.photo", url); } catch {}
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          title="Profile"
+          aria-label="Open profile"
+          className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-amber-950/70 bg-gradient-to-br from-amber-100 to-amber-300 text-amber-950 shadow-[0_4px_10px_-3px_rgba(20,8,2,0.7),inset_0_1px_0_rgba(255,250,235,0.6)] transition hover:scale-[1.04]"
+        >
+          {photo ? (
+            <img src={photo} alt="Profile" className="h-full w-full object-cover" />
+          ) : initials ? (
+            <span className="flex h-full w-full items-center justify-center font-serif text-[13px] font-bold tracking-wide">
+              {initials}
+            </span>
+          ) : (
+            <User className="mx-auto h-5 w-5" />
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={10}
+        className="z-40 w-[260px] border-amber-950/80 p-3 text-amber-950 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
+        style={{ background: "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)", borderRadius: 6 }}
+      >
+        <div className="mb-2 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-950/80">
+          Profile
+        </div>
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-12 w-12 overflow-hidden rounded-full border border-amber-950/60 bg-amber-100">
+            {photo ? (
+              <img src={photo} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <User className="h-6 w-6 text-amber-900/70" />
+              </div>
+            )}
+          </div>
+          <input
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              try { localStorage.setItem("dabottree.profile.name", e.target.value); } catch {}
+            }}
+            placeholder="Your name"
+            className="flex-1 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-1 font-serif text-[12px] text-amber-950 outline-none focus:border-amber-950"
+          />
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => onPick(e.target.files?.[0] ?? null)}
+        />
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex-1 rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
+          >
+            {photo ? "Change photo" : "Upload photo"}
+          </button>
+          {photo && (
+            <button
+              type="button"
+              onClick={() => {
+                setPhoto(null);
+                try { localStorage.removeItem("dabottree.profile.photo"); } catch {}
+              }}
+              className="rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+
 function LibraryPopover({
   ideas,
   selectedId,
