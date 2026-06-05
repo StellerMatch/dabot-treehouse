@@ -592,7 +592,7 @@ function Dashboard() {
                 className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 placeholder:text-amber-800/40 focus:outline-none sm:text-2xl"
               />
             </div>
-            <span className="hidden shrink-0 font-serif text-[11px] italic text-amber-900/70 sm:inline">
+            <span suppressHydrationWarning className="hidden shrink-0 font-serif text-[11px] italic text-amber-900/70 sm:inline">
               Updated {timeAgo(selected.updatedAt)}
             </span>
           </div>
