@@ -3122,39 +3122,78 @@ function PostItCard({
   ts,
   hue,
   pinned,
+  categories,
 }: {
   text: string;
   kind: PostIt["kind"];
   ts: number;
   hue: number;
   pinned?: boolean;
+  categories?: CategoryKey[];
 }) {
-  const palette = postItPalettes[hue % postItPalettes.length];
+  const [open, setOpen] = useState(false);
+  const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
+  const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
+  const preview = (() => {
+    const firstLine = text.split(/\n/)[0]?.trim() ?? "";
+    const base = firstLine || text.trim();
+    return base.length > 64 ? base.slice(0, 62).replace(/\s+\S*$/, "") + "…" : base;
+  })();
   return (
-    <div
-      className="relative w-[150px] rounded-sm border shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] sm:w-[170px]"
-      style={{
-        background: palette.bg,
-        borderColor: palette.edge,
-        transform: `rotate(${rot}deg)`,
-      }}
-    >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
-        style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
-      />
-      <div className="px-2.5 pt-3 pb-2">
-        <div className="mb-1 flex items-center justify-between font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
-          <span>{kind === "idea-notes" ? "Idea" : "Info"}</span>
-          {pinned ? <span>· seed</span> : <span>{timeAgo(ts)}</span>}
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="relative w-[150px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] sm:w-[170px]"
+        style={{
+          background: palette.bg,
+          borderColor: palette.edge,
+          transform: `rotate(${rot}deg)`,
+        }}
+        title="Open full note"
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
+          style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+        />
+        <div className="px-2.5 pt-3 pb-2">
+          <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
+            <span
+              className="truncate rounded-sm border px-1 py-[1px]"
+              style={{ background: palette.chip, borderColor: palette.edge }}
+              title={isMixed ? "Covers multiple categories" : label}
+            >
+              {isMixed ? "Mixed" : label}
+            </span>
+            {pinned ? <span>· seed</span> : <span className="shrink-0">{timeAgo(ts)}</span>}
+          </div>
+          <p className="line-clamp-2 break-words font-serif text-[12.5px] leading-snug text-amber-950">
+            {preview}
+          </p>
         </div>
-        <p className="whitespace-pre-wrap break-words font-serif text-[12.5px] leading-snug text-amber-950">
-          {text}
-        </p>
-      </div>
-    </div>
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md border-amber-950/80 text-amber-950" style={{ background: palette.bg }}>
+          <DialogHeader>
+            <DialogTitle className="font-serif text-amber-950">
+              {isMixed ? "Mixed note" : label}
+            </DialogTitle>
+            <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
+              {pinned ? "Seed note" : timeAgo(ts)}
+              {categories && categories.length > 0 && (
+                <> · {categories.map((c) => postItCategoryPalette[c].label).join(", ")}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="whitespace-pre-wrap break-words font-serif text-[14px] leading-relaxed text-amber-950">
+            {text}
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
 
