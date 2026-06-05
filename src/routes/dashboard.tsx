@@ -286,7 +286,7 @@ function Dashboard() {
         {/* ============ LEFT BOOKSHELF WALL ============ */}
         <ShelfWall side="left" title="Idea Books" subtitle="Pull one to open it">
           <ShelfAction
-            label="+ New Lightbulb"
+            label="+ New Idea"
             onClick={addIdea}
           />
           {ideaShelves.map((row, rIdx) => (
