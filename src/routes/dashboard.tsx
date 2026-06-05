@@ -1085,7 +1085,7 @@ function LibraryPopover({
           })}
           {ideas.length === 0 && (
             <li className="px-2 py-3 font-serif text-[11px] italic text-amber-900/80">
-              No ideas yet. Tap New Lightbulb to begin.
+              No ideas yet. Tap New Idea to begin.
             </li>
           )}
         </ul>
