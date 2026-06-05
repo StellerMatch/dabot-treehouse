@@ -13,7 +13,7 @@ import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { BookOpen, Paperclip, Link2, Plus, Lightbulb, Sparkles, ArrowRight, Pencil, User } from "lucide-react";
+import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User } from "lucide-react";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -154,6 +154,7 @@ type PostIt = {
   id: string;
   kind: "idea-notes" | "info-gathered";
   text: string;
+  fullText?: string;
   ts: number;
   categories?: CategoryKey[];
 };
@@ -185,37 +186,57 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   {
     id: "problem",
     prompt: "What problem is this idea trying to solve?",
-    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because"],
+    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because", "hours", "faster than", "spend"],
   },
   {
     id: "who",
     prompt: "Who is this for? Picture one real person.",
-    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they"],
+    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they", "manager", "worker", "employee", "crew", "team", "owner", "supervisor"],
   },
   {
     id: "why-now",
     prompt: "Why does this matter to you right now?",
-    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care"],
+    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care", "wants", "needs"],
   },
   {
     id: "look-like",
     prompt: "If it existed today, what would it look or feel like?",
-    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual"],
+    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual", "board", "dashboard", "draft", "published"],
   },
   {
     id: "first-step",
     prompt: "What's one tiny first step you could take this week?",
-    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make"],
+    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make", "first version", "v1"],
   },
   {
-    id: "success",
-    prompt: "How would you know it's working? What's a small win?",
-    keywords: ["success", "win", "work", "know", "measure", "sign", "happy", "users"],
+    id: "first-paying-user",
+    prompt: "Who is the first paying user — a small construction company owner, office manager, field supervisor, or crew lead?",
+    keywords: [],
   },
   {
-    id: "obstacle",
-    prompt: "What feels in the way? Name one obstacle.",
-    keywords: ["block", "stuck", "hard", "scared", "afraid", "obstacle", "time", "money", "skill"],
+    id: "smallest-workflow",
+    prompt: "What's the smallest first workflow — one day's schedule, one week's schedule, or assigning workers to one jobsite?",
+    keywords: [],
+  },
+  {
+    id: "v1-fields",
+    prompt: "What employee information is required for version one, and what should be left out for now?",
+    keywords: [],
+  },
+  {
+    id: "auto-vs-suggest",
+    prompt: "What should the app recommend automatically, and what should only be a suggestion the manager approves?",
+    keywords: [],
+  },
+  {
+    id: "publish-channel",
+    prompt: "When a schedule is published, what does each employee receive — SMS, app notification, email, or a simple link?",
+    keywords: [],
+  },
+  {
+    id: "pickup-detail",
+    prompt: "What pickup coordination detail matters most first — who needs a ride, who can drive, the pickup location, or the timing?",
+    keywords: [],
   },
 ];
 
@@ -275,13 +296,104 @@ function categoryStatus(value: string | undefined) {
 }
 
 
-// suggested idea seeds based on a creator field
-const suggestedSeeds = [
-  { id: "seed-1", title: "Kids' bedtime story app" },
-  { id: "seed-2", title: "Local skill swap board" },
-  { id: "seed-3", title: "Plant care reminder game" },
-  { id: "seed-4", title: "Neighborhood pet help loop" },
+// ——— Title generator ———
+const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
+  { match: /\b(construction|jobsite|job site|crew|contractor)\b/i, name: "Construction Crew" },
+  { match: /\brecipe|cook|kitchen\b/i, name: "Family Recipe" },
+  { match: /\bpet|dog|cat\b/i, name: "Pet Care" },
+  { match: /\bplant|garden\b/i, name: "Garden" },
+  { match: /\bworkout|fitness|gym\b/i, name: "Fitness" },
+  { match: /\bclassroom|teacher|student|school\b/i, name: "Classroom" },
+  { match: /\bstory|bedtime\b/i, name: "Storybook" },
+  { match: /\bneighborhood|community\b/i, name: "Neighborhood" },
 ];
+const TITLE_SUFFIXES: Array<{ match: RegExp; name: string }> = [
+  { match: /\bschedul/i, name: "Scheduler" },
+  { match: /\b(plan|planning)\b/i, name: "Planner" },
+  { match: /\btrack/i, name: "Tracker" },
+  { match: /\breminder/i, name: "Reminders" },
+  { match: /\bjournal|diary\b/i, name: "Journal" },
+  { match: /\bboard\b/i, name: "Board" },
+  { match: /\bapp\b/i, name: "App" },
+  { match: /\btool\b/i, name: "Tool" },
+];
+function titleCase(s: string) {
+  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+function generateTitle(text: string, ideaType?: string): string {
+  const t = text.trim();
+  if (!t) return "Untitled Idea";
+  const domain = TITLE_DOMAINS.find((d) => d.match.test(t))?.name;
+  const suffix =
+    TITLE_SUFFIXES.find((p) => p.match.test(t))?.name ??
+    (ideaType && ideaType !== "Undecided" ? ideaType : "App");
+  if (domain) return `${domain} ${suffix}`;
+  const stop = new Set([
+    "a","an","the","to","for","of","and","or","with","this","that","want","wants","need","needs",
+    "i","we","you","they","it","is","are","my","new","app","tool","build","make","using","help","helps",
+  ]);
+  const firstSentence = t.split(/[.!?]/)[0] ?? t;
+  const words = firstSentence
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !stop.has(w.toLowerCase()))
+    .slice(0, 3)
+    .join(" ");
+  return titleCase(`${words || "New"} ${suffix}`);
+}
+
+// ——— Idea analyzer: split a first idea into category-tagged summaries ———
+const ANALYZE_RULES: Array<[CategoryKey, RegExp]> = [
+  ["risks", /\b(not\s+(payroll|timeclock|hr|route|autonomous)|guardrail|avoid|should\s+not|risk|worry|concern|protect|privacy|theft|damage|fail|hard)\b/i],
+  ["money", /\b(price|pricing|paid|subscri|revenue|cost|charge|free|\$\d)\b/i],
+  ["market", /\b(manager|worker|employee|crew|supervisor|customer|user|audience|kids?|parent|team|owner|field team|operator)\b/i],
+  ["design", /\b(draft|published|board|ui|ux|interface|clean|simple|practical|look|feel|easy|control|notification|updates? to (employees|workers))\b/i],
+  ["build", /\b(schedule|address|skill|availability|hours?|notif|recommend|backup|workflow|feature|version|input|enter|pickup|jobsite|build|prototype|step|plan)\b/i],
+  ["clarity", /\b(helps?|so that|because|why|first version|smallest|the idea|the app|the tool)\b/i],
+];
+function summarizeSentences(sents: string[], maxLen = 160): string {
+  if (!sents.length) return "";
+  const joined = sents.join(" ").replace(/\s+/g, " ").trim();
+  if (joined.length <= maxLen) return joined;
+  return joined.slice(0, maxLen - 1).replace(/\s+\S*$/, "") + "…";
+}
+function analyzeIdea(text: string): {
+  buckets: Partial<Record<CategoryKey, string[]>>;
+  summaries: Array<{ category: CategoryKey; summary: string }>;
+  answered: string[];
+} {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  const sentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3);
+  const buckets: Partial<Record<CategoryKey, string[]>> = {};
+  for (const s of sentences) {
+    let added = false;
+    for (const [cat, re] of ANALYZE_RULES) {
+      if (re.test(s)) {
+        (buckets[cat] ||= []).push(s);
+        added = true;
+      }
+    }
+    if (!added) (buckets["lightbulb"] ||= []).push(s);
+  }
+  // Always keep a lightbulb summary of the whole idea
+  if (!buckets["lightbulb"] || buckets["lightbulb"].length === 0) {
+    buckets["lightbulb"] = [sentences[0] ?? cleaned];
+  }
+  const order: CategoryKey[] = ["lightbulb", "clarity", "market", "build", "design", "money", "risks"];
+  const summaries = order
+    .filter((k) => buckets[k] && buckets[k]!.length)
+    .map((k) => ({ category: k, summary: summarizeSentences(buckets[k]!) }));
+  // Mark stock Clarity questions answered when the source text plainly contains them
+  const lower = ` ${cleaned.toLowerCase()} `;
+  const answered = CLARITY_QUESTIONS.filter(
+    (q) => q.keywords.length && q.keywords.some((k) => lower.includes(k.toLowerCase())),
+  ).map((q) => q.id);
+  return { buckets, summaries, answered };
+}
+
+
 
 
 
@@ -316,18 +428,42 @@ function Dashboard() {
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
+      const analysis = analyzeIdea(draft);
+      const title = generateTitle(draft, draftType || undefined);
+      const lightbulbSummary =
+        analysis.summaries.find((s) => s.category === "lightbulb")?.summary ??
+        summarizeSentences([draft]);
+      const ts = Date.now();
+      const posts: PostIt[] = analysis.summaries.map((s, i) => ({
+        id: `post-${ts}-${i}`,
+        kind: "idea-notes",
+        text: s.summary,
+        fullText: s.category === "lightbulb" ? draft : undefined,
+        ts: ts - i,
+        categories: [s.category],
+      }));
       const newIdea: LightbulbIdea = {
         id,
-        title: draft.split(/\s+/).slice(0, 5).join(" ") || "Untitled spark",
-        messy: draft,
-        shelfReadiness: 18,
-        updatedAt: Date.now(),
+        title,
+        messy: lightbulbSummary,
+        shelfReadiness: Math.min(60, 22 + analysis.summaries.length * 6),
+        updatedAt: ts,
         stage: "lightbulb",
-        nextAction: "Add more notes & start building",
+        nextAction: "Answer the next clarity question",
         ideaType: draftType || undefined,
       };
       setIdeas((prev) => [newIdea, ...prev]);
       setSelectedId(id);
+      setExtras((prev) => ({
+        ...prev,
+        [id]: {
+          notes: {},
+          attachments: [],
+          posts,
+          answeredQuestions: analysis.answered,
+          skippedQuestions: [],
+        },
+      }));
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
@@ -544,39 +680,8 @@ function Dashboard() {
         </Shelf>
       ))}
 
-      <div className="relative px-2 pt-4">
-        <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
-          · Idea Sparks ·
-        </div>
-      </div>
-      <Shelf widthPct={leftWidths[ideaShelves.length] ?? 90} align="left">
-        {suggestedSeeds.map((seed, i) => (
-          <BookSpine
-            key={seed.id}
-            title={seed.title}
-            meta="Spark"
-            active={false}
-            hue={i + 4}
-            onClick={() => {
-              const id = `idea-${Date.now()}`;
-              setIdeas((prev) => [
-                {
-                  id,
-                  title: seed.title,
-                  messy: "",
-                  shelfReadiness: 5,
-                  updatedAt: Date.now(),
-                  stage: "lightbulb",
-                  nextAction: "Dump your messy idea",
-                },
-                ...prev,
-              ]);
-              setSelectedId(id);
-              setActiveCategory("lightbulb");
-            }}
-          />
-        ))}
-      </Shelf>
+
+
 
       <div className="relative flex justify-center pt-2">
         <button
@@ -2952,7 +3057,7 @@ function NoteDesk(props: {
           </div>
         )}
         <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-36">
-          {selected.messy && (
+          {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
               kind="idea-notes"
@@ -2966,6 +3071,7 @@ function NoteDesk(props: {
             <PostItCard
               key={p.id}
               text={p.text}
+              fullText={p.fullText}
               kind={p.kind}
               ts={p.ts}
               hue={i + 1}
@@ -3120,6 +3226,7 @@ function NoteDesk(props: {
 
 function PostItCard({
   text,
+  fullText,
   kind,
   ts,
   hue,
@@ -3127,6 +3234,7 @@ function PostItCard({
   categories,
 }: {
   text: string;
+  fullText?: string;
   kind: PostIt["kind"];
   ts: number;
   hue: number;
@@ -3190,7 +3298,7 @@ function PostItCard({
             </DialogDescription>
           </DialogHeader>
           <p className="whitespace-pre-wrap break-words font-serif text-[14px] leading-relaxed text-amber-950">
-            {text}
+            {fullText ?? text}
           </p>
         </DialogContent>
       </Dialog>
