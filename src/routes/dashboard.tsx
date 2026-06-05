@@ -556,6 +556,30 @@ function Dashboard() {
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
     const cleaned = text.trim();
+
+    // If the user pastes a full Clarity prompt / idea packet, parse the
+    // whole thing and (re)build the nine category folders from it instead
+    // of saving one generic note.
+    if (isLongClarityPrompt(cleaned)) {
+      const ts = Date.now();
+      const folderPosts = buildCategoryFolderPosts(cleaned, ts);
+      const newAnswered = clarityAnsweredFrom(cleaned);
+      const mergedAnswered = Array.from(
+        new Set([...selectedExtras.answeredQuestions, ...newAnswered]),
+      );
+      updateExtras({
+        posts: folderPosts,
+        answeredQuestions: mergedAnswered,
+      });
+      updateSelected({
+        title: generateTitle(cleaned, selected.ideaType),
+        messy: lightbulbSummaryFrom(cleaned),
+        shelfReadiness: Math.max(selected.shelfReadiness, 45),
+      });
+      if (categoryAsk) setCategoryAsk(null);
+      return;
+    }
+
     const p: PostIt = {
       id: `post-${Date.now()}`,
       kind,
