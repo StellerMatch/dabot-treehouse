@@ -498,20 +498,22 @@ function Dashboard() {
         }}
       />
 
-      {/* Clarity the squirrel — overlays the background, follows viewport */}
+      {/* Clarity the squirrel — transparent PNG overlay, follows viewport */}
       <img
         src={claritySquirrel}
         alt="Clarity"
         aria-hidden
-        className="pointer-events-none fixed -z-10 select-none drop-shadow-[0_18px_24px_rgba(20,10,2,0.55)]"
+        className="pointer-events-none fixed z-10 select-none"
         style={{
-          right: "clamp(0.5rem, 4vw, 5rem)",
-          bottom: "clamp(7rem, 18vh, 12rem)",
-          height: "clamp(180px, 42vh, 460px)",
+          right: "clamp(0.5rem, 3vw, 4rem)",
+          bottom: "clamp(7rem, 16vh, 10rem)",
+          height: "clamp(260px, 62vh, 720px)",
           width: "auto",
+          filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
           animation: "clarity-float 6s ease-in-out infinite",
         }}
       />
+
 
 
       {/* Header — carved wood beam with three-zone controls */}
