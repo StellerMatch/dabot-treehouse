@@ -626,8 +626,9 @@ function Dashboard() {
           />
         </div>
 
-        {/* CENTER: My Library + New Idea */}
+        {/* CENTER: Avatar + My Library + New Idea */}
         <div className="relative flex items-center justify-center gap-3">
+          <ProfileAvatarButton />
           <LibraryPopover
             ideas={ideas}
             selectedId={selected?.id ?? ""}
