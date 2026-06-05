@@ -1017,7 +1017,7 @@ function ProgressPopover({
   overall,
 }: {
   disabled: boolean;
-  categories: { key: CategoryKey; label: string; hint: string }[];
+  categories: { key: CategoryKey; label: string; hint: string; guidance?: string }[];
   getValue: (k: CategoryKey) => string;
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
