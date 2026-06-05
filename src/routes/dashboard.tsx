@@ -1243,7 +1243,7 @@ function OrganizeButton({
 }) {
   const unlocked = overall >= 90;
   const stageAdvanced = stage !== "lightbulb";
-  const label = stageAdvanced ? "Next Stage" : "Organize Idea";
+  const label = "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
 
   const handleClick = () => {
