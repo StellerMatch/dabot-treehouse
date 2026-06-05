@@ -1774,12 +1774,13 @@ function formatSignals(idea: LightbulbIdea): string {
 // ============================================================
 
 const postItPalettes: Array<{ bg: string; edge: string; tape: string }> = [
-  { bg: "#fff6a8", edge: "#e0c855", tape: "rgba(220,200,120,0.85)" },
-  { bg: "#ffd6a8", edge: "#d99a4a", tape: "rgba(220,150,80,0.85)" },
-  { bg: "#c7f0c7", edge: "#7ec27a", tape: "rgba(140,200,140,0.85)" },
-  { bg: "#c9defa", edge: "#6e9cd2", tape: "rgba(140,180,220,0.85)" },
-  { bg: "#f6c7e0", edge: "#cf86b0", tape: "rgba(220,160,200,0.85)" },
+  { bg: "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)", edge: "#b08840", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #f4dcae 0%, #e2c084 100%)", edge: "#9c6b28", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #efe1c0 0%, #d8c290 100%)", edge: "#8a6020", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #e8d3a0 0%, #c9ad6e 100%)", edge: "#7a5018", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #ead7ab 0%, #cdb47a 100%)", edge: "#8a5e22", tape: "rgba(120,80,30,0.55)" },
 ];
+
 
 function NoteDesk(props: {
   selected: LightbulbIdea;
