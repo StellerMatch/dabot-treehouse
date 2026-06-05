@@ -3057,7 +3057,7 @@ function NoteDesk(props: {
           </div>
         )}
         <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-36">
-          {selected.messy && (
+          {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
               kind="idea-notes"
@@ -3071,6 +3071,7 @@ function NoteDesk(props: {
             <PostItCard
               key={p.id}
               text={p.text}
+              fullText={p.fullText}
               kind={p.kind}
               ts={p.ts}
               hue={i + 1}
