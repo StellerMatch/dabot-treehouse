@@ -158,8 +158,8 @@ function Dashboard() {
   );
 
   const selectedExtras: IdeaExtras = selected
-    ? extras[selected.id] ?? { notes: {}, attachments: [] }
-    : { notes: {}, attachments: [] };
+    ? extras[selected.id] ?? emptyExtras()
+    : emptyExtras();
 
   const updateSelected = (patch: Partial<LightbulbIdea>) => {
     if (!selected) return;
@@ -173,16 +173,34 @@ function Dashboard() {
   const updateExtras = (patch: Partial<IdeaExtras>) => {
     if (!selected) return;
     setExtras((prev) => {
-      const current = prev[selected.id] ?? { notes: {}, attachments: [] };
+      const current = prev[selected.id] ?? emptyExtras();
       return {
         ...prev,
         [selected.id]: {
           notes: { ...current.notes, ...(patch.notes ?? {}) },
           attachments: patch.attachments ?? current.attachments,
+          posts: patch.posts ?? current.posts,
         },
       };
     });
   };
+
+  const addPostIt = (text: string, kind: PostIt["kind"]) => {
+    if (!selected || !text.trim()) return;
+    const p: PostIt = {
+      id: `post-${Date.now()}`,
+      kind,
+      text: text.trim(),
+      ts: Date.now(),
+    };
+    const nextPosts = [p, ...selectedExtras.posts];
+    updateExtras({ posts: nextPosts });
+    // bump idea readiness a little for each captured thought
+    updateSelected({
+      shelfReadiness: Math.min(100, selected.shelfReadiness + 4),
+    });
+  };
+
 
   const addIdea = () => {
     const id = `idea-${Date.now()}`;
