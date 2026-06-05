@@ -65,11 +65,20 @@ function timeAgo(ts: number) {
 
 function categoryStatus(value: string | undefined) {
   const v = (value ?? "").trim();
-  if (!v) return { pct: 0, label: "empty" };
-  if (v.length < 40) return { pct: 35, label: "sapling" };
-  if (v.length < 140) return { pct: 65, label: "growing" };
-  return { pct: 100, label: "rooted" };
+  if (!v) return { pct: 0, label: "Empty" };
+  if (v.length < 30) return { pct: 25, label: "Started" };
+  if (v.length < 120) return { pct: 55, label: "Growing" };
+  if (v.length < 280) return { pct: 80, label: "Needs Review" };
+  return { pct: 100, label: "Ready" };
 }
+
+// suggested idea seeds based on a creator field
+const suggestedSeeds = [
+  { id: "seed-1", title: "Kids' bedtime story app" },
+  { id: "seed-2", title: "Local skill swap board" },
+  { id: "seed-3", title: "Plant care reminder game" },
+];
+
 
 // ——— book spine palettes (rich leather tones) ———
 const spinePalettes: Array<[string, string, string]> = [
