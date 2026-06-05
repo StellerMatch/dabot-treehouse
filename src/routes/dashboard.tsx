@@ -35,16 +35,21 @@ type CategoryKey =
   | "ready";
 
 const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
-  { key: "lightbulb", label: "Lightbulb", hint: "The messy spark" },
-  { key: "pre-clarity", label: "Pre-Clarity", hint: "Shape & signals" },
-  { key: "clarity", label: "Clarity", hint: "What it really is" },
-  { key: "market", label: "Market / Audience", hint: "Who it helps" },
-  { key: "build", label: "Build Notes", hint: "How it gets made" },
-  { key: "design", label: "Design Notes", hint: "How it feels" },
+  { key: "lightbulb", label: "Idea Notes", hint: "Dump everything you know" },
+  { key: "pre-clarity", label: "Info Gathered", hint: "Files, links, context" },
+  {
+    key: "clarity",
+    label: "Clarity",
+    hint: "Turn messy notes into a clear plan",
+  },
+  { key: "market", label: "Audience", hint: "Who it's for" },
+  { key: "build", label: "Build Plan", hint: "How it gets made" },
+  { key: "design", label: "Design Notes", hint: "How it looks & feels" },
   { key: "money", label: "Money Notes", hint: "How it sustains" },
-  { key: "risks", label: "Risks / Questions", hint: "What to watch" },
+  { key: "risks", label: "Risks", hint: "What to watch out for" },
   { key: "ready", label: "Ready for Project", hint: "Greenlight gate" },
 ];
+
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
 type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
@@ -101,7 +106,7 @@ function Dashboard() {
         shelfReadiness: 18,
         updatedAt: Date.now(),
         stage: "lightbulb",
-        nextAction: "Move to pre-Clarity",
+        nextAction: "Add more notes & start building",
       };
       setIdeas((prev) => [newIdea, ...prev]);
       setSelectedId(id);
@@ -152,7 +157,7 @@ function Dashboard() {
       shelfReadiness: 5,
       updatedAt: Date.now(),
       stage: "lightbulb",
-      nextAction: "Write the messy version",
+      nextAction: "Dump your messy idea",
     };
     setIdeas((prev) => [fresh, ...prev]);
     setSelectedId(id);
@@ -167,7 +172,7 @@ function Dashboard() {
               ...i,
               stage: "pre-clarity",
               shelfReadiness: Math.max(i.shelfReadiness, 45),
-              nextAction: "Fill the Clarity shelf",
+              nextAction: "Gather info, then move to Clarity",
               updatedAt: Date.now(),
             }
           : i,
@@ -281,7 +286,7 @@ function Dashboard() {
         {/* ============ LEFT BOOKSHELF WALL ============ */}
         <ShelfWall side="left" title="Idea Books" subtitle="Pull one to open it">
           <ShelfAction
-            label="+ New Lightbulb"
+            label="+ New Idea"
             onClick={addIdea}
           />
           {ideaShelves.map((row, rIdx) => (
@@ -817,7 +822,7 @@ function Journal(props: {
                     "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)",
                 }}
               >
-                Move to Pre-Clarity →
+                Start Building This Idea →
               </button>
             )}
           </div>

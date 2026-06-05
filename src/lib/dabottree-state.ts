@@ -23,8 +23,8 @@ export type LightbulbIdea = {
 };
 
 export const stageLabels: Record<IdeaStage, string> = {
-  lightbulb: "Lightbulb",
-  "pre-clarity": "Pre-Clarity",
+  lightbulb: "New Idea",
+  "pre-clarity": "Building",
   "paid-creation": "Paid Creation",
   "clean-packet": "Clean Packet",
   "operating-path": "Operating Path",
@@ -39,7 +39,7 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 28,
     updatedAt: Date.now() - 1000 * 60 * 60 * 6,
     stage: "lightbulb",
-    nextAction: "Move to pre-Clarity",
+    nextAction: "Add more notes & start building",
   },
   {
     id: "idea-2",
@@ -49,7 +49,8 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 54,
     updatedAt: Date.now() - 1000 * 60 * 60 * 26,
     stage: "pre-clarity",
-    nextAction: "Open preview",
+    nextAction: "Gather info, then move to Clarity",
+
     signals: {
       shape: "weekly digest tool",
       whoItHelps: "busy solo operators",
