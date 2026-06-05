@@ -1882,7 +1882,7 @@ function ClarityGuide({
     <div
       className={[
         "pointer-events-none absolute z-30",
-        "right-2 bottom-[calc(100%-8px)] sm:right-3 lg:right-3",
+        "right-0 bottom-[calc(100%-2px)] sm:right-0 lg:right-0",
       ].join(" ")}
     >
       <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
@@ -1933,7 +1933,7 @@ function ClarityGuide({
               aria-hidden
               className="absolute"
               style={{
-                right: "1rem",
+                right: "0.75rem",
                 bottom: "-10px",
                 width: 0,
                 height: 0,
