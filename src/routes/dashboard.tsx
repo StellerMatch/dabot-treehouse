@@ -43,12 +43,13 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
     hint: "Turn messy notes into a clear plan",
   },
   { key: "market", label: "Audience", hint: "Who it's for" },
-  { key: "build", label: "Build Plan", hint: "How it gets made" },
-  { key: "design", label: "Design Notes", hint: "How it looks & feels" },
-  { key: "money", label: "Money Notes", hint: "How it sustains" },
+  { key: "design", label: "Design", hint: "How it looks & feels" },
+  { key: "money", label: "Money", hint: "How it sustains" },
   { key: "risks", label: "Risks", hint: "What to watch out for" },
-  { key: "ready", label: "Ready for Project", hint: "Greenlight gate" },
+  { key: "build", label: "Build Plan", hint: "How it gets made" },
+  { key: "ready", label: "Ready", hint: "Greenlight for project" },
 ];
+
 
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
@@ -65,11 +66,20 @@ function timeAgo(ts: number) {
 
 function categoryStatus(value: string | undefined) {
   const v = (value ?? "").trim();
-  if (!v) return { pct: 0, label: "empty" };
-  if (v.length < 40) return { pct: 35, label: "sapling" };
-  if (v.length < 140) return { pct: 65, label: "growing" };
-  return { pct: 100, label: "rooted" };
+  if (!v) return { pct: 0, label: "Empty" };
+  if (v.length < 30) return { pct: 25, label: "Started" };
+  if (v.length < 120) return { pct: 55, label: "Growing" };
+  if (v.length < 280) return { pct: 80, label: "Needs Review" };
+  return { pct: 100, label: "Ready" };
 }
+
+// suggested idea seeds based on a creator field
+const suggestedSeeds = [
+  { id: "seed-1", title: "Kids' bedtime story app" },
+  { id: "seed-2", title: "Local skill swap board" },
+  { id: "seed-3", title: "Plant care reminder game" },
+];
+
 
 // ——— book spine palettes (rich leather tones) ———
 const spinePalettes: Array<[string, string, string]> = [
@@ -283,12 +293,8 @@ function Dashboard() {
 
       {/* Three-column tree-library interior */}
       <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
-        {/* ============ LEFT BOOKSHELF WALL ============ */}
-        <ShelfWall side="left" title="Idea Books" subtitle="Pull one to open it">
-          <ShelfAction
-            label="+ New Idea"
-            onClick={addIdea}
-          />
+        {/* ============ LEFT BOOKSHELF WALL — My Ideas ============ */}
+        <ShelfWall side="left" title="My Ideas" subtitle="Pull a book to open it">
           {ideaShelves.map((row, rIdx) => (
             <Shelf key={rIdx}>
               {row.map((idea, idx) => (
@@ -307,15 +313,54 @@ function Dashboard() {
                 ))}
             </Shelf>
           ))}
-          {/* empty shelf to feel like there's room to grow */}
-          {ideaShelves.length < 3 && (
-            <Shelf>
-              <BookGhost />
-              <BookGhost />
-              <BookGhost />
-            </Shelf>
-          )}
+
+          {/* Suggested Seeds sub-section */}
+          <div className="relative px-2 pt-4">
+            <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
+              · Idea Sparks ·
+            </div>
+          </div>
+          <Shelf>
+            {suggestedSeeds.map((seed, i) => (
+              <BookSpine
+                key={seed.id}
+                title={seed.title}
+                meta="Spark"
+                active={false}
+                hue={i + 4}
+                onClick={() => {
+                  const id = `idea-${Date.now()}`;
+                  setIdeas((prev) => [
+                    {
+                      id,
+                      title: seed.title,
+                      messy: "",
+                      shelfReadiness: 5,
+                      updatedAt: Date.now(),
+                      stage: "lightbulb",
+                      nextAction: "Dump your messy idea",
+                    },
+                    ...prev,
+                  ]);
+                  setSelectedId(id);
+                  setActiveCategory("lightbulb");
+                }}
+              />
+            ))}
+          </Shelf>
+
+          {/* tiny + new idea marker at the very bottom */}
+          <div className="relative flex justify-center pt-2">
+            <button
+              onClick={addIdea}
+              title="Add a new idea book"
+              className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
+            >
+              <span className="text-base leading-none">+</span> New Idea
+            </button>
+          </div>
         </ShelfWall>
+
 
         {/* ============ CENTER — open journal on writing desk ============ */}
         <section className="relative px-4 py-6 lg:px-8 lg:py-8">
@@ -351,8 +396,9 @@ function Dashboard() {
         {/* ============ RIGHT BOOKSHELF WALL ============ */}
         <ShelfWall
           side="right"
-          title="Progress Shelf"
-          subtitle="What this idea still needs"
+          title="Idea Progress"
+          subtitle="Tap a shelf book to work on it"
+
         >
           {!selected ? (
             <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
@@ -827,28 +873,11 @@ function Journal(props: {
             )}
           </div>
 
-          {/* tab strip — like ribbon bookmarks */}
-          <div className="-mx-7 mt-3 flex flex-wrap gap-1 border-b border-amber-900/20 bg-amber-200/30 px-7 py-2">
-            {categoryDefs.map((c) => {
-              const status = categoryStatus(getCategoryValue(c.key));
-              const isActive = activeCategory === c.key;
-              return (
-                <button
-                  key={c.key}
-                  onClick={() => setActiveCategory(c.key)}
-                  className={
-                    "flex items-center gap-1.5 rounded-sm border px-2 py-1 font-serif text-[11px] transition " +
-                    (isActive
-                      ? "border-amber-900/50 bg-amber-50 text-amber-950 shadow-sm"
-                      : "border-transparent text-amber-900/70 hover:bg-amber-100/70 hover:text-amber-900")
-                  }
-                >
-                  <Dot pct={status.pct} />
-                  {c.label}
-                </button>
-              );
-            })}
+          {/* tiny breadcrumb — main switching lives on the right shelf */}
+          <div className="mt-2 font-serif text-[11px] italic text-amber-900/60">
+            Now working on: <span className="not-italic font-semibold text-amber-900">{activeDef.label}</span>
           </div>
+
 
           {/* writing area */}
           <div className="mt-4">
