@@ -3055,7 +3055,7 @@ function NoteDesk(props: {
   return (
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
-      <div className="relative mx-auto w-full max-w-[920px] flex-1">
+      <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:mx-0 lg:ml-4 lg:max-w-[640px] xl:ml-12">
         {extras.posts.length === 0 && !selected.messy && (
           <div
             className="relative mx-auto max-w-md rounded-md border border-amber-950/40 px-5 py-4 text-center font-serif italic text-amber-950 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)]"
@@ -3067,7 +3067,7 @@ function NoteDesk(props: {
             No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="grid grid-cols-1 gap-2 pb-72 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 lg:gap-4 lg:pb-56 lg:-translate-x-4">
+        <div className="grid grid-cols-1 gap-1 pb-72 sm:grid-cols-2 sm:gap-1.5 lg:grid-cols-3 lg:gap-1.5 lg:pb-56">
           {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
