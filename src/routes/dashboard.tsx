@@ -993,13 +993,19 @@ function MiniLaidBook({
   active,
   onClick,
   guidance,
+  categoryKey,
 }: {
   label: string;
   pct: number;
   active: boolean;
   onClick: () => void;
   guidance?: string;
+  categoryKey?: CategoryKey;
 }) {
+  const palette = categoryKey ? postItCategoryPalette[categoryKey] : undefined;
+  const bookBg = palette
+    ? `linear-gradient(180deg, ${palette.edge} 0%, color-mix(in srgb, ${palette.edge} 55%, #1a0a02) 100%)`
+    : "linear-gradient(180deg, #5a3110 0%, #361a06 100%)";
   const btn = (
     <button
       onClick={onClick}
@@ -1011,7 +1017,7 @@ function MiniLaidBook({
           : "border-amber-950/80 hover:-translate-y-[1px]")
       }
       style={{
-        background: "linear-gradient(180deg, #5a3110 0%, #361a06 100%)",
+        background: bookBg,
         boxShadow:
           "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.5)",
       }}
