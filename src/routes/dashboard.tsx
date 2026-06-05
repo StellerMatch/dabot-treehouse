@@ -711,7 +711,7 @@ function Journal(props: {
   moveToPreClarity: (id: string) => void;
   extras: IdeaExtras;
   addAttachment: (kind: Attachment["kind"], label: string) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const {
     selected,
