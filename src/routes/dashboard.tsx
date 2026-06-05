@@ -625,7 +625,7 @@ function Dashboard() {
     };
     setIdeas((prev) => [fresh, ...prev]);
     setSelectedId(id);
-    setActiveCategory("lightbulb");
+    setActiveCategory("core-idea");
   };
 
   const moveToPreClarity = (id: string) => {
@@ -643,7 +643,7 @@ function Dashboard() {
       ),
     );
     setSelectedId(id);
-    setActiveCategory("pre-clarity");
+    setActiveCategory("core-idea");
   };
 
   const getCategoryValue = (key: CategoryKey): string => {
@@ -652,28 +652,15 @@ function Dashboard() {
       .filter((p) => p.kind === "idea-notes")
       .map((p) => p.text)
       .join("\n");
-    const infoPosts = selectedExtras.posts
-      .filter((p) => p.kind === "info-gathered")
-      .map((p) => p.text)
-      .join("\n");
-    const attachBlob = selectedExtras.attachments.map((a) => a.label).join("\n");
-    if (key === "lightbulb")
+    if (key === "core-idea")
       return [selected.messy, ideaPosts].filter(Boolean).join("\n");
-    if (key === "pre-clarity")
-      return [
-        selectedExtras.notes["pre-clarity"] ?? formatSignals(selected),
-        infoPosts,
-        attachBlob,
-      ]
-        .filter(Boolean)
-        .join("\n");
     return selectedExtras.notes[key] ?? "";
   };
 
 
   const setCategoryValue = (key: CategoryKey, value: string) => {
     if (!selected) return;
-    if (key === "lightbulb") updateSelected({ messy: value });
+    if (key === "core-idea") updateSelected({ messy: value });
     else updateExtras({ notes: { [key]: value } });
   };
 
