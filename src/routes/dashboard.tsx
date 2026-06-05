@@ -804,14 +804,14 @@ function Journal(props: {
   const value = getCategoryValue(activeCategory);
 
   // Voice dictation
-  const [voiceState, setVoiceState] = React.useState<"idle" | "listening" | "processing">("idle");
-  const recognitionRef = React.useRef<any>(null);
-  const voiceSupported = React.useMemo(() => {
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
+  const recognitionRef = useRef<any>(null);
+  const voiceSupported = useMemo(() => {
     if (typeof window === "undefined") return false;
     return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
   }, []);
 
-  const startVoice = React.useCallback(() => {
+  const startVoice = useCallback(() => {
     if (!voiceSupported) {
       window.alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
       return;
@@ -842,12 +842,12 @@ function Journal(props: {
     try { rec.start(); } catch { setVoiceState("idle"); }
   }, [voiceSupported, value, activeCategory, setCategoryValue]);
 
-  const stopVoice = React.useCallback(() => {
+  const stopVoice = useCallback(() => {
     try { recognitionRef.current?.stop(); } catch {}
     setVoiceState("processing");
   }, []);
 
-  React.useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
+  useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
 
   return (
     <div className="relative mx-auto w-full max-w-[760px]">
