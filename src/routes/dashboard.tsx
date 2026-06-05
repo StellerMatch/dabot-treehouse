@@ -2651,7 +2651,7 @@ function Journal(props: {
           )}
 
           <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
-            Updated {timeAgo(selected.updatedAt)} · Next: {selected.nextAction}
+            Updated <span suppressHydrationWarning>{timeAgo(selected.updatedAt)}</span> · Next: {selected.nextAction}
           </div>
         </div>
       </div>
@@ -3068,7 +3068,7 @@ function NoteDesk(props: {
             No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="grid grid-cols-1 gap-1 pb-72 sm:grid-cols-2 sm:gap-1.5 lg:grid-cols-3 lg:gap-1.5 lg:pb-56">
+        <div className="grid grid-cols-3 gap-1.5 pb-44 sm:gap-2 sm:pb-48 lg:gap-1.5 lg:pb-56">
           {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
