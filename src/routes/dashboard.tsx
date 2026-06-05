@@ -1483,3 +1483,308 @@ function formatSignals(idea: LightbulbIdea): string {
   if (s.riskWatch) lines.push(`Risk watch: ${s.riskWatch}`);
   return lines.join("\n");
 }
+
+// ============================================================
+// NoteDesk — Post-it note capture
+// ============================================================
+
+const postItPalettes: Array<{ bg: string; edge: string; tape: string }> = [
+  { bg: "#fff6a8", edge: "#e0c855", tape: "rgba(220,200,120,0.85)" },
+  { bg: "#ffd6a8", edge: "#d99a4a", tape: "rgba(220,150,80,0.85)" },
+  { bg: "#c7f0c7", edge: "#7ec27a", tape: "rgba(140,200,140,0.85)" },
+  { bg: "#c9defa", edge: "#6e9cd2", tape: "rgba(140,180,220,0.85)" },
+  { bg: "#f6c7e0", edge: "#cf86b0", tape: "rgba(220,160,200,0.85)" },
+];
+
+function NoteDesk(props: {
+  selected: LightbulbIdea;
+  extras: IdeaExtras;
+  addPostIt: (text: string, kind: PostIt["kind"]) => void;
+  addAttachment: (kind: Attachment["kind"], label: string) => void;
+  updateSelected: (p: Partial<LightbulbIdea>) => void;
+  moveToPreClarity: (id: string) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const {
+    selected,
+    extras,
+    addPostIt,
+    addAttachment,
+    updateSelected,
+    moveToPreClarity,
+    fileInputRef,
+  } = props;
+
+  const [draft, setDraft] = useState("");
+  const [kind, setKind] = useState<PostIt["kind"]>("idea-notes");
+
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
+  const recognitionRef = useRef<any>(null);
+  const voiceSupported = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  }, []);
+
+  const startVoice = useCallback(() => {
+    if (!voiceSupported) {
+      window.alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    let finalText = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      setDraft((d) => {
+        const base = d ? d.replace(/\s+$/, "") + " " : "";
+        return base + finalText + interim;
+      });
+    };
+    rec.onerror = () => setVoiceState("idle");
+    rec.onend = () => {
+      setVoiceState((s) => (s === "listening" ? "processing" : s));
+      setTimeout(() => setVoiceState("idle"), 350);
+    };
+    recognitionRef.current = rec;
+    setVoiceState("listening");
+    try { rec.start(); } catch { setVoiceState("idle"); }
+  }, [voiceSupported]);
+
+  const stopVoice = useCallback(() => {
+    try { recognitionRef.current?.stop(); } catch {}
+    setVoiceState("processing");
+  }, []);
+
+  useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
+
+  const submit = () => {
+    if (!draft.trim()) return;
+    addPostIt(draft, kind);
+    setDraft("");
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      submit();
+    }
+  };
+
+  return (
+    <div className="relative flex w-full flex-1 flex-col">
+      <div className="relative z-10 mx-auto w-full max-w-[760px] px-1">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+              Active Idea
+            </div>
+            <input
+              value={selected.title}
+              onChange={(e) => updateSelected({ title: e.target.value })}
+              className="w-full bg-transparent font-serif text-2xl font-semibold leading-tight text-amber-50 drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] focus:outline-none"
+              placeholder="Name this idea…"
+            />
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="rounded-sm border border-amber-100/30 bg-amber-950/55 px-2 py-0.5 font-serif text-[10px] uppercase tracking-wider text-amber-100">
+              {stageLabels[selected.stage]}
+            </span>
+            {selected.stage === "lightbulb" && (
+              <button
+                onClick={() => moveToPreClarity(selected.id)}
+                className="rounded-sm border border-emerald-900/60 px-3 py-1.5 font-serif text-[11px] font-medium text-emerald-50 shadow"
+                style={{ background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)" }}
+              >
+                Organize Idea →
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="mt-1 font-serif text-[11px] italic text-amber-100/70">
+          Each note you add fills this idea's progress shelf. {extras.posts.length} {extras.posts.length === 1 ? "note" : "notes"} collected.
+        </p>
+      </div>
+
+      <div className="relative mx-auto mt-4 w-full max-w-[860px] flex-1">
+        {extras.posts.length === 0 && !selected.messy && (
+          <div className="relative mx-auto max-w-md rounded-md border border-amber-100/30 bg-amber-950/35 p-5 text-center font-serif italic text-amber-50/85 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)] backdrop-blur-sm">
+            No notes yet. Jot a quick thought below — each Post-it strengthens this idea.
+          </div>
+        )}
+        <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-32">
+          {selected.messy && (
+            <PostItCard
+              text={selected.messy}
+              kind="idea-notes"
+              ts={selected.updatedAt}
+              hue={0}
+              pinned
+            />
+          )}
+          {extras.posts.map((p, i) => (
+            <PostItCard
+              key={p.id}
+              text={p.text}
+              kind={p.kind}
+              ts={p.ts}
+              hue={i + 1}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 left-0 right-0 z-20 mt-2">
+        <div
+          className="mx-auto w-full max-w-[760px] px-1 pb-2"
+          style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        >
+          <div
+            className="relative overflow-hidden rounded-xl border border-amber-950/70 shadow-[0_14px_30px_-12px_rgba(20,8,2,0.8)]"
+            style={{ background: "linear-gradient(180deg, #fff5b8 0%, #f6dd86 100%)" }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -top-2 left-1/2 h-4 w-20 -translate-x-1/2 rotate-[-2deg] rounded-sm"
+              style={{ background: "rgba(220,200,120,0.85)", boxShadow: "0 2px 4px rgba(0,0,0,0.25)" }}
+            />
+            <div className="flex items-center gap-1 border-b border-amber-900/20 px-2 py-1 font-serif text-[10px] uppercase tracking-wider text-amber-900/70">
+              <button
+                onClick={() => setKind("idea-notes")}
+                className={
+                  "rounded-sm px-2 py-0.5 transition " +
+                  (kind === "idea-notes" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
+                }
+              >
+                Idea Notes
+              </button>
+              <button
+                onClick={() => setKind("info-gathered")}
+                className={
+                  "rounded-sm px-2 py-0.5 transition " +
+                  (kind === "info-gathered" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
+                }
+              >
+                Info Gathered
+              </button>
+              <span className="ml-auto italic normal-case tracking-normal">
+                {voiceState === "listening"
+                  ? "Listening…"
+                  : voiceState === "processing"
+                    ? "Transcribing…"
+                    : "Quick capture"}
+              </span>
+            </div>
+            <div className="flex items-end gap-2 px-2 py-2">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={onKeyDown}
+                rows={2}
+                placeholder="Type a thought… (⌘/Ctrl + Enter to add)"
+                className="block min-h-[44px] flex-1 resize-none bg-transparent px-1 font-serif text-[14px] leading-snug text-amber-950 placeholder:text-amber-900/45 focus:outline-none"
+              />
+              <button
+                onClick={submit}
+                disabled={!draft.trim()}
+                className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
+                style={{ background: "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)" }}
+              >
+                Add Note
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 border-t border-amber-900/15 px-2 py-1.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  files.forEach((f) => addAttachment("file", f.name));
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              />
+              <MicButton
+                state={voiceState}
+                onStart={startVoice}
+                onStop={stopVoice}
+                supported={voiceSupported}
+              />
+              <DeskIconButton
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach File / Photo"
+                icon={<Paperclip className="h-3.5 w-3.5" />}
+                label="Attach"
+              />
+              <DeskIconButton
+                onClick={() => {
+                  const url = window.prompt("Paste a link to attach");
+                  if (url) addAttachment("link", url);
+                }}
+                title="Add Link"
+                icon={<Link2 className="h-3.5 w-3.5" />}
+                label="Link"
+              />
+              {extras.attachments.length > 0 && (
+                <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
+                  {extras.attachments.length} attachment{extras.attachments.length === 1 ? "" : "s"} · updated {timeAgo(selected.updatedAt)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostItCard({
+  text,
+  kind,
+  ts,
+  hue,
+  pinned,
+}: {
+  text: string;
+  kind: PostIt["kind"];
+  ts: number;
+  hue: number;
+  pinned?: boolean;
+}) {
+  const palette = postItPalettes[hue % postItPalettes.length];
+  const rot = ((hue * 37) % 7) - 3;
+  return (
+    <div
+      className="relative w-[150px] rounded-sm border shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] sm:w-[170px]"
+      style={{
+        background: palette.bg,
+        borderColor: palette.edge,
+        transform: `rotate(${rot}deg)`,
+      }}
+    >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
+        style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+      />
+      <div className="px-2.5 pt-3 pb-2">
+        <div className="mb-1 flex items-center justify-between font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
+          <span>{kind === "idea-notes" ? "Idea" : "Info"}</span>
+          {pinned ? <span>· seed</span> : <span>{timeAgo(ts)}</span>}
+        </div>
+        <p className="whitespace-pre-wrap break-words font-serif text-[12.5px] leading-snug text-amber-950">
+          {text}
+        </p>
+      </div>
+    </div>
+  );
+}
+
