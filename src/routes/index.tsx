@@ -115,10 +115,10 @@ function Index() {
             onChange={(e) => setIdea(e.target.value)}
             placeholder="A drill, a shed, a neighborhood that shares… start anywhere."
             rows={4}
-            className="block w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-amber-100/35 focus:outline-none"
+            className="block w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-amber-100/50 focus:outline-none"
           />
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-amber-200/10 pt-3">
-            <div className="text-[11px] text-amber-100/55">
+            <div className="text-[11px] text-amber-100/70">
               {idea.length === 0
                 ? "Listening when you're ready."
                 : `${words} words · ${idea.length} chars${
