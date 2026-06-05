@@ -3257,16 +3257,15 @@ function PostItCard({
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
   const preview = (() => {
-    const firstLine = text.split(/\n/)[0]?.trim() ?? "";
-    const base = firstLine || text.trim();
-    return base.length > 64 ? base.slice(0, 62).replace(/\s+\S*$/, "") + "…" : base;
+    const base = text.replace(/\s+/g, " ").trim();
+    return base.length > 140 ? base.slice(0, 138).replace(/\s+\S*$/, "") + "…" : base;
   })();
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative w-[150px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] sm:w-[170px]"
+        className="relative w-full max-w-[200px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)]"
         style={{
           background: palette.bg,
           borderColor: palette.edge,
@@ -3279,7 +3278,7 @@ function PostItCard({
           className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
           style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
         />
-        <div className="px-2.5 pt-3 pb-2">
+        <div className="px-2.5 pt-3 pb-2.5">
           <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
             <span
               className="truncate rounded-sm border px-1 py-[1px]"
@@ -3290,7 +3289,7 @@ function PostItCard({
             </span>
             {pinned ? <span>· seed</span> : <span className="shrink-0">{timeAgo(ts)}</span>}
           </div>
-          <p className="line-clamp-2 break-words font-serif text-[12.5px] leading-snug text-amber-950">
+          <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
             {preview}
           </p>
         </div>
