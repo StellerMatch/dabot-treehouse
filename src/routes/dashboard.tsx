@@ -3345,15 +3345,6 @@ function PostItCard({
               </span>
             )}
           </div>
-              >
-                {isMixed ? "Mixed" : label}
-              </span>
-              {pinned ? <span>· seed</span> : <span className="shrink-0" suppressHydrationWarning>{timeAgo(ts)}</span>}
-            </div>
-            <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
-              {preview}
-            </p>
-          </div>
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
