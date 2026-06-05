@@ -3328,12 +3328,23 @@ function PostItCard({
           <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
             {isMixed ? "Mixed" : label}
           </div>
-          <div className="hidden lg:block">
-            <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
+          <div className="hidden lg:flex lg:h-full lg:flex-col lg:items-center lg:justify-center">
+            <span
+              className="rounded-sm border px-2 py-[2px] font-serif text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950"
+              style={{ background: palette.chip, borderColor: palette.edge }}
+              title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
+            >
+              {isMixed ? "Mixed" : label}
+            </span>
+            {!pinned && (
               <span
-                className="truncate rounded-sm border px-1 py-[1px]"
-                style={{ background: palette.chip, borderColor: palette.edge }}
-                title={isMixed ? "Covers multiple categories" : label}
+                className="mt-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/70"
+                suppressHydrationWarning
+              >
+                {timeAgo(ts)}
+              </span>
+            )}
+          </div>
               >
                 {isMixed ? "Mixed" : label}
               </span>
