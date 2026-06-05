@@ -320,7 +320,7 @@ function Dashboard() {
     });
   };
 
-  const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
+  const currentQuestion = useMemo<ClarityQuestion>(() => {
     if (categoryAsk) {
       return {
         id: `cat-${categoryAsk}`,
@@ -329,7 +329,8 @@ function Dashboard() {
       };
     }
     const answered = new Set(selectedExtras.answeredQuestions);
-    return CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
+    const next = CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
+    return next ?? CLARITY_QUESTIONS[0];
   }, [selectedExtras.answeredQuestions, categoryAsk]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
@@ -364,6 +365,7 @@ function Dashboard() {
       setCategoryAsk(null);
       return;
     }
+    if (selectedExtras.answeredQuestions.includes(currentQuestion.id)) return;
     updateExtras({
       answeredQuestions: [
         ...selectedExtras.answeredQuestions,
@@ -2587,11 +2589,6 @@ function ClarityGuide({
               <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/70">
                 Clarity asks
               </div>
-              {showQuestionControls && (
-                <div className="font-serif text-[10px] text-amber-900/60">
-                  {answeredCount}/{totalQuestions}
-                </div>
-              )}
             </div>
             <p className="mt-1.5 font-serif text-sm leading-snug text-amber-950">
               {showQuestionControls ? `“${bubbleText}”` : bubbleText}
@@ -2605,7 +2602,7 @@ function ClarityGuide({
                   onClick={onSkip}
                   className="font-serif text-[11px] italic text-amber-900/70 underline-offset-2 hover:underline"
                 >
-                  Skip question
+                  Next Question
                 </button>
                 <button
                   onClick={() => setMinimized(true)}
