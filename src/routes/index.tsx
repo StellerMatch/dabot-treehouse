@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
+import logoImage from "@/assets/dabottree-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,13 +38,20 @@ function Index() {
     >
       <BackgroundMedia />
 
+      {/* Hero logo — large, centered above the intake */}
+      <div className="pointer-events-none absolute inset-x-0 top-[10%] z-10 flex justify-center px-4 sm:top-[12%]">
+        <img
+          src={logoImage}
+          alt="DaBotTree"
+          className="h-auto w-[min(90vw,820px)] drop-shadow-[0_8px_40px_rgba(255,170,70,0.45)]"
+        />
+      </div>
+
+
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
         <div className="pointer-events-auto flex items-center gap-2">
-          <div className="h-6 w-6 rounded-[6px] bg-white/90" />
-          <span className="text-sm font-medium tracking-wide text-white/90">
-            DaBotTree
-          </span>
+          <img src={logoImage} alt="DaBotTree" className="h-8 w-auto drop-shadow-[0_0_18px_rgba(255,180,90,0.45)]" />
         </div>
         <nav className="pointer-events-auto flex items-center gap-2 text-xs">
           <Link
