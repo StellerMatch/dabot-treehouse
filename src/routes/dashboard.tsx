@@ -985,6 +985,27 @@ function MiniLaidBook({
       </span>
     </button>
   );
+  if (!guidance) return btn;
+  return (
+    <HoverCard openDelay={120} closeDelay={80}>
+      <HoverCardTrigger asChild>{btn}</HoverCardTrigger>
+      <HoverCardContent
+        side="right"
+        align="start"
+        sideOffset={8}
+        className="z-50 w-[240px] border-amber-950/70 p-3 font-serif text-[12px] italic text-amber-950 shadow-[0_12px_28px_-12px_rgba(20,8,2,0.7)]"
+        style={{
+          background: "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+          borderRadius: 6,
+        }}
+      >
+        <div className="mb-1 text-[10px] font-semibold uppercase not-italic tracking-[0.2em] text-amber-900/80">
+          {label}
+        </div>
+        {guidance}
+      </HoverCardContent>
+    </HoverCard>
+  );
 }
 
 function ProgressPopover({
