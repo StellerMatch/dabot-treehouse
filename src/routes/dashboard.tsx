@@ -948,15 +948,16 @@ function ProgressPopover({
   getValue,
   activeCategory,
   setActiveCategory,
+  overall,
 }: {
   disabled: boolean;
   categories: { key: CategoryKey; label: string; hint: string }[];
   getValue: (k: CategoryKey) => string;
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
+  overall: number;
 }) {
   const [open, setOpen] = useState(false);
-  const overall = overallProgress(categories, getValue);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -964,16 +965,9 @@ function ProgressPopover({
           type="button"
           disabled={disabled}
           className="bg-transparent p-0 disabled:opacity-50"
-          title={`Idea Progress — ${overall}%`}
+          title={`Idea Progress — ${overall}% ready`}
         >
-          <LaidBook
-            label="Idea Progress"
-            sublabel={`${overall}%`}
-            pct={overall}
-            variant="leather"
-            open={open}
-            size="lg"
-          />
+          <ProgressBook pct={overall} open={open} />
         </button>
       </PopoverTrigger>
       <PopoverContent
