@@ -11,7 +11,8 @@ const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BookOpen, Paperclip, Link2, Plus, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BookOpen, Paperclip, Link2, Plus, Lightbulb, Sparkles, ArrowRight, Pencil } from "lucide-react";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -372,6 +373,16 @@ function Dashboard() {
   // chunk categories into shelves of 3
   const categoryShelves = chunk(categoryDefs, 3);
 
+  // overall progress = average category status across all categories
+  const overallPct = useMemo(() => {
+    if (!selected) return 0;
+    const sum = categoryDefs.reduce(
+      (acc, c) => acc + categoryStatus(getCategoryValue(c.key)).pct,
+      0,
+    );
+    return Math.round(sum / categoryDefs.length);
+  }, [selected, selectedExtras, categoryDefs]);
+
   const leftWidths = [60, 70, 90];
   const rightWidths = [60, 70, 85];
 
@@ -527,10 +538,11 @@ function Dashboard() {
             getValue={getCategoryValue}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
+            overall={overallPct}
           />
         </div>
 
-        {/* CENTER: My Library + New Lightbulb */}
+        {/* CENTER: My Library + New Idea */}
         <div className="relative flex items-center justify-center gap-3">
           <LibraryPopover
             ideas={ideas}
@@ -563,39 +575,20 @@ function Dashboard() {
         {/* RIGHT: Organize / Next Stage */}
         <div className="relative flex items-center justify-end gap-3">
           <OrganizeButton
-            readiness={selected?.shelfReadiness ?? 0}
+            overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
             onClick={() => selected && moveToPreClarity(selected.id)}
           />
         </div>
       </header>
 
-      {/* Active idea title strip — parchment plaque for readability */}
+      {/* Active idea bookplate — compact carved label, centered */}
       {selected && (
-        <div className="relative z-20 mx-auto mt-3 w-full max-w-[860px] px-3">
-          <div
-            className="relative flex items-center gap-3 rounded-md border border-amber-950/60 px-4 py-2 shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] backdrop-blur-[2px]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
-            }}
-          >
-            <Lightbulb className="h-5 w-5 shrink-0 text-amber-700" />
-            <div className="min-w-0 flex-1">
-              <div className="font-serif text-[10px] uppercase tracking-[0.28em] text-amber-900/70">
-                Active Idea · {stageLabels[selected.stage]}
-              </div>
-              <input
-                value={selected.title}
-                onChange={(e) => updateSelected({ title: e.target.value })}
-                placeholder="Name this idea…"
-                className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 placeholder:text-amber-800/40 focus:outline-none sm:text-2xl"
-              />
-            </div>
-            <span suppressHydrationWarning className="hidden shrink-0 font-serif text-[11px] italic text-amber-900/70 sm:inline">
-              Updated {timeAgo(selected.updatedAt)}
-            </span>
-          </div>
+        <div className="relative z-20 mx-auto mt-3 flex w-full justify-center px-3">
+          <IdeaBookplate
+            idea={selected}
+            onUpdate={(patch) => updateSelected(patch)}
+          />
         </div>
       )}
 
@@ -956,15 +949,16 @@ function ProgressPopover({
   getValue,
   activeCategory,
   setActiveCategory,
+  overall,
 }: {
   disabled: boolean;
   categories: { key: CategoryKey; label: string; hint: string }[];
   getValue: (k: CategoryKey) => string;
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
+  overall: number;
 }) {
   const [open, setOpen] = useState(false);
-  const overall = overallProgress(categories, getValue);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -972,16 +966,9 @@ function ProgressPopover({
           type="button"
           disabled={disabled}
           className="bg-transparent p-0 disabled:opacity-50"
-          title={`Idea Progress — ${overall}%`}
+          title={`Idea Progress — ${overall}% ready`}
         >
-          <LaidBook
-            label="Idea Progress"
-            sublabel={`${overall}%`}
-            pct={overall}
-            variant="leather"
-            open={open}
-            size="lg"
-          />
+          <ProgressBook pct={overall} open={open} />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -1099,7 +1086,7 @@ function LibraryPopover({
           })}
           {ideas.length === 0 && (
             <li className="px-2 py-3 font-serif text-[11px] italic text-amber-900/80">
-              No ideas yet. Tap New Lightbulb to begin.
+              No ideas yet. Tap New Idea to begin.
             </li>
           )}
         </ul>
@@ -1123,7 +1110,7 @@ function NewLightbulbPopover({
       <PopoverTrigger asChild>
         <button type="button" className="bg-transparent p-0">
           <LaidBook
-            label="New Lightbulb"
+            label="New Idea"
             variant="ember"
             open={open}
             size="md"
@@ -1180,36 +1167,350 @@ function NewLightbulbPopover({
 }
 
 function OrganizeButton({
-  readiness,
+  overall,
   stage,
   onClick,
 }: {
-  readiness: number;
+  overall: number;
   stage: LightbulbIdea["stage"];
   onClick: () => void;
 }) {
-  const ready = readiness >= 60;
-  const strong = readiness >= 35;
-  const label =
-    stage === "lightbulb" ? "Organize Idea" : "Next Stage";
-  const disabled = stage !== "lightbulb";
-  const variant: LaidBookVariant = ready ? "gold" : strong ? "emerald" : "leather";
-  const size = ready ? "lg" : "md";
+  const unlocked = overall >= 90;
+  const stageAdvanced = stage !== "lightbulb";
+  const label = stageAdvanced ? "Next Stage" : "Organize Idea";
+  const [showLockMsg, setShowLockMsg] = useState(false);
+
+  const handleClick = () => {
+    if (stageAdvanced) return;
+    if (!unlocked) {
+      setShowLockMsg(true);
+      window.setTimeout(() => setShowLockMsg(false), 2400);
+      return;
+    }
+    onClick();
+  };
+
+  const variant: LaidBookVariant = unlocked ? "gold" : "leather";
+  const size = unlocked ? "lg" : "md";
+
   return (
-    <LaidBook
-      label={label}
-      sublabel={`${readiness}%`}
-      pct={readiness}
-      variant={variant}
-      glow={ready}
-      size={size}
-      disabled={disabled}
-      onClick={onClick}
-      title={disabled ? "Already organized" : `Move forward (${readiness}% ready)`}
-      trailing={<ArrowRight className="h-3 w-3 opacity-90" />}
-    />
+    <div className="relative">
+      <div className={unlocked ? "" : "opacity-60 saturate-[0.55]"}>
+        <LaidBook
+          label={label}
+          sublabel={`${overall}%`}
+          pct={overall}
+          variant={variant}
+          glow={unlocked}
+          size={size}
+          disabled={stageAdvanced}
+          onClick={handleClick}
+          title={
+            stageAdvanced
+              ? "Already organized"
+              : unlocked
+                ? `Ready! Move forward (${overall}%)`
+                : `Asleep — unlocks at 90% (currently ${overall}%)`
+          }
+          trailing={
+            unlocked ? (
+              <ArrowRight className="h-3 w-3 opacity-90" />
+            ) : (
+              <span className="text-[10px] opacity-75">zZz</span>
+            )
+          }
+        />
+      </div>
+      {showLockMsg && (
+        <div
+          className="absolute right-0 top-full z-50 mt-2 w-[240px] rounded-md border border-amber-950/70 px-3 py-2 font-serif text-[11px] italic text-amber-950 shadow-[0_12px_28px_-12px_rgba(20,8,2,0.7)] animate-fade-in"
+          style={{
+            background:
+              "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+          }}
+        >
+          Gather a little more first. Ideas unlock at <strong>90% ready</strong>.
+        </div>
+      )}
+    </div>
   );
 }
+
+// ProgressBook — laid-down book with engraved oversized percent number
+function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
+  const fillPct = Math.max(0, Math.min(100, pct));
+  const lifted = open ? "translate-y-[1px] rotate-[-0.4deg]" : "hover:-translate-y-[1px]";
+  return (
+    <span
+      className={`group relative inline-flex shrink-0 items-center font-serif transition-transform ${lifted}`}
+      style={{ height: 56, width: 268 }}
+    >
+      {/* shelf shadow */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-1 left-1.5 right-1.5 h-2 rounded-full blur-[3px]"
+        style={{ background: "rgba(10,5,0,0.55)" }}
+      />
+      {/* book body */}
+      <span
+        className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
+        style={{
+          background:
+            "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
+          border: "1px solid rgba(20,10,2,0.85)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+        }}
+      >
+        {/* page edges along the bottom */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[6px]"
+          style={{
+            background:
+              "repeating-linear-gradient(90deg, rgba(245,220,170,0.85) 0 1px, rgba(200,170,120,0.6) 1px 2px)",
+            borderTop: "1px solid rgba(0,0,0,0.5)",
+          }}
+        />
+        {/* magical glow fill rising from bottom-left */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0"
+          style={{
+            width: `${fillPct}%`,
+            background:
+              "linear-gradient(90deg, rgba(255,220,140,0.28), rgba(255,235,170,0.12) 70%, transparent)",
+            transition: "width 700ms ease",
+          }}
+        />
+        {/* glowing gold page-edge fill */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 left-0 h-[6px]"
+          style={{
+            width: `${fillPct}%`,
+            background:
+              "linear-gradient(90deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
+            boxShadow:
+              "0 0 14px 3px rgba(255,220,140,0.85), 0 0 4px rgba(255,255,200,0.95)",
+            transition: "width 700ms ease",
+          }}
+        />
+        {fillPct > 0 && fillPct < 100 && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-[1px] h-[9px] w-[3px] rounded-full"
+            style={{
+              left: `calc(${fillPct}% - 1.5px)`,
+              background: "rgba(255,250,210,0.95)",
+              boxShadow: "0 0 10px 3px rgba(255,230,150,0.95)",
+              transition: "left 700ms ease",
+            }}
+          />
+        )}
+
+        {/* gold spine caps */}
+        <span
+          aria-hidden
+          className="absolute inset-y-1 left-1 w-[3px] rounded-sm"
+          style={{
+            background: "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            boxShadow: "0 0 4px rgba(255,210,130,0.5)",
+          }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-y-1 right-1 w-[3px] rounded-sm"
+          style={{
+            background: "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            boxShadow: "0 0 4px rgba(255,210,130,0.5)",
+          }}
+        />
+
+        {/* engraved content: big percent + label */}
+        <span className="relative z-10 flex w-full items-center justify-between gap-3 px-4">
+          <span
+            className="font-serif text-[28px] font-bold leading-none tracking-tight"
+            style={{
+              color: "#ffe9a3",
+              textShadow:
+                "0 1px 0 rgba(0,0,0,0.8), 0 0 14px rgba(255,210,120,0.7), 0 0 2px rgba(255,240,180,0.9)",
+            }}
+          >
+            {fillPct}%
+          </span>
+          <span className="flex flex-col items-end">
+            <span
+              className="font-serif text-[11px] font-semibold uppercase tracking-[0.25em]"
+              style={{
+                color: "#fbe6b8",
+                textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+              }}
+            >
+              Idea Progress
+            </span>
+            <span
+              className="font-serif text-[10px] italic"
+              style={{ color: "rgba(251,230,184,0.75)" }}
+            >
+              {fillPct >= 90 ? "Ready" : fillPct >= 50 ? "Growing" : fillPct > 0 ? "Started" : "Empty"}
+            </span>
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+}
+
+// Compact idea bookplate — short centered carved label with edit dialog
+function IdeaBookplate({
+  idea,
+  onUpdate,
+}: {
+  idea: LightbulbIdea;
+  onUpdate: (patch: Partial<LightbulbIdea>) => void;
+}) {
+  const [editOpen, setEditOpen] = useState(false);
+  const display = (idea.title || "Untitled Idea").trim();
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setEditOpen(true)}
+        title="Edit idea details"
+        className="group relative inline-flex max-w-[min(92vw,440px)] items-center gap-2 rounded-[4px] border px-4 py-1.5 font-serif shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] transition hover:-translate-y-[1px]"
+        style={{
+          background:
+            "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+          borderColor: "rgba(60,30,8,0.7)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,240,200,0.8), inset 0 -2px 0 rgba(120,70,20,0.35), 0 6px 16px -8px rgba(20,8,2,0.6)",
+        }}
+      >
+        {/* tiny brass screws */}
+        <span
+          aria-hidden
+          className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
+        />
+        <span
+          aria-hidden
+          className="absolute right-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
+        />
+        <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-700" />
+        <span
+          className="truncate font-serif text-[15px] font-semibold leading-tight text-amber-950"
+          style={{ textShadow: "0 1px 0 rgba(255,240,200,0.6)" }}
+        >
+          {display}
+        </span>
+        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/65 sm:inline">
+          · {stageLabels[idea.stage]}
+        </span>
+        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-70 transition group-hover:opacity-100" />
+      </button>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent
+          className="max-w-md border-amber-950/70 p-5 text-amber-950"
+          style={{
+            background:
+              "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="font-serif text-[18px] font-bold text-amber-950">
+              Edit Idea
+            </DialogTitle>
+            <DialogDescription className="font-serif text-[11px] italic text-amber-900/70">
+              A few simple notes to give this idea shape.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 space-y-3">
+            <BookplateField
+              label="Idea name"
+              value={idea.title}
+              onChange={(v) => onUpdate({ title: v })}
+              placeholder="Name this idea…"
+            />
+            <BookplateField
+              label="Who does this serve?"
+              value={idea.audience ?? ""}
+              onChange={(v) => onUpdate({ audience: v })}
+              placeholder="e.g. busy parents, indie devs"
+            />
+            <BookplateField
+              label="Industry or category"
+              value={idea.industry ?? ""}
+              onChange={(v) => onUpdate({ industry: v })}
+              placeholder="e.g. education, wellness"
+            />
+            <BookplateField
+              label="Idea type"
+              value={idea.ideaType ?? ""}
+              onChange={(v) => onUpdate({ ideaType: v })}
+              placeholder="e.g. app, service, course"
+            />
+            <BookplateField
+              label="Short description"
+              value={idea.description ?? ""}
+              onChange={(v) => onUpdate({ description: v })}
+              placeholder="One sentence about the idea"
+              multiline
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => setEditOpen(false)}
+              className="rounded-sm border border-amber-950/60 px-4 py-1.5 font-serif text-[12px] font-semibold text-amber-950 shadow-sm transition hover:brightness-105"
+              style={{
+                background:
+                  "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function BookplateField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+}) {
+  const Comp = multiline ? "textarea" : "input";
+  return (
+    <label className="block">
+      <span className="mb-1 block font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/75">
+        {label}
+      </span>
+      <Comp
+        value={value}
+        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+          onChange(e.target.value)
+        }
+        placeholder={placeholder}
+        rows={multiline ? 2 : undefined}
+        className="w-full rounded-sm border border-amber-950/40 bg-amber-50/60 px-2.5 py-1.5 font-serif text-[13px] text-amber-950 placeholder:text-amber-900/40 focus:border-amber-950/80 focus:outline-none"
+      />
+    </label>
+  );
+}
+
+
 
 
 
