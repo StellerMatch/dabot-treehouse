@@ -154,6 +154,7 @@ type PostIt = {
   id: string;
   kind: "idea-notes" | "info-gathered";
   text: string;
+  fullText?: string;
   ts: number;
   categories?: CategoryKey[];
 };
