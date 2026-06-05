@@ -3068,7 +3068,7 @@ function NoteDesk(props: {
             No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="grid grid-cols-3 gap-1.5 pb-44 sm:gap-2 sm:pb-48 lg:gap-1.5 lg:pb-56">
+        <div className="grid grid-cols-2 gap-1.5 pb-40 sm:grid-cols-3 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
           {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
@@ -3266,20 +3266,20 @@ function PostItCard({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:max-w-[200px] lg:text-left"
+        className="relative aspect-[2.35/1] w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:aspect-auto lg:max-w-[200px] lg:text-left"
         style={{
           background: palette.bg,
           borderColor: palette.edge,
-          transform: `rotate(${rot}deg)`,
+          transform: `rotate(${typeof window !== "undefined" && window.innerWidth >= 1024 ? rot : 0}deg)`,
         }}
         title="Open full note"
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
+          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-sm lg:-rotate-3"
           style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
         />
-        <div className="flex h-[64px] items-center justify-center px-2 py-2 sm:h-[72px] lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
+        <div className="flex h-full items-center justify-center px-2 py-2 sm:px-2.5 lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
           <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
             {isMixed ? "Mixed" : label}
           </div>
