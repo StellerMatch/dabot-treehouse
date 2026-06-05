@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import logoImage from "@/assets/dabottree-logo.png";
 
@@ -19,11 +19,21 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    type: typeof s.type === "string" ? (s.type as string) : undefined,
+  }),
   component: Index,
 });
 
 function Index() {
+  const { type } = Route.useSearch();
   const [idea, setIdea] = useState("");
+  const [ideaType, setIdeaType] = useState<string>(type ?? "");
+
+  useEffect(() => {
+    if (type) setIdeaType(type);
+  }, [type]);
+
 
   const words = useMemo(
     () => idea.trim().split(/\s+/).filter(Boolean).length,
