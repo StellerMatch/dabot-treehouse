@@ -1243,7 +1243,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
   return (
     <span
       className={`group relative inline-flex shrink-0 items-center font-serif transition-transform ${lifted}`}
-      style={{ height: 56, width: 268 }}
+      style={{ height: 64, width: 300 }}
     >
       {/* shelf shadow */}
       <span
