@@ -3021,6 +3021,7 @@ function NoteDesk(props: {
   answeredCount: number;
   totalQuestions: number;
   onSkipClarityQuestion: () => void;
+  getCategoryValue: (k: CategoryKey) => string;
 }) {
   const {
     selected,
@@ -3034,6 +3035,7 @@ function NoteDesk(props: {
     answeredCount,
     totalQuestions,
     onSkipClarityQuestion,
+    getCategoryValue,
   } = props;
 
   const [draft, setDraft] = useState("");
