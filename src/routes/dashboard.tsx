@@ -1062,6 +1062,7 @@ function ProgressPopover({
                 key={c.key}
                 label={c.label}
                 pct={status.pct}
+                guidance={c.guidance}
                 active={activeCategory === c.key}
                 onClick={() => {
                   setActiveCategory(c.key);
