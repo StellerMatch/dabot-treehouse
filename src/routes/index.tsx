@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import logoImage from "@/assets/dabottree-logo.png";
 
@@ -19,11 +19,21 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    type: typeof s.type === "string" ? (s.type as string) : undefined,
+  }),
   component: Index,
 });
 
 function Index() {
+  const { type } = Route.useSearch();
   const [idea, setIdea] = useState("");
+  const [ideaType, setIdeaType] = useState<string>(type ?? "");
+
+  useEffect(() => {
+    if (type) setIdeaType(type);
+  }, [type]);
+
 
   const words = useMemo(
     () => idea.trim().split(/\s+/).filter(Boolean).length,
@@ -97,7 +107,13 @@ function Index() {
           <p className="mt-1.5 text-sm text-white/85">
             Start messy. DaBotTree will help shape the path.
           </p>
+          {ideaType && (
+            <p className="mt-2 inline-block rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-0.5 text-[11px] uppercase tracking-[0.2em] text-amber-100/90">
+              Starting a {ideaType}
+            </p>
+          )}
         </div>
+
 
         <div
           className="relative rounded-2xl border border-amber-200/20 bg-[rgba(28,16,8,0.45)] p-4 backdrop-blur-xl"
@@ -140,6 +156,8 @@ function Index() {
                   if (typeof window !== "undefined") {
                     try {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
+                      if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
+                      else sessionStorage.removeItem("dabottree:draftIdeaType");
                     } catch {}
                   }
                 }}
