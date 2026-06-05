@@ -422,24 +422,31 @@ function Dashboard() {
               Open an idea to see its shelves.
             </div>
           ) : (
-            categoryShelves.map((row, rIdx) => (
-              <Shelf key={rIdx}>
-                {row.map((c) => {
-                  const status = categoryStatus(getCategoryValue(c.key));
-                  return (
-                    <CategoryBook
-                      key={c.key}
-                      label={c.label}
-                      hint={c.hint}
-                      pct={status.pct}
-                      statusLabel={status.label}
-                      active={activeCategory === c.key}
-                      onClick={() => setActiveCategory(c.key)}
-                    />
-                  );
-                })}
-              </Shelf>
-            ))
+            (() => {
+              const rightWidths = [60, 70, 85];
+              return categoryShelves.map((row, rIdx) => (
+                <Shelf
+                  key={rIdx}
+                  widthPct={rightWidths[rIdx] ?? 85}
+                  align="right"
+                >
+                  {row.map((c) => {
+                    const status = categoryStatus(getCategoryValue(c.key));
+                    return (
+                      <CategoryBook
+                        key={c.key}
+                        label={c.label}
+                        hint={c.hint}
+                        pct={status.pct}
+                        statusLabel={status.label}
+                        active={activeCategory === c.key}
+                        onClick={() => setActiveCategory(c.key)}
+                      />
+                    );
+                  })}
+                </Shelf>
+              ));
+            })()
           )}
         </ShelfWall>
       </div>
