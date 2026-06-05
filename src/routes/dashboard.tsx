@@ -3297,6 +3297,7 @@ function PostItCard({
   hue,
   pinned,
   categories,
+  pct = 0,
 }: {
   text: string;
   fullText?: string;
@@ -3305,47 +3306,70 @@ function PostItCard({
   hue: number;
   pinned?: boolean;
   categories?: CategoryKey[];
+  pct?: number;
 }) {
   const [open, setOpen] = useState(false);
   const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
+  // earthy paper: warm grain + subtle fiber flecks layered over the palette color
+  const paperBg = `radial-gradient(120% 80% at 20% 0%, rgba(255,247,225,0.45), transparent 60%),
+       radial-gradient(140% 100% at 100% 100%, rgba(80,50,15,0.18), transparent 55%),
+       repeating-linear-gradient(115deg, rgba(90,55,20,0.05) 0 1px, transparent 1px 6px),
+       repeating-linear-gradient(35deg, rgba(60,35,10,0.04) 0 1px, transparent 1px 9px),
+       ${palette.bg}`;
+  const earthShadow =
+    "0 10px 18px -10px rgba(20,8,2,0.7), inset 0 0 0 1px rgba(70,40,15,0.18), inset 0 14px 22px -16px rgba(80,45,15,0.35), inset 0 -10px 18px -16px rgba(40,20,5,0.45)";
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative aspect-[2.35/1] w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
+        className="relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
         style={{
-          background: palette.bg,
-          borderColor: palette.edge,
+          background: paperBg,
+          borderColor: "rgba(70,40,15,0.55)",
+          boxShadow: earthShadow,
+          borderRadius: "3px 6px 4px 7px",
           ["--note-rot" as string]: `${rot}deg`,
         }}
         title="Open full note"
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-sm lg:-rotate-3"
-          style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 lg:-rotate-3"
+          style={{
+            background: `linear-gradient(180deg, ${palette.tape}, color-mix(in oklab, ${palette.tape} 70%, #5a3a14))`,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.15)",
+            borderRadius: "1px 3px 2px 4px",
+            opacity: 0.85,
+          }}
         />
-        <div className="flex h-full items-center justify-center px-2 py-2 sm:px-2.5 lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(2px 2px at 18% 30%, rgba(60,35,10,0.35), transparent 60%), radial-gradient(1.5px 1.5px at 72% 65%, rgba(60,35,10,0.3), transparent 60%), radial-gradient(2px 2px at 40% 80%, rgba(60,35,10,0.25), transparent 60%)",
+            mixBlendMode: "multiply",
+            borderRadius: "inherit",
+          }}
+        />
+        <div className="relative flex h-full items-center justify-center px-2 py-2 sm:px-2.5 lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
           <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
             {isMixed ? "Mixed" : label}
           </div>
           <div className="hidden lg:flex lg:h-full lg:flex-col lg:items-center lg:justify-center">
             <span
               className="rounded-sm border px-2 py-[2px] font-serif text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950"
-              style={{ background: palette.chip, borderColor: palette.edge }}
+              style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
               title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
             >
               {isMixed ? "Mixed" : label}
             </span>
             {!pinned && (
-              <span
-                className="mt-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/70"
-                suppressHydrationWarning
-              >
-                {timeAgo(ts)}
+              <span className="mt-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
+                {pct}% filled
               </span>
             )}
           </div>
