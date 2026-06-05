@@ -1377,16 +1377,30 @@ function LibraryPopover({
   );
 }
 
-function NewLightbulbPopover({
-  onBlank,
-  seeds,
-  onSeed,
-}: {
-  onBlank: () => void;
-  seeds: { id: string; title: string }[];
-  onSeed: (title: string) => void;
-}) {
+const NEW_IDEA_CATEGORIES: { id: string; label: string; type: string }[] = [
+  { id: "app", label: "Create an App", type: "App" },
+  { id: "tool", label: "Create a Tool", type: "Tool" },
+  { id: "service", label: "Create a Service", type: "Service" },
+  { id: "product", label: "Create a Product", type: "Product" },
+  { id: "community", label: "Start a Community", type: "Community" },
+  { id: "business", label: "Start a Business", type: "Business" },
+  { id: "story", label: "Tell a Story", type: "Story" },
+];
+
+function NewLightbulbPopover() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const goToDoor = (type?: string) => {
+    setOpen(false);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("dabottree:draftIdea");
+        if (type) sessionStorage.setItem("dabottree:draftIdeaType", type);
+        else sessionStorage.removeItem("dabottree:draftIdeaType");
+      } catch {}
+    }
+    navigate({ to: "/", search: type ? { type } : undefined as never });
+  };
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -1404,18 +1418,14 @@ function NewLightbulbPopover({
       <PopoverContent
         align="center"
         sideOffset={10}
-        className="z-40 w-[min(92vw,360px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
+        className="z-40 w-[min(92vw,320px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
         style={{
-          background:
-            "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
+          background: "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
           borderRadius: 6,
         }}
       >
         <button
-          onClick={() => {
-            onBlank();
-            setOpen(false);
-          }}
+          onClick={() => goToDoor()}
           className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-950 shadow-md transition hover:brightness-110"
           style={{
             background:
@@ -1425,20 +1435,17 @@ function NewLightbulbPopover({
           <Plus className="h-3.5 w-3.5" /> Blank Idea
         </button>
         <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
-          · Sparks ·
+          · Categories ·
         </div>
         <ul className="space-y-1">
-          {seeds.map((s) => (
-            <li key={s.id}>
+          {NEW_IDEA_CATEGORIES.map((c) => (
+            <li key={c.id}>
               <button
-                onClick={() => {
-                  onSeed(s.title);
-                  setOpen(false);
-                }}
+                onClick={() => goToDoor(c.type)}
                 className="flex w-full items-center gap-2 rounded-sm border border-amber-900/40 bg-amber-50/40 px-2 py-1.5 text-left font-serif text-[12px] text-amber-950 transition hover:bg-amber-100/70"
               >
-                <Sparkles className="h-3 w-3 text-amber-700" />
-                <span className="truncate">{s.title}</span>
+                <Lightbulb className="h-3 w-3 text-amber-700" />
+                <span className="truncate">{c.label}</span>
               </button>
             </li>
           ))}
@@ -1447,6 +1454,7 @@ function NewLightbulbPopover({
     </Popover>
   );
 }
+
 
 function OrganizeButton({
   overall,
