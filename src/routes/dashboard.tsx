@@ -3266,7 +3266,7 @@ function PostItCard({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative w-full max-w-[200px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)]"
+        className="relative w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:max-w-[200px] lg:text-left"
         style={{
           background: palette.bg,
           borderColor: palette.edge,
@@ -3279,20 +3279,25 @@ function PostItCard({
           className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
           style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
         />
-        <div className="px-2.5 pt-3 pb-2.5">
-          <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
-            <span
-              className="truncate rounded-sm border px-1 py-[1px]"
-              style={{ background: palette.chip, borderColor: palette.edge }}
-              title={isMixed ? "Covers multiple categories" : label}
-            >
-              {isMixed ? "Mixed" : label}
-            </span>
-            {pinned ? <span>· seed</span> : <span className="shrink-0">{timeAgo(ts)}</span>}
+        <div className="flex h-[64px] items-center justify-center px-2 py-2 sm:h-[72px] lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
+          <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
+            {isMixed ? "Mixed" : label}
           </div>
-          <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
-            {preview}
-          </p>
+          <div className="hidden lg:block">
+            <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
+              <span
+                className="truncate rounded-sm border px-1 py-[1px]"
+                style={{ background: palette.chip, borderColor: palette.edge }}
+                title={isMixed ? "Covers multiple categories" : label}
+              >
+                {isMixed ? "Mixed" : label}
+              </span>
+              {pinned ? <span>· seed</span> : <span className="shrink-0" suppressHydrationWarning>{timeAgo(ts)}</span>}
+            </div>
+            <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
+              {preview}
+            </p>
+          </div>
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -3302,7 +3307,7 @@ function PostItCard({
               {isMixed ? "Mixed note" : label}
             </DialogTitle>
             <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
-              {pinned ? "Seed note" : timeAgo(ts)}
+              {pinned ? "Seed note" : <span suppressHydrationWarning>{timeAgo(ts)}</span>}
               {categories && categories.length > 0 && (
                 <> · {categories.map((c) => postItCategoryPalette[c].label).join(", ")}</>
               )}
