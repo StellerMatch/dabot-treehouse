@@ -654,41 +654,312 @@ function Dashboard() {
 // Top bar controls — popovers & organize button
 // ============================================================
 
-function ShelfTabButton({
-  icon,
+// ============================================================
+// Laid-down book button — horizontal book with left→right glowing fill
+// ============================================================
+type LaidBookVariant = "leather" | "gold" | "emerald" | "ember";
+
+const laidBookPalette: Record<
+  LaidBookVariant,
+  { cover: string; edge: string; stroke: string; text: string; spine: string }
+> = {
+  leather: {
+    cover:
+      "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
+    edge: "linear-gradient(180deg, #f5d99a 0%, #c89a52 100%)",
+    stroke: "rgba(20,10,2,0.85)",
+    text: "#fbe6b8",
+    spine: "#3a1f08",
+  },
+  gold: {
+    cover:
+      "linear-gradient(180deg, #8b5a18 0%, #5a3208 55%, #2d1605 100%)",
+    edge: "linear-gradient(180deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
+    stroke: "rgba(20,10,2,0.85)",
+    text: "#ffe9b8",
+    spine: "#4a280a",
+  },
+  emerald: {
+    cover:
+      "linear-gradient(180deg, #1f5a3a 0%, #133a25 55%, #061f10 100%)",
+    edge: "linear-gradient(180deg, #c8f5d4 0%, #5fc27a 100%)",
+    stroke: "rgba(5,20,10,0.85)",
+    text: "#dff5e2",
+    spine: "#0c2e1a",
+  },
+  ember: {
+    cover:
+      "linear-gradient(180deg, #7a2a14 0%, #4a1408 55%, #2a0805 100%)",
+    edge: "linear-gradient(180deg, #ffd2a3 0%, #e88040 100%)",
+    stroke: "rgba(20,5,2,0.85)",
+    text: "#fde0c8",
+    spine: "#3a1008",
+  },
+};
+
+function LaidBook({
   label,
+  sublabel,
+  pct,
+  variant = "leather",
   open,
   glow,
-  ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  icon: React.ReactNode;
+  size = "md",
+  disabled,
+  trailing,
+  onClick,
+  title,
+}: {
   label: string;
+  sublabel?: string;
+  pct?: number; // 0..100, optional fill
+  variant?: LaidBookVariant;
   open?: boolean;
   glow?: boolean;
+  size?: "sm" | "md" | "lg";
+  disabled?: boolean;
+  trailing?: React.ReactNode;
+  onClick?: () => void;
+  title?: string;
+}) {
+  const pal = laidBookPalette[variant];
+  const dims = {
+    sm: { h: 30, w: 130, pad: "px-2.5", font: "text-[10px]", sub: "text-[8px]" },
+    md: { h: 40, w: 188, pad: "px-3.5", font: "text-[12px]", sub: "text-[9px]" },
+    lg: { h: 46, w: 230, pad: "px-4", font: "text-[13px]", sub: "text-[9px]" },
+  }[size];
+  const fillPct = typeof pct === "number" ? Math.max(0, Math.min(100, pct)) : null;
+  const lifted = open ? "translate-y-[1px] rotate-[-0.4deg]" : "hover:-translate-y-[1px]";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`group relative inline-flex shrink-0 items-center font-serif transition-transform disabled:opacity-50 ${lifted}`}
+      style={{ height: dims.h, width: dims.w }}
+    >
+      {/* shelf shadow under book */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-1 left-1.5 right-1.5 h-2 rounded-full blur-[3px]"
+        style={{ background: "rgba(10,5,0,0.55)" }}
+      />
+      {/* glow halo */}
+      {glow && !disabled && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
+          style={{ background: "rgba(255,210,120,0.45)" }}
+        />
+      )}
+
+      {/* book body */}
+      <span
+        className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
+        style={{
+          background: pal.cover,
+          border: `1px solid ${pal.stroke}`,
+          boxShadow:
+            "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+        }}
+      >
+        {/* page edges showing along the bottom (the side of a laid book) */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[5px]"
+          style={{
+            background:
+              "repeating-linear-gradient(90deg, rgba(245,220,170,0.85) 0 1px, rgba(200,170,120,0.6) 1px 2px)",
+            borderTop: "1px solid rgba(0,0,0,0.5)",
+          }}
+        />
+
+        {/* left-to-right magical fill (page edge glowing) */}
+        {fillPct !== null && (
+          <>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0"
+              style={{
+                width: `${fillPct}%`,
+                background:
+                  "linear-gradient(90deg, rgba(255,220,140,0.22), rgba(255,235,170,0.10) 70%, transparent)",
+                transition: "width 600ms ease",
+              }}
+            />
+            {/* glowing page-edge fill at the bottom */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute bottom-0 left-0 h-[5px]"
+              style={{
+                width: `${fillPct}%`,
+                background: pal.edge,
+                boxShadow:
+                  "0 0 10px 2px rgba(255,220,140,0.7), 0 0 2px rgba(255,255,200,0.9)",
+                transition: "width 600ms ease",
+              }}
+            />
+            {/* leading edge sparkle */}
+            {fillPct > 0 && fillPct < 100 && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute bottom-[1px] h-[7px] w-[3px] rounded-full"
+                style={{
+                  left: `calc(${fillPct}% - 1.5px)`,
+                  background: "rgba(255,250,210,0.95)",
+                  boxShadow: "0 0 8px 2px rgba(255,230,150,0.9)",
+                  transition: "left 600ms ease",
+                }}
+              />
+            )}
+          </>
+        )}
+
+        {/* gold spine band on the left */}
+        <span
+          aria-hidden
+          className="absolute inset-y-1 left-1 w-[3px] rounded-sm"
+          style={{
+            background:
+              "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            boxShadow: "0 0 4px rgba(255,210,130,0.5)",
+          }}
+        />
+        {/* gold spine band on the right */}
+        <span
+          aria-hidden
+          className="absolute inset-y-1 right-1 w-[3px] rounded-sm"
+          style={{
+            background:
+              "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            boxShadow: "0 0 4px rgba(255,210,130,0.5)",
+          }}
+        />
+
+        {/* label */}
+        <span
+          className={`relative z-10 flex w-full items-center justify-center gap-1.5 ${dims.pad} ${dims.font} font-semibold uppercase tracking-[0.18em]`}
+          style={{
+            color: pal.text,
+            textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
+          }}
+        >
+          <span className="truncate">{label}</span>
+          {trailing}
+        </span>
+        {sublabel && (
+          <span
+            className={`pointer-events-none absolute right-2 top-1 ${dims.sub} italic`}
+            style={{ color: pal.text, opacity: 0.8 }}
+          >
+            {sublabel}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
+
+function overallProgress(
+  cats: { key: CategoryKey }[],
+  getValue: (k: CategoryKey) => string,
+) {
+  if (cats.length === 0) return 0;
+  const sum = cats.reduce((acc, c) => acc + categoryStatus(getValue(c.key)).pct, 0);
+  return Math.round(sum / cats.length);
+}
+
+function MiniLaidBook({
+  label,
+  pct,
+  active,
+  onClick,
+}: {
+  label: string;
+  pct: number;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
     <button
-      {...rest}
+      onClick={onClick}
+      title={`${label} — ${pct}%`}
       className={
-        "relative inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-serif text-[11px] font-medium shadow-sm transition focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/80 " +
-        (open
-          ? "border-amber-200/80 text-amber-50"
-          : "border-amber-200/40 text-amber-100 hover:brightness-110")
+        "relative flex h-[26px] w-full items-center overflow-hidden rounded-[3px] border font-serif transition-transform " +
+        (active
+          ? "-translate-y-[1px] border-amber-200/90"
+          : "border-amber-950/80 hover:-translate-y-[1px]")
       }
       style={{
-        background: open
-          ? "linear-gradient(180deg, #7a4a18 0%, #4a2810 100%)"
-          : "linear-gradient(180deg, #4a2810 0%, #2a1505 100%)",
-        boxShadow: glow
-          ? "0 0 14px 2px rgba(255,210,130,0.45), inset 0 1px 0 rgba(255,210,150,0.2)"
-          : "inset 0 1px 0 rgba(255,210,150,0.18), 0 2px 4px rgba(0,0,0,0.4)",
+        background: "linear-gradient(180deg, #5a3110 0%, #361a06 100%)",
+        boxShadow:
+          "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.5)",
       }}
     >
-      <span className="text-amber-200">{icon}</span>
-      <span>{label}</span>
-      <ChevronDown
-        className={"h-3 w-3 transition-transform " + (open ? "rotate-180" : "")}
+      {/* page edges */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px]"
+        style={{
+          background:
+            "repeating-linear-gradient(90deg, rgba(245,220,170,0.8) 0 1px, rgba(200,170,120,0.55) 1px 2px)",
+          borderTop: "1px solid rgba(0,0,0,0.5)",
+        }}
       />
+      {/* glowing fill */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0"
+        style={{
+          width: `${pct}%`,
+          background:
+            "linear-gradient(90deg, rgba(255,220,140,0.22), transparent)",
+          transition: "width 600ms ease",
+        }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-0 h-[3px]"
+        style={{
+          width: `${pct}%`,
+          background:
+            pct >= 100
+              ? "linear-gradient(90deg, #ffe9a3, #f0c050)"
+              : pct >= 50
+                ? "linear-gradient(90deg, #c8f5d4, #5fc27a)"
+                : pct > 0
+                  ? "linear-gradient(90deg, #c8f5d4, #5fc27a)"
+                  : "transparent",
+          boxShadow:
+            pct > 0
+              ? "0 0 8px 1px rgba(180,240,140,0.7)"
+              : "none",
+          transition: "width 600ms ease",
+        }}
+      />
+      {/* gold caps */}
+      <span
+        aria-hidden
+        className="absolute inset-y-1 left-1 w-[2px] rounded-sm"
+        style={{ background: "linear-gradient(180deg,#f0d28a,#a87420)" }}
+      />
+      <span
+        aria-hidden
+        className="absolute inset-y-1 right-1 w-[2px] rounded-sm"
+        style={{ background: "linear-gradient(180deg,#f0d28a,#a87420)" }}
+      />
+      <span
+        className="relative z-10 flex w-full items-center justify-between gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
+        style={{
+          color: "#fbe6b8",
+          textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+        }}
+      >
+        <span className="truncate">{label}</span>
+        <span className="shrink-0 text-[9px] italic opacity-75">{pct}%</span>
+      </span>
     </button>
   );
 }
@@ -707,45 +978,57 @@ function ProgressPopover({
   setActiveCategory: (k: CategoryKey) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const overall = overallProgress(categories, getValue);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <ShelfTabButton
-          icon={<BookOpen className="h-3.5 w-3.5" />}
-          label="Progress"
-          open={open}
+        <button
+          type="button"
           disabled={disabled}
-        />
+          className="bg-transparent p-0 disabled:opacity-50"
+          title={`Idea Progress — ${overall}%`}
+        >
+          <LaidBook
+            label="Idea Progress"
+            sublabel={`${overall}%`}
+            pct={overall}
+            variant="leather"
+            open={open}
+            size="lg"
+          />
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        sideOffset={8}
-        className="z-40 w-[min(92vw,460px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        sideOffset={10}
+        className="z-40 w-[min(92vw,420px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
         style={{
           background:
-            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+            "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
+          borderRadius: 6,
         }}
       >
         <div className="mb-2 flex items-center justify-between font-serif">
-          <span className="text-[11px] uppercase tracking-[0.25em] text-amber-100/80">
-            Idea Progress
+          <span className="text-[11px] uppercase tracking-[0.25em] text-amber-950/80">
+            Category Books
           </span>
-          <span className="text-[10px] italic text-amber-100/60">
-            Each note fills a shelf
+          <span className="text-[10px] italic text-amber-900/70">
+            Fill each book by adding notes
           </span>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
           {categories.map((c) => {
             const status = categoryStatus(getValue(c.key));
             return (
-              <CategoryBook
+              <MiniLaidBook
                 key={c.key}
                 label={c.label}
-                hint={c.hint}
                 pct={status.pct}
-                statusLabel={status.label}
                 active={activeCategory === c.key}
-                onClick={() => setActiveCategory(c.key)}
+                onClick={() => {
+                  setActiveCategory(c.key);
+                  setOpen(false);
+                }}
               />
             );
           })}
@@ -768,23 +1051,28 @@ function LibraryPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <ShelfTabButton
-          icon={<BookOpen className="h-3.5 w-3.5" />}
-          label="My Library"
-          open={open}
-        />
+        <button type="button" className="bg-transparent p-0">
+          <LaidBook
+            label="My Library"
+            variant="leather"
+            open={open}
+            size="md"
+            trailing={<BookOpen className="h-3 w-3 opacity-80" />}
+          />
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="center"
-        sideOffset={8}
-        className="z-40 w-[min(92vw,420px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        sideOffset={10}
+        className="z-40 w-[min(92vw,420px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
         style={{
           background:
-            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+            "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
+          borderRadius: 6,
         }}
       >
-        <div className="mb-2 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/80">
-          My Library
+        <div className="mb-2 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-950/80">
+          Saved Ideas
         </div>
         <ul className="max-h-[60vh] space-y-1 overflow-y-auto pr-1">
           {ideas.map((idea) => {
@@ -799,8 +1087,8 @@ function LibraryPopover({
                   className={
                     "group flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 text-left font-serif text-[12px] transition " +
                     (active
-                      ? "border-amber-200/80 bg-amber-900/60 text-amber-50"
-                      : "border-amber-200/20 bg-amber-950/30 text-amber-100 hover:bg-amber-900/40")
+                      ? "border-amber-950/80 bg-amber-100/80 text-amber-950"
+                      : "border-amber-900/40 bg-amber-50/40 text-amber-950 hover:bg-amber-100/70")
                   }
                 >
                   <span
@@ -816,7 +1104,7 @@ function LibraryPopover({
                   <span className="min-w-0 flex-1 truncate">
                     {idea.title || "Untitled"}
                   </span>
-                  <span className="shrink-0 text-[10px] italic text-amber-100/60">
+                  <span className="shrink-0 text-[10px] italic text-amber-900/70">
                     {stageLabels[idea.stage]}
                   </span>
                 </button>
@@ -824,7 +1112,7 @@ function LibraryPopover({
             );
           })}
           {ideas.length === 0 && (
-            <li className="px-2 py-3 font-serif text-[11px] italic text-amber-100/70">
+            <li className="px-2 py-3 font-serif text-[11px] italic text-amber-900/80">
               No ideas yet. Tap New Lightbulb to begin.
             </li>
           )}
@@ -847,19 +1135,25 @@ function NewLightbulbPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <ShelfTabButton
-          icon={<Lightbulb className="h-3.5 w-3.5" />}
-          label="New Lightbulb"
-          open={open}
-        />
+        <button type="button" className="bg-transparent p-0">
+          <LaidBook
+            label="New Lightbulb"
+            variant="ember"
+            open={open}
+            size="md"
+            glow
+            trailing={<Lightbulb className="h-3 w-3 opacity-90" />}
+          />
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="center"
-        sideOffset={8}
-        className="z-40 w-[min(92vw,360px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        sideOffset={10}
+        className="z-40 w-[min(92vw,360px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
         style={{
           background:
-            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+            "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
+          borderRadius: 6,
         }}
       >
         <button
@@ -875,7 +1169,7 @@ function NewLightbulbPopover({
         >
           <Plus className="h-3.5 w-3.5" /> Blank Idea
         </button>
-        <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/70">
+        <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
           · Sparks ·
         </div>
         <ul className="space-y-1">
@@ -886,9 +1180,9 @@ function NewLightbulbPopover({
                   onSeed(s.title);
                   setOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-sm border border-amber-200/20 bg-amber-950/30 px-2 py-1.5 text-left font-serif text-[12px] text-amber-100 transition hover:bg-amber-900/40"
+                className="flex w-full items-center gap-2 rounded-sm border border-amber-900/40 bg-amber-50/40 px-2 py-1.5 text-left font-serif text-[12px] text-amber-950 transition hover:bg-amber-100/70"
               >
-                <Sparkles className="h-3 w-3 text-amber-300" />
+                <Sparkles className="h-3 w-3 text-amber-700" />
                 <span className="truncate">{s.title}</span>
               </button>
             </li>
@@ -913,42 +1207,21 @@ function OrganizeButton({
   const label =
     stage === "lightbulb" ? "Organize Idea" : "Next Stage";
   const disabled = stage !== "lightbulb";
+  const variant: LaidBookVariant = ready ? "gold" : strong ? "emerald" : "leather";
+  const size = ready ? "lg" : "md";
   return (
-    <button
-      onClick={onClick}
+    <LaidBook
+      label={label}
+      sublabel={`${readiness}%`}
+      pct={readiness}
+      variant={variant}
+      glow={ready}
+      size={size}
       disabled={disabled}
+      onClick={onClick}
       title={disabled ? "Already organized" : `Move forward (${readiness}% ready)`}
-      className={
-        "relative inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 font-serif text-[11px] font-semibold transition focus:outline-none disabled:opacity-50 " +
-        (ready
-          ? "border-amber-200/80 text-amber-950 hover:brightness-110"
-          : strong
-            ? "border-emerald-200/60 text-emerald-50 hover:brightness-110"
-            : "border-amber-200/30 text-amber-100/80 hover:brightness-110")
-      }
-      style={{
-        background: ready
-          ? "linear-gradient(180deg, #ffe9a3 0%, #f0c050 50%, #b07a18 100%)"
-          : strong
-            ? "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)"
-            : "linear-gradient(180deg, #4a2810 0%, #2a1505 100%)",
-        boxShadow: ready
-          ? "0 0 22px 4px rgba(255,210,120,0.55), inset 0 1px 0 rgba(255,255,255,0.35)"
-          : strong
-            ? "0 0 10px 1px rgba(110,220,140,0.35), inset 0 1px 0 rgba(255,255,255,0.15)"
-            : "inset 0 1px 0 rgba(255,210,150,0.15), 0 2px 4px rgba(0,0,0,0.4)",
-      }}
-    >
-      {ready && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
-          style={{ background: "rgba(255,220,140,0.45)" }}
-        />
-      )}
-      <span>{label}</span>
-      <ArrowRight className="h-3.5 w-3.5" />
-    </button>
+      trailing={<ArrowRight className="h-3 w-3 opacity-90" />}
+    />
   );
 }
 
