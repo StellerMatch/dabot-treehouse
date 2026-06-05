@@ -118,6 +118,7 @@ const postItCategoryPalette: Record<
 
 const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
   "core-idea": [/\bidea\b/i, /\bapp\b/i, /\btool\b/i, /\bplatform\b/i, /\bproduct\b/i, /\bpurpose\b/i, /\bsummary\b/i],
+  clarity:     [/\bclarity\b/i, /\breadout\b/i, /\bunderstood\b/i, /\bdirection\b/i],
   problem:     [/\bproblem\b/i, /\bpain\b/i, /\bneed\b/i, /\bstruggle\b/i, /\bopportunit/i, /\bbecause\b/i, /\bfrustrat/i],
   audience:    [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bbuyer/i, /\bpeople\b/i, /\bmanager\b/i, /\bcrew\b/i, /\bworker\b/i, /\bemployee\b/i, /\bteam\b/i, /\bowner\b/i],
   features:    [/\bfeature/i, /\bfunction\b/i, /\bscreen\b/i, /\bbutton\b/i, /\bform\b/i, /\baction\b/i, /\bcapabilit/i, /\bability\b/i, /\bsupport/i, /\bnotif/i],
