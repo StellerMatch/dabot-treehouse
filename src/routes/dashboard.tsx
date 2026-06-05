@@ -50,6 +50,12 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: s
     guidance: "Describe what this project, app, or product is and its main purpose.",
   },
   {
+    key: "clarity",
+    label: "Clarity",
+    hint: "Overall readout & 90% direction",
+    guidance: "Clarity's overall readout: what's understood, the current 90% direction, and what's still fuzzy.",
+  },
+  {
     key: "problem",
     label: "Problem",
     hint: "Why this should exist",
