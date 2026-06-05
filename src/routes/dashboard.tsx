@@ -11,6 +11,7 @@ const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BookOpen, Paperclip, Link2, Plus, Lightbulb, Sparkles, ArrowRight, Pencil } from "lucide-react";
 
