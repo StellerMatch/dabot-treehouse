@@ -894,6 +894,7 @@ function Dashboard() {
             answeredCount={selectedExtras.answeredQuestions.length}
             totalQuestions={CLARITY_QUESTIONS.length}
             onSkipClarityQuestion={skipClarityQuestion}
+            getCategoryValue={getCategoryValue}
           />
         )}
       </div>
