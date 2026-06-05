@@ -897,13 +897,15 @@ function MiniLaidBook({
   pct,
   active,
   onClick,
+  guidance,
 }: {
   label: string;
   pct: number;
   active: boolean;
   onClick: () => void;
+  guidance?: string;
 }) {
-  return (
+  const btn = (
     <button
       onClick={onClick}
       title={`${label} — ${pct}%`}
