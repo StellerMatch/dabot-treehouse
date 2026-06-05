@@ -715,49 +715,59 @@ function CategoryBook({
           ? ["#4a3a05", "#9a7820", "#f5d27a"]
           : ["#1c3a2a", "#2e6045", "#f5d27a"];
   const [a, b, gold] = palette;
-  const height = 118;
+  const height = 138;
   return (
     <button
       onClick={onClick}
       title={`${label} — ${hint}`}
       className={
-        "group relative flex shrink-0 flex-col items-stretch overflow-hidden rounded-t-[3px] border border-black/40 transition-transform " +
-        (active ? "-translate-y-1 ring-2 ring-amber-200/80" : "hover:-translate-y-1")
+        "group relative flex shrink-0 flex-col items-stretch overflow-hidden rounded-t-[4px] border border-black/50 transition-transform " +
+        (active ? "-translate-y-1.5 ring-2 ring-amber-200/90" : "hover:-translate-y-1")
       }
       style={{
-        width: 64,
+        width: 78,
         height,
         background: `linear-gradient(90deg, ${a} 0%, ${b} 50%, ${a} 100%)`,
         boxShadow:
-          "inset 2px 0 0 rgba(255,255,255,0.1), inset -2px 0 0 rgba(0,0,0,0.45), 0 4px 8px -2px rgba(0,0,0,0.6)",
+          "inset 2px 0 0 rgba(255,255,255,0.12), inset -2px 0 0 rgba(0,0,0,0.5), 0 6px 10px -3px rgba(0,0,0,0.65)",
       }}
     >
+      {/* top gilt band */}
       <span
         aria-hidden
         className="block w-full"
-        style={{ height: 8, background: gold, opacity: 0.9 }}
+        style={{ height: 10, background: gold, opacity: 0.9 }}
       />
-      <span className="flex flex-1 items-center justify-center px-1 text-center font-serif text-[10px] font-semibold leading-tight text-amber-50">
+      {/* embossed label plate */}
+      <span
+        className="mx-1.5 mt-1 flex flex-1 items-center justify-center rounded-sm px-1 text-center font-serif text-[12px] font-semibold leading-tight text-amber-50"
+        style={{
+          background: "rgba(0,0,0,0.18)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+          textShadow: "0 1px 0 rgba(0,0,0,0.4)",
+        }}
+      >
         {label}
       </span>
       {/* progress ink at bottom */}
       <div
-        className="relative w-full"
-        style={{ height: 16, background: "rgba(0,0,0,0.25)" }}
+        className="relative mt-1 w-full"
+        style={{ height: 20, background: "rgba(0,0,0,0.32)" }}
       >
         <div
           className="absolute inset-y-0 left-0"
           style={{
             width: `${pct}%`,
             background: gold,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4)",
           }}
         />
-        <span className="absolute inset-0 flex items-center justify-center text-[8px] uppercase tracking-wider text-amber-50/90">
+        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-semibold uppercase tracking-wider text-amber-50">
           {statusLabel}
         </span>
       </div>
     </button>
+
   );
 }
 
