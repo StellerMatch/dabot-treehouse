@@ -417,69 +417,79 @@ function ShelfWall({
   children: React.ReactNode;
 }) {
   return (
-    <aside
-      className="relative"
-      style={{
-        background:
-          "linear-gradient(180deg, #3a1d08 0%, #4b2810 8%, #5d3416 100%)",
-        boxShadow:
-          side === "left"
-            ? "inset -16px 0 30px -10px rgba(0,0,0,0.6), inset 8px 0 14px rgba(255,200,140,0.08)"
-            : "inset 16px 0 30px -10px rgba(0,0,0,0.6), inset -8px 0 14px rgba(255,200,140,0.08)",
-      }}
-    >
-      <WoodGrain />
-      {/* curved tree-trunk inner edge */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 w-10"
-        style={{
-          [side === "left" ? "right" : "left"]: 0,
-          background:
-            side === "left"
-              ? "linear-gradient(90deg, transparent, rgba(20,10,2,0.55))"
-              : "linear-gradient(270deg, transparent, rgba(20,10,2,0.55))",
-        }}
-      />
+    <aside className="relative">
       {/* hanging lantern */}
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2"
+        className="pointer-events-none absolute left-1/2 top-1 z-10 -translate-x-1/2"
       >
-        <div className="h-1 w-px bg-amber-900/60 mx-auto" />
+        <div className="mx-auto h-4 w-px bg-amber-950/70" />
         <div
-          className="mx-auto h-3 w-3 rounded-full"
+          className="mx-auto h-3.5 w-3.5 rounded-full"
           style={{
             background:
-              "radial-gradient(circle, #ffd98a 0%, #d98a2a 60%, #6b2f08 100%)",
-            boxShadow: "0 0 18px 6px rgba(255,196,110,0.55)",
+              "radial-gradient(circle, #ffe6a3 0%, #e09a32 55%, #6b2f08 100%)",
+            boxShadow: "0 0 22px 8px rgba(255,196,110,0.55)",
           }}
         />
       </div>
-      {/* header plaque */}
-      <header className="relative px-4 pb-3 pt-7">
+
+      {/* small ivy at top corner */}
+      <Ivy side={side} />
+
+      {/* carved wooden header plaque (floating, no full wall) */}
+      <header className="relative px-3 pb-4 pt-10">
         <div
-          className="relative rounded-sm border border-amber-200/30 px-3 py-2 shadow-inner"
+          className="relative mx-auto rounded-[2px] border border-amber-950/60 px-3 py-2 text-center shadow-[0_6px_14px_-6px_rgba(0,0,0,0.7)]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(70,40,12,0.7), rgba(40,22,6,0.7))",
+              "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
           }}
         >
-          <h2 className="font-serif text-sm font-semibold tracking-wide text-amber-100">
+          <WoodGrain />
+          <h2 className="relative font-serif text-sm font-semibold tracking-wide text-amber-100">
             {title}
           </h2>
           {subtitle && (
-            <p className="font-serif text-[11px] italic text-amber-200/70">
+            <p className="relative font-serif text-[11px] italic text-amber-100/75">
               {subtitle}
             </p>
           )}
         </div>
       </header>
 
-      <div className="relative space-y-5 px-3 pb-6">{children}</div>
+      {/* floating shelves — background shows through */}
+      <div className="relative space-y-8 px-2 pb-8">{children}</div>
     </aside>
   );
 }
+
+function Ivy({ side }: { side: "left" | "right" }) {
+  // simple decorative SVG vine at top of shelf wall
+  const flip = side === "right" ? -1 : 1;
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute top-0 z-10 h-24 w-24 opacity-90"
+      style={{ [side]: 0, transform: `scaleX(${flip})` }}
+      viewBox="0 0 100 100"
+      fill="none"
+    >
+      <path
+        d="M5,5 C25,20 35,45 30,75 C28,85 35,92 45,90"
+        stroke="#3a5c2e"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <ellipse cx="18" cy="22" rx="6" ry="3" fill="#4a7a3a" transform="rotate(-30 18 22)" />
+      <ellipse cx="28" cy="38" rx="6" ry="3" fill="#5a8a4a" transform="rotate(20 28 38)" />
+      <ellipse cx="32" cy="55" rx="7" ry="3.5" fill="#3a6a2a" transform="rotate(-15 32 55)" />
+      <ellipse cx="30" cy="72" rx="6" ry="3" fill="#5a8a4a" transform="rotate(30 30 72)" />
+      <ellipse cx="40" cy="86" rx="5" ry="2.5" fill="#4a7a3a" transform="rotate(-10 40 86)" />
+    </svg>
+  );
+}
+
 
 function Shelf({ children }: { children: React.ReactNode }) {
   return (
