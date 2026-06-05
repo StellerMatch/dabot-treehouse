@@ -395,8 +395,9 @@ function Dashboard() {
         {/* ============ RIGHT BOOKSHELF WALL ============ */}
         <ShelfWall
           side="right"
-          title="Progress Shelf"
-          subtitle="What this idea still needs"
+          title="Idea Progress"
+          subtitle="Tap a shelf book to work on it"
+
         >
           {!selected ? (
             <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
