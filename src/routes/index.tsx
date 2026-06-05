@@ -85,7 +85,7 @@ function Index() {
         />
 
         <div className="mb-4 text-center">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-amber-100/75">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-amber-100/85">
             Step in
           </p>
           <h1
@@ -94,7 +94,7 @@ function Index() {
           >
             Tell us the idea in your own words.
           </h1>
-          <p className="mt-1.5 text-sm text-white/75">
+          <p className="mt-1.5 text-sm text-white/85">
             Start messy. DaBotTree will help shape the path.
           </p>
         </div>
