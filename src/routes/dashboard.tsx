@@ -614,7 +614,7 @@ function Dashboard() {
 
   return (
     <main
-      className="relative flex w-screen flex-col text-amber-950"
+      className="relative flex w-full max-w-[100vw] flex-col overflow-x-hidden text-amber-950"
       style={{ minHeight: "100dvh" }}
     >
       {/* living tree library background */}
