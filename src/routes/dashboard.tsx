@@ -1865,46 +1865,20 @@ function NoteDesk(props: {
 
   return (
     <div className="relative flex w-full flex-1 flex-col">
-      <div className="relative z-10 mx-auto w-full max-w-[760px] px-1">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
-              Active Idea
-            </div>
-            <input
-              value={selected.title}
-              onChange={(e) => updateSelected({ title: e.target.value })}
-              className="w-full bg-transparent font-serif text-2xl font-semibold leading-tight text-amber-50 drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] focus:outline-none"
-              placeholder="Name this idea…"
-            />
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="rounded-sm border border-amber-100/30 bg-amber-950/55 px-2 py-0.5 font-serif text-[10px] uppercase tracking-wider text-amber-100">
-              {stageLabels[selected.stage]}
-            </span>
-            {selected.stage === "lightbulb" && (
-              <button
-                onClick={() => moveToPreClarity(selected.id)}
-                className="rounded-sm border border-emerald-900/60 px-3 py-1.5 font-serif text-[11px] font-medium text-emerald-50 shadow"
-                style={{ background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)" }}
-              >
-                Organize Idea →
-              </button>
-            )}
-          </div>
-        </div>
-        <p className="mt-1 font-serif text-[11px] italic text-amber-100/70">
-          Each note you add fills this idea's progress shelf. {extras.posts.length} {extras.posts.length === 1 ? "note" : "notes"} collected.
-        </p>
-      </div>
-
-      <div className="relative mx-auto mt-4 w-full max-w-[860px] flex-1">
+      {/* Notes collection — parchment slips on the desk */}
+      <div className="relative mx-auto w-full max-w-[920px] flex-1">
         {extras.posts.length === 0 && !selected.messy && (
-          <div className="relative mx-auto max-w-md rounded-md border border-amber-100/30 bg-amber-950/35 p-5 text-center font-serif italic text-amber-50/85 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)] backdrop-blur-sm">
-            No notes yet. Jot a quick thought below — each Post-it strengthens this idea.
+          <div
+            className="relative mx-auto max-w-md rounded-md border border-amber-950/40 px-5 py-4 text-center font-serif italic text-amber-950 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)]"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
+            }}
+          >
+            No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-32">
+        <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-36">
           {selected.messy && (
             <PostItCard
               text={selected.messy}
@@ -1926,103 +1900,133 @@ function NoteDesk(props: {
         </div>
       </div>
 
+      {/* Quick capture — parchment slip on a carved wood tray */}
       <div className="sticky bottom-0 left-0 right-0 z-20 mt-2">
         <div
-          className="mx-auto w-full max-w-[760px] px-1 pb-2"
-          style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+          className="mx-auto w-full max-w-[760px] px-2 pb-3"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
-          <div
-            className="relative overflow-hidden rounded-xl border border-amber-950/70 shadow-[0_14px_30px_-12px_rgba(20,8,2,0.8)]"
-            style={{ background: "linear-gradient(180deg, #fff5b8 0%, #f6dd86 100%)" }}
-          >
-            <span
+          {/* wood tray under the parchment */}
+          <div className="relative">
+            <div
               aria-hidden
-              className="pointer-events-none absolute -top-2 left-1/2 h-4 w-20 -translate-x-1/2 rotate-[-2deg] rounded-sm"
-              style={{ background: "rgba(220,200,120,0.85)", boxShadow: "0 2px 4px rgba(0,0,0,0.25)" }}
+              className="pointer-events-none absolute -inset-x-2 -inset-y-1 rounded-[14px]"
+              style={{
+                background:
+                  "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+                boxShadow:
+                  "0 14px 30px -12px rgba(20,8,2,0.8), inset 0 1px 0 rgba(255,210,150,0.2)",
+              }}
             />
-            <div className="flex items-center gap-1 border-b border-amber-900/20 px-2 py-1 font-serif text-[10px] uppercase tracking-wider text-amber-900/70">
-              <button
-                onClick={() => setKind("idea-notes")}
-                className={
-                  "rounded-sm px-2 py-0.5 transition " +
-                  (kind === "idea-notes" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
-                }
-              >
-                Idea Notes
-              </button>
-              <button
-                onClick={() => setKind("info-gathered")}
-                className={
-                  "rounded-sm px-2 py-0.5 transition " +
-                  (kind === "info-gathered" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
-                }
-              >
-                Info Gathered
-              </button>
-              <span className="ml-auto italic normal-case tracking-normal">
-                {voiceState === "listening"
-                  ? "Listening…"
-                  : voiceState === "processing"
-                    ? "Transcribing…"
-                    : "Quick capture"}
-              </span>
-            </div>
-            <div className="flex items-end gap-2 px-2 py-2">
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={onKeyDown}
-                rows={2}
-                placeholder="Type a thought… (⌘/Ctrl + Enter to add)"
-                className="block min-h-[44px] flex-1 resize-none bg-transparent px-1 font-serif text-[14px] leading-snug text-amber-950 placeholder:text-amber-900/45 focus:outline-none"
-              />
-              <button
-                onClick={submit}
-                disabled={!draft.trim()}
-                className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
-                style={{ background: "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)" }}
-              >
-                Add Note
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 border-t border-amber-900/15 px-2 py-1.5">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  files.forEach((f) => addAttachment("file", f.name));
-                  if (fileInputRef.current) fileInputRef.current.value = "";
+            <div
+              className="relative overflow-hidden rounded-[10px] border border-amber-950/70 shadow-inner"
+              style={{
+                background:
+                  "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)",
+              }}
+            >
+              {/* parchment grain */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-20"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
+                  backgroundSize: "12px 12px",
                 }}
               />
-              <MicButton
-                state={voiceState}
-                onStart={startVoice}
-                onStop={stopVoice}
-                supported={voiceSupported}
-              />
-              <DeskIconButton
-                onClick={() => fileInputRef.current?.click()}
-                title="Attach File / Photo"
-                icon={<Paperclip className="h-3.5 w-3.5" />}
-                label="Attach"
-              />
-              <DeskIconButton
-                onClick={() => {
-                  const url = window.prompt("Paste a link to attach");
-                  if (url) addAttachment("link", url);
-                }}
-                title="Add Link"
-                icon={<Link2 className="h-3.5 w-3.5" />}
-                label="Link"
-              />
-              {extras.attachments.length > 0 && (
-                <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
-                  {extras.attachments.length} attachment{extras.attachments.length === 1 ? "" : "s"} · updated {timeAgo(selected.updatedAt)}
+              <div className="relative flex items-center gap-1 border-b border-amber-900/20 px-3 py-1 font-serif text-[10px] uppercase tracking-wider text-amber-900/70">
+                <button
+                  onClick={() => setKind("idea-notes")}
+                  className={
+                    "rounded-sm px-2 py-0.5 transition " +
+                    (kind === "idea-notes"
+                      ? "bg-amber-900 text-amber-50 shadow"
+                      : "hover:bg-amber-900/10")
+                  }
+                >
+                  Idea Notes
+                </button>
+                <button
+                  onClick={() => setKind("info-gathered")}
+                  className={
+                    "rounded-sm px-2 py-0.5 transition " +
+                    (kind === "info-gathered"
+                      ? "bg-amber-900 text-amber-50 shadow"
+                      : "hover:bg-amber-900/10")
+                  }
+                >
+                  Info Gathered
+                </button>
+                <span className="ml-auto italic normal-case tracking-normal">
+                  {voiceState === "listening"
+                    ? "Listening…"
+                    : voiceState === "processing"
+                      ? "Transcribing…"
+                      : `${extras.posts.length} ${extras.posts.length === 1 ? "note" : "notes"}`}
                 </span>
-              )}
+              </div>
+              <div className="relative flex items-end gap-2 px-3 py-2">
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  rows={2}
+                  placeholder="Add one thought… type or tap the mic to speak. (⌘/Ctrl + Enter to add)"
+                  className="block min-h-[44px] flex-1 resize-none bg-transparent px-1 font-serif text-[14px] leading-snug text-amber-950 placeholder:text-amber-900/50 focus:outline-none"
+                />
+                <button
+                  onClick={submit}
+                  disabled={!draft.trim()}
+                  className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+              <div className="relative flex flex-wrap items-center gap-1.5 border-t border-amber-900/15 px-3 py-1.5">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    files.forEach((f) => addAttachment("file", f.name));
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                />
+                <MicButton
+                  state={voiceState}
+                  onStart={startVoice}
+                  onStop={stopVoice}
+                  supported={voiceSupported}
+                />
+                <DeskIconButton
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach File / Photo"
+                  icon={<Paperclip className="h-3.5 w-3.5" />}
+                  label="Attach"
+                />
+                <DeskIconButton
+                  onClick={() => {
+                    const url = window.prompt("Paste a link to attach");
+                    if (url) addAttachment("link", url);
+                  }}
+                  title="Add Link"
+                  icon={<Link2 className="h-3.5 w-3.5" />}
+                  label="Link"
+                />
+                {extras.attachments.length > 0 && (
+                  <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
+                    {extras.attachments.length} attachment
+                    {extras.attachments.length === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2030,6 +2034,7 @@ function NoteDesk(props: {
     </div>
   );
 }
+
 
 function PostItCard({
   text,
