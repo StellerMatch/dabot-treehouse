@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   seedIdeas,
   stageLabels,
@@ -2275,9 +2275,10 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
   const W = 64;
   const H = 110;
   const fillH = Math.max(0, Math.min(100, pct)) / 100;
+  const clipId = useId();
 
   // Build a vessel-shaped clip using SVG. The fill rises from bottom.
-  const vesselId = `vessel-${kind}-${Math.round(pct)}-${Math.random().toString(36).slice(2, 7)}`;
+  const vesselId = `vessel-${kind}-${Math.round(pct)}-${clipId.replace(/:/g, "")}`;
 
   // Outline path per kind
   const paths: Record<ObjectKind, string> = {
@@ -2650,7 +2651,7 @@ function Journal(props: {
           )}
 
           <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
-            Updated {timeAgo(selected.updatedAt)} · Next: {selected.nextAction}
+            Updated <span suppressHydrationWarning>{timeAgo(selected.updatedAt)}</span> · Next: {selected.nextAction}
           </div>
         </div>
       </div>
@@ -3067,7 +3068,7 @@ function NoteDesk(props: {
             No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="grid grid-cols-1 gap-1 pb-72 sm:grid-cols-2 sm:gap-1.5 lg:grid-cols-3 lg:gap-1.5 lg:pb-56">
+        <div className="grid grid-cols-2 gap-1.5 pb-40 sm:grid-cols-3 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
           {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
@@ -3265,33 +3266,38 @@ function PostItCard({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative w-full max-w-[200px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)]"
+        className="relative aspect-[2.35/1] w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
         style={{
           background: palette.bg,
           borderColor: palette.edge,
-          transform: `rotate(${rot}deg)`,
+          ["--note-rot" as string]: `${rot}deg`,
         }}
         title="Open full note"
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
+          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-sm lg:-rotate-3"
           style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
         />
-        <div className="px-2.5 pt-3 pb-2.5">
-          <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
-            <span
-              className="truncate rounded-sm border px-1 py-[1px]"
-              style={{ background: palette.chip, borderColor: palette.edge }}
-              title={isMixed ? "Covers multiple categories" : label}
-            >
-              {isMixed ? "Mixed" : label}
-            </span>
-            {pinned ? <span>· seed</span> : <span className="shrink-0">{timeAgo(ts)}</span>}
+        <div className="flex h-full items-center justify-center px-2 py-2 sm:px-2.5 lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
+          <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
+            {isMixed ? "Mixed" : label}
           </div>
-          <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
-            {preview}
-          </p>
+          <div className="hidden lg:block">
+            <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
+              <span
+                className="truncate rounded-sm border px-1 py-[1px]"
+                style={{ background: palette.chip, borderColor: palette.edge }}
+                title={isMixed ? "Covers multiple categories" : label}
+              >
+                {isMixed ? "Mixed" : label}
+              </span>
+              {pinned ? <span>· seed</span> : <span className="shrink-0" suppressHydrationWarning>{timeAgo(ts)}</span>}
+            </div>
+            <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
+              {preview}
+            </p>
+          </div>
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -3301,7 +3307,7 @@ function PostItCard({
               {isMixed ? "Mixed note" : label}
             </DialogTitle>
             <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
-              {pinned ? "Seed note" : timeAgo(ts)}
+              {pinned ? "Seed note" : <span suppressHydrationWarning>{timeAgo(ts)}</span>}
               {categories && categories.length > 0 && (
                 <> · {categories.map((c) => postItCategoryPalette[c].label).join(", ")}</>
               )}
