@@ -690,6 +690,32 @@ function BookGhost() {
   );
 }
 
+type ObjectKind =
+  | "ink-bottle"
+  | "book-stack"
+  | "vial"
+  | "lantern"
+  | "paint-vial"
+  | "coin-gauge"
+  | "warning-marker"
+  | "blueprint-spine"
+  | "ready-tome";
+
+function objectKindFor(label: string): ObjectKind {
+  switch (label) {
+    case "Idea Notes": return "ink-bottle";
+    case "Info Gathered": return "book-stack";
+    case "Clarity": return "vial";
+    case "Audience": return "lantern";
+    case "Design": return "paint-vial";
+    case "Money": return "coin-gauge";
+    case "Risks": return "warning-marker";
+    case "Build Plan": return "blueprint-spine";
+    case "Ready": return "ready-tome";
+    default: return "vial";
+  }
+}
+
 function CategoryBook({
   label,
   hint,
@@ -705,71 +731,199 @@ function CategoryBook({
   active: boolean;
   onClick: () => void;
 }) {
-  // color by progress
-  const palette: [string, string, string] =
+  const kind = objectKindFor(label);
+  const full = pct >= 100;
+  // glow palette: empty parchment-amber, growing green, full gold
+  const fill =
     pct === 0
-      ? ["#3a2614", "#5c3d1f", "#8a6a3a"]
-      : pct < 50
-        ? ["#5a1a14", "#8a2e22", "#e0a85a"]
-        : pct < 100
-          ? ["#4a3a05", "#9a7820", "#f5d27a"]
-          : ["#1c3a2a", "#2e6045", "#f5d27a"];
-  const [a, b, gold] = palette;
-  const height = 138;
+      ? { core: "rgba(180,140,80,0.25)", glow: "rgba(220,180,110,0.35)", top: "rgba(255,230,170,0.4)" }
+      : full
+        ? { core: "#f5d27a", glow: "rgba(255,210,120,0.85)", top: "#fff4c0" }
+        : pct < 50
+          ? { core: "#5fc27a", glow: "rgba(110,220,140,0.7)", top: "#c8f5d4" }
+          : { core: "#9be07f", glow: "rgba(180,240,140,0.8)", top: "#e8ffd0" };
+
+  const height = 150;
+  const width = 82;
+
   return (
     <button
       onClick={onClick}
-      title={`${label} — ${hint}`}
+      title={`${label} — ${hint} · ${statusLabel}`}
       className={
-        "group relative flex shrink-0 flex-col items-stretch overflow-hidden rounded-t-[4px] border border-black/50 transition-transform " +
-        (active ? "-translate-y-1.5 ring-2 ring-amber-200/90" : "hover:-translate-y-1")
+        "group relative flex shrink-0 flex-col items-center justify-end bg-transparent transition-transform " +
+        (active ? "-translate-y-1.5" : "hover:-translate-y-1")
       }
-      style={{
-        width: 78,
-        height,
-        background: `linear-gradient(90deg, ${a} 0%, ${b} 50%, ${a} 100%)`,
-        boxShadow:
-          "inset 2px 0 0 rgba(255,255,255,0.12), inset -2px 0 0 rgba(0,0,0,0.5), 0 6px 10px -3px rgba(0,0,0,0.65)",
-      }}
+      style={{ width, height }}
     >
-      {/* top gilt band */}
+      {/* active warm glow halo */}
+      {active && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-xl"
+          style={{ background: "radial-gradient(circle at 50% 60%, rgba(255,220,150,0.55), transparent 70%)" }}
+        />
+      )}
+      {/* underglow puddle on the shelf */}
       <span
         aria-hidden
-        className="block w-full"
-        style={{ height: 10, background: gold, opacity: 0.9 }}
+        className="pointer-events-none absolute bottom-2 left-1/2 h-3 w-[70%] -translate-x-1/2 rounded-full blur-md"
+        style={{ background: pct === 0 ? "rgba(0,0,0,0.45)" : fill.glow, opacity: 0.7 }}
       />
-      {/* embossed label plate */}
+
+      <ShelfObject kind={kind} pct={pct} fill={fill} />
+
+      {/* small carved label plate beneath object */}
       <span
-        className="mx-1.5 mt-1 flex flex-1 items-center justify-center rounded-sm px-1 text-center font-serif text-[12px] font-semibold leading-tight text-amber-50"
+        className="relative mt-1 max-w-full truncate rounded-sm border border-amber-950/70 px-1.5 py-0.5 font-serif text-[10px] font-semibold uppercase tracking-wider text-amber-50"
         style={{
-          background: "rgba(0,0,0,0.18)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
-          textShadow: "0 1px 0 rgba(0,0,0,0.4)",
+          background: "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)",
+          textShadow: "0 1px 0 rgba(0,0,0,0.55)",
+          boxShadow: "inset 0 1px 0 rgba(255,210,150,0.25), 0 2px 4px rgba(0,0,0,0.5)",
         }}
       >
         {label}
       </span>
-      {/* progress ink at bottom */}
-      <div
-        className="relative mt-1 w-full"
-        style={{ height: 20, background: "rgba(0,0,0,0.32)" }}
-      >
-        <div
-          className="absolute inset-y-0 left-0"
-          style={{
-            width: `${pct}%`,
-            background: gold,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4)",
-          }}
-        />
-        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-semibold uppercase tracking-wider text-amber-50">
-          {statusLabel}
-        </span>
-      </div>
+      <span className="font-serif text-[9px] italic text-amber-100/70">{statusLabel}</span>
     </button>
-
   );
 }
+
+type FillPalette = { core: string; glow: string; top: string };
+
+function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill: FillPalette }) {
+  // shared sizing
+  const W = 64;
+  const H = 110;
+  const fillH = Math.max(0, Math.min(100, pct)) / 100;
+
+  // Build a vessel-shaped clip using SVG. The fill rises from bottom.
+  const vesselId = `vessel-${kind}-${Math.round(pct)}-${Math.random().toString(36).slice(2, 7)}`;
+
+  // Outline path per kind
+  const paths: Record<ObjectKind, string> = {
+    "ink-bottle": "M18 6 H46 V14 C46 16 48 16 48 20 V30 C56 34 58 44 58 56 V92 C58 100 52 104 44 104 H20 C12 104 6 100 6 92 V56 C6 44 8 34 16 30 V20 C16 16 18 16 18 14 Z",
+    "book-stack": "M6 14 H58 V28 H6 Z M4 30 H60 V46 H4 Z M6 48 H58 V64 H6 Z M4 66 H60 V84 H4 Z M6 86 H58 V102 H6 Z",
+    "vial": "M22 6 H42 V12 H40 V28 L52 92 C53 100 47 104 40 104 H24 C17 104 11 100 12 92 L24 28 V12 H22 Z",
+    "lantern": "M20 6 H44 V12 H46 L52 18 V24 H12 V18 L18 12 H20 Z M14 26 H50 V90 H14 Z M16 92 H48 V100 H16 Z",
+    "paint-vial": "M16 6 H48 V14 H44 V26 C52 30 56 38 56 50 V94 C56 100 52 104 46 104 H18 C12 104 8 100 8 94 V50 C8 38 12 30 20 26 V14 H16 Z",
+    "coin-gauge": "M10 14 C10 8 18 6 32 6 C46 6 54 8 54 14 V94 C54 100 46 104 32 104 C18 104 10 100 10 94 Z",
+    "warning-marker": "M32 4 L60 100 H4 Z",
+    "blueprint-spine": "M10 6 H54 C56 6 58 8 58 10 V100 C58 102 56 104 54 104 H10 C8 104 6 102 6 100 V10 C6 8 8 6 10 6 Z",
+    "ready-tome": "M8 8 H56 C58 8 60 10 60 12 V100 C60 102 58 104 56 104 H8 C6 104 4 102 4 100 V12 C4 10 6 8 8 8 Z",
+  };
+
+  return (
+    <svg width={W} height={H} viewBox="0 0 64 110" className="relative drop-shadow-[0_4px_6px_rgba(0,0,0,0.55)]">
+      <defs>
+        {/* clip to vessel shape so fill stays inside */}
+        <clipPath id={vesselId}>
+          <path d={paths[kind]} />
+        </clipPath>
+        {/* glass body gradient */}
+        <linearGradient id={`glass-${vesselId}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
+          <stop offset="45%" stopColor="rgba(255,255,255,0.05)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+        </linearGradient>
+        {/* liquid fill gradient */}
+        <linearGradient id={`liquid-${vesselId}`} x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stopColor={fill.core} />
+          <stop offset="80%" stopColor={fill.core} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={fill.top} />
+        </linearGradient>
+        {/* wood for book-style kinds */}
+        <linearGradient id={`wood-${vesselId}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#5a3a18" />
+          <stop offset="100%" stopColor="#2a1606" />
+        </linearGradient>
+      </defs>
+
+      {/* vessel body (back) */}
+      <path
+        d={paths[kind]}
+        fill={
+          kind === "book-stack" || kind === "blueprint-spine" || kind === "ready-tome"
+            ? `url(#wood-${vesselId})`
+            : "rgba(20,12,4,0.55)"
+        }
+        stroke="rgba(20,10,2,0.9)"
+        strokeWidth="1.2"
+      />
+
+      {/* rising fill, clipped to vessel */}
+      <g clipPath={`url(#${vesselId})`}>
+        <rect
+          x="0"
+          y={110 - 110 * fillH}
+          width="64"
+          height={110 * fillH}
+          fill={`url(#liquid-${vesselId})`}
+        />
+        {/* shimmering surface line */}
+        {pct > 0 && (
+          <rect
+            x="0"
+            y={Math.max(0, 110 - 110 * fillH - 1)}
+            width="64"
+            height="2"
+            fill={fill.top}
+            opacity="0.9"
+          />
+        )}
+        {/* inner highlight for glass kinds */}
+        {(kind === "vial" || kind === "paint-vial" || kind === "ink-bottle" || kind === "lantern") && (
+          <rect x="0" y="0" width="64" height="110" fill={`url(#glass-${vesselId})`} />
+        )}
+      </g>
+
+      {/* outline / glass rim re-stroked on top */}
+      <path
+        d={paths[kind]}
+        fill="none"
+        stroke="rgba(0,0,0,0.85)"
+        strokeWidth="1.3"
+      />
+      {/* shine streak */}
+      <path
+        d="M14 26 Q18 60 16 92"
+        stroke="rgba(255,255,255,0.45)"
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+        opacity={kind === "book-stack" || kind === "blueprint-spine" || kind === "ready-tome" ? 0 : 0.5}
+      />
+
+      {/* kind-specific accents */}
+      {kind === "lantern" && (
+        <>
+          <circle cx="32" cy="14" r="2" fill="#caa14a" />
+          <line x1="14" y1="26" x2="50" y2="26" stroke="#3a230d" strokeWidth="1.2" />
+        </>
+      )}
+      {kind === "coin-gauge" && pct > 0 && (
+        <g opacity="0.9">
+          <circle cx="32" cy={104 - 14 - 110 * fillH * 0.7} r="3" fill="#caa14a" stroke="#7a4e1a" />
+        </g>
+      )}
+      {kind === "warning-marker" && (
+        <text x="32" y="78" textAnchor="middle" fontSize="22" fontWeight="800" fill={pct < 50 ? "#fff" : "#fff8dc"} opacity="0.85">!</text>
+      )}
+      {kind === "blueprint-spine" && (
+        <g stroke="rgba(255,255,255,0.25)" strokeWidth="0.6" fill="none">
+          <line x1="12" y1="22" x2="52" y2="22" />
+          <line x1="12" y1="40" x2="52" y2="40" />
+          <line x1="12" y1="60" x2="52" y2="60" />
+          <line x1="12" y1="80" x2="52" y2="80" />
+        </g>
+      )}
+      {kind === "ready-tome" && pct >= 100 && (
+        <text x="32" y="62" textAnchor="middle" fontSize="22" fill="#fff4c0" opacity="0.95">★</text>
+      )}
+    </svg>
+  );
+}
+
 
 // ============================================================
 // Journal (center)
