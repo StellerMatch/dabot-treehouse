@@ -1307,7 +1307,7 @@ function OrganizeButton({
       <div className={unlocked ? "" : "opacity-60 saturate-[0.55]"}>
         <LaidBook
           label={label}
-          sublabel={unlocked ? "Ready" : "Locked"}
+          sublabel={unlocked ? "Ready" : "Not Yet"}
           pct={overall}
           variant={variant}
           glow={unlocked}
