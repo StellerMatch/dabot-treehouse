@@ -408,9 +408,9 @@ function Dashboard() {
         }}
       />
 
-      {/* Header — carved wood beam */}
+      {/* Header — carved wood beam with three-zone controls */}
       <header
-        className="relative flex items-center justify-between gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-3"
+        className="relative z-30 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-2.5"
         style={{
           background:
             "linear-gradient(180deg, #3b1f0a 0%, #5a3210 60%, #3b1f0a 100%)",
@@ -418,132 +418,114 @@ function Dashboard() {
       >
         <WoodGrain />
 
-        {/* Mobile: Ideas drawer */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <button
-              className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
-              aria-label="Open Ideas"
-            >
-              <Menu className="h-4 w-4" />
-              <span>Ideas</span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
-            style={{
-              background:
-                "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
-            }}
-          >
-            <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
-              <SheetTitle className="font-serif text-amber-100">My Ideas</SheetTitle>
-            </SheetHeader>
-            <div className="space-y-6 px-2 py-4">{renderLeftShelfContent()}</div>
-          </SheetContent>
-        </Sheet>
-
-        <div className="relative flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2">
+        {/* LEFT: Progress popover */}
+        <div className="relative flex items-center gap-2">
+          <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
             <img src={logo} alt="DaBotTree" className="h-7 w-7 object-contain" />
-            <span className="font-serif text-base font-semibold tracking-wide text-amber-100">
-              DaBotTree
-            </span>
           </Link>
-          <span className="hidden text-xs text-amber-200/60 sm:inline">·</span>
-          <span className="hidden font-serif text-sm italic text-amber-100/80 sm:inline">
-            Creator Library
-          </span>
+          <ProgressPopover
+            disabled={!selected}
+            categories={categoryDefs}
+            getValue={getCategoryValue}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+          />
         </div>
 
-        <div className="relative flex items-center gap-2 text-xs">
-          <Link
-            to="/"
-            className="hidden rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60 sm:inline-block"
-          >
-            Doorway
-          </Link>
+        {/* CENTER: My Library + New Lightbulb */}
+        <div className="relative flex items-center justify-center gap-2">
+          <LibraryPopover
+            ideas={ideas}
+            selectedId={selected?.id ?? ""}
+            onSelect={(id) => setSelectedId(id)}
+          />
+          <NewLightbulbPopover
+            onBlank={addIdea}
+            seeds={suggestedSeeds}
+            onSeed={(title) => {
+              const id = `idea-${Date.now()}`;
+              setIdeas((prev) => [
+                {
+                  id,
+                  title,
+                  messy: "",
+                  shelfReadiness: 5,
+                  updatedAt: Date.now(),
+                  stage: "lightbulb",
+                  nextAction: "Dump your messy idea",
+                },
+                ...prev,
+              ]);
+              setSelectedId(id);
+              setActiveCategory("lightbulb");
+            }}
+          />
+        </div>
+
+        {/* RIGHT: Organize Idea + Account */}
+        <div className="relative flex items-center justify-end gap-2">
+          <OrganizeButton
+            readiness={selected?.shelfReadiness ?? 0}
+            stage={selected?.stage ?? "lightbulb"}
+            onClick={() => selected && moveToPreClarity(selected.id)}
+          />
           <Link
             to="/signin"
-            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
+            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-2.5 py-1.5 font-serif text-[11px] font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
           >
             Account
           </Link>
-
-          {/* Mobile: Progress drawer */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
-                aria-label="Open Progress"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span>Progress</span>
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
-              }}
-            >
-              <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
-                <SheetTitle className="font-serif text-amber-100">Idea Progress</SheetTitle>
-              </SheetHeader>
-              <div className="space-y-6 px-2 py-4">{renderRightShelfContent()}</div>
-            </SheetContent>
-          </Sheet>
         </div>
       </header>
 
-      {/* Three-column tree-library interior */}
-      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[300px_minmax(0,1fr)_320px]">
-        {/* LEFT shelves — desktop only */}
-        <ShelfWall
-          side="left"
-          title="My Ideas"
-          subtitle="Pull a book to open it"
-          className="hidden lg:block"
-        >
-          {renderLeftShelfContent()}
-        </ShelfWall>
-
-        {/* CENTER — Post-it note desk */}
-        <section className="relative flex min-h-[70vh] flex-col px-3 py-4 lg:px-8 lg:py-8">
+      {/* Active idea title strip — parchment plaque for readability */}
+      {selected && (
+        <div className="relative z-20 mx-auto mt-3 w-full max-w-[860px] px-3">
           <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-10 top-0 h-40 -z-0 opacity-60"
+            className="relative flex items-center gap-3 rounded-md border border-amber-950/60 px-4 py-2 shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] backdrop-blur-[2px]"
             style={{
               background:
-                "radial-gradient(ellipse at 50% 0%, rgba(255,220,150,0.6), transparent 70%)",
+                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
             }}
-          />
-          {!selected ? (
-            <div className="relative mx-auto max-w-md rounded-md border border-amber-900/40 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
-              Pull a book from the shelf to open it on the desk.
+          >
+            <Lightbulb className="h-5 w-5 shrink-0 text-amber-700" />
+            <div className="min-w-0 flex-1">
+              <div className="font-serif text-[10px] uppercase tracking-[0.28em] text-amber-900/70">
+                Active Idea · {stageLabels[selected.stage]}
+              </div>
+              <input
+                value={selected.title}
+                onChange={(e) => updateSelected({ title: e.target.value })}
+                placeholder="Name this idea…"
+                className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 placeholder:text-amber-800/40 focus:outline-none sm:text-2xl"
+              />
             </div>
-          ) : (
-            <NoteDesk
-              selected={selected}
-              extras={selectedExtras}
-              addPostIt={addPostIt}
-              addAttachment={addAttachment}
-              updateSelected={updateSelected}
-              moveToPreClarity={moveToPreClarity}
-              fileInputRef={fileInputRef}
-            />
-          )}
-        </section>
+            <span className="hidden shrink-0 font-serif text-[11px] italic text-amber-900/70 sm:inline">
+              Updated {timeAgo(selected.updatedAt)}
+            </span>
+          </div>
+        </div>
+      )}
 
-        {/* RIGHT shelves — desktop only */}
-        <ShelfWall
-          side="right"
-          title="Idea Progress"
-          subtitle="Each note fills a shelf"
-          className="hidden lg:block"
-        >
-          {renderRightShelfContent()}
-        </ShelfWall>
+      {/* Center stage — full width, the library room breathes */}
+      <div className="relative flex flex-1 flex-col px-3 pb-4 pt-3 lg:px-6">
+        {!selected ? (
+          <div className="relative mx-auto mt-12 max-w-md rounded-md border border-amber-950/50 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
+            Open My Library and pick an idea to begin.
+          </div>
+        ) : (
+          <NoteDesk
+            selected={selected}
+            extras={selectedExtras}
+            addPostIt={addPostIt}
+            addAttachment={addAttachment}
+            updateSelected={updateSelected}
+            moveToPreClarity={moveToPreClarity}
+            fileInputRef={fileInputRef}
+          />
+        )}
       </div>
+
 
       {/* floor shadow */}
       <div
