@@ -3067,7 +3067,7 @@ function NoteDesk(props: {
             No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="grid grid-cols-1 justify-items-center gap-4 pb-72 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6 lg:pb-56">
+        <div className="mx-auto grid w-full max-w-[420px] grid-cols-3 justify-items-center gap-2 pb-72 sm:max-w-[520px] sm:gap-3 lg:mx-0 lg:ml-2 lg:max-w-[640px] lg:gap-4 lg:pb-56 xl:ml-6">
           {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
