@@ -360,6 +360,10 @@ function Dashboard() {
 
   const skipClarityQuestion = () => {
     if (!selected || !currentQuestion) return;
+    if (categoryAsk) {
+      setCategoryAsk(null);
+      return;
+    }
     updateExtras({
       answeredQuestions: [
         ...selectedExtras.answeredQuestions,
