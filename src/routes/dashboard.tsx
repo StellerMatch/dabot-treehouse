@@ -171,6 +171,32 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   },
 ];
 
+// Premade Clarity questions per category — used when a user clicks a category book
+const CATEGORY_QUESTIONS: Record<CategoryKey, string> = {
+  lightbulb: "What loose thought, reminder, or example should we save for this idea?",
+  "pre-clarity": "What fact, link, example, or background detail would help explain this idea better?",
+  clarity: "What part of this idea still feels unclear or undecided?",
+  market: "Who is this idea mainly for, and what problem does it help them solve?",
+  design: "How should this idea look, feel, or behave so people understand it quickly?",
+  money: "How could this idea make money, save money, or become worth paying for?",
+  risks: "What could go wrong, what might be hard, or what needs protection?",
+  build: "What is the first small step to build, test, or prove this idea?",
+  ready: "What would need to be true before this idea is ready for the next stage?",
+};
+
+const IDEA_TYPE_OPTIONS = [
+  "Tool",
+  "Service",
+  "Show",
+  "Game",
+  "Product",
+  "Community",
+  "Business",
+  "Story",
+  "App",
+  "Undecided",
+] as const;
+
 function detectAnswered(text: string, q: ClarityQuestion | undefined): boolean {
   if (!q) return false;
   const t = ` ${text.toLowerCase()} `;
@@ -228,6 +254,7 @@ function Dashboard() {
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
   const [activeCategory, setActiveCategory] =
     useState<CategoryKey>("lightbulb");
+  const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Pull draft from front-page intake
@@ -294,9 +321,16 @@ function Dashboard() {
   };
 
   const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
+    if (categoryAsk) {
+      return {
+        id: `cat-${categoryAsk}`,
+        prompt: CATEGORY_QUESTIONS[categoryAsk],
+        keywords: [],
+      };
+    }
     const answered = new Set(selectedExtras.answeredQuestions);
     return CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
-  }, [selectedExtras.answeredQuestions]);
+  }, [selectedExtras.answeredQuestions, categoryAsk]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
@@ -321,10 +355,15 @@ function Dashboard() {
         selected.shelfReadiness + (answeredCurrent ? 7 : 4),
       ),
     });
+    if (categoryAsk) setCategoryAsk(null);
   };
 
   const skipClarityQuestion = () => {
     if (!selected || !currentQuestion) return;
+    if (categoryAsk) {
+      setCategoryAsk(null);
+      return;
+    }
     updateExtras({
       answeredQuestions: [
         ...selectedExtras.answeredQuestions,
@@ -580,6 +619,7 @@ function Dashboard() {
             getValue={getCategoryValue}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
+            onAskCategory={(k) => setCategoryAsk(k)}
             overall={overallPct}
           />
         </div>
@@ -592,6 +632,8 @@ function Dashboard() {
             onSelect={(id) => setSelectedId(id)}
           />
           <NewLightbulbPopover
+            ideaType={selected?.ideaType ?? ""}
+            onSetType={(t) => selected && updateSelected({ ideaType: t })}
             onBlank={addIdea}
             seeds={suggestedSeeds}
             onSeed={(title) => {
@@ -1014,6 +1056,7 @@ function ProgressPopover({
   getValue,
   activeCategory,
   setActiveCategory,
+  onAskCategory,
   overall,
 }: {
   disabled: boolean;
@@ -1021,6 +1064,7 @@ function ProgressPopover({
   getValue: (k: CategoryKey) => string;
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
+  onAskCategory: (k: CategoryKey) => void;
   overall: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -1051,7 +1095,7 @@ function ProgressPopover({
             Category Books
           </span>
           <span className="text-[10px] italic text-amber-900/70">
-            Fill each book by adding notes
+            Click a book to steer Clarity's question
           </span>
         </div>
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -1066,6 +1110,7 @@ function ProgressPopover({
                 active={activeCategory === c.key}
                 onClick={() => {
                   setActiveCategory(c.key);
+                  onAskCategory(c.key);
                   setOpen(false);
                 }}
               />
@@ -1162,21 +1207,27 @@ function LibraryPopover({
 }
 
 function NewLightbulbPopover({
+  ideaType,
+  onSetType,
   onBlank,
   seeds,
   onSeed,
 }: {
+  ideaType: string;
+  onSetType: (t: string) => void;
   onBlank: () => void;
   seeds: { id: string; title: string }[];
   onSeed: (title: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const label = ideaType?.trim() ? ideaType : "Idea Type";
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className="bg-transparent p-0">
+        <button type="button" className="bg-transparent p-0" title="Set idea type or start a new idea">
           <LaidBook
-            label="New Idea"
+            label={label}
+            sublabel={ideaType?.trim() ? "Type" : "Undecided"}
             variant="ember"
             open={open}
             size="md"
@@ -1195,6 +1246,31 @@ function NewLightbulbPopover({
           borderRadius: 6,
         }}
       >
+        <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
+          · Idea Type ·
+        </div>
+        <div className="mb-3 flex flex-wrap gap-1">
+          {IDEA_TYPE_OPTIONS.map((t) => {
+            const active = ideaType === t;
+            return (
+              <button
+                key={t}
+                onClick={() => {
+                  onSetType(t);
+                  setOpen(false);
+                }}
+                className={
+                  "rounded-sm border px-2 py-1 font-serif text-[11px] transition " +
+                  (active
+                    ? "border-amber-950/80 bg-amber-200/80 text-amber-950"
+                    : "border-amber-900/40 bg-amber-50/50 text-amber-950 hover:bg-amber-100/70")
+                }
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
         <button
           onClick={() => {
             onBlank();
@@ -1206,7 +1282,7 @@ function NewLightbulbPopover({
               "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
           }}
         >
-          <Plus className="h-3.5 w-3.5" /> Blank Idea
+          <Plus className="h-3.5 w-3.5" /> New Idea
         </button>
         <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
           · Sparks ·
@@ -1264,7 +1340,7 @@ function OrganizeButton({
       <div className={unlocked ? "" : "opacity-60 saturate-[0.55]"}>
         <LaidBook
           label={label}
-          sublabel={unlocked ? "Ready" : "Locked"}
+          sublabel={unlocked ? "Ready" : "Not Yet"}
           pct={overall}
           variant={variant}
           glow={unlocked}
@@ -1444,37 +1520,37 @@ function IdeaBookplate({
         type="button"
         onClick={() => setEditOpen(true)}
         title="Edit idea details"
-        className="group relative inline-flex max-w-[min(92vw,440px)] items-center gap-2 rounded-[4px] border px-4 py-1.5 font-serif shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] transition hover:-translate-y-[1px]"
+        className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-2.5 rounded-[4px] border px-5 py-2 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px]"
         style={{
           background:
-            "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+            "linear-gradient(180deg, #fbf6e7 0%, #efe3c4 100%)",
           borderColor: "rgba(60,30,8,0.7)",
           boxShadow:
-            "inset 0 1px 0 rgba(255,240,200,0.8), inset 0 -2px 0 rgba(120,70,20,0.35), 0 6px 16px -8px rgba(20,8,2,0.6)",
+            "inset 0 1px 0 rgba(255,250,235,0.95), inset 0 -2px 0 rgba(120,70,20,0.28), 0 8px 18px -8px rgba(20,8,2,0.6)",
         }}
       >
         {/* tiny brass screws */}
         <span
           aria-hidden
-          className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+          className="absolute left-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
         />
         <span
           aria-hidden
-          className="absolute right-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+          className="absolute right-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
         />
-        <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-700" />
+        <Lightbulb className="h-4 w-4 shrink-0 text-amber-700" />
         <span
-          className="truncate font-serif text-[15px] font-semibold leading-tight text-amber-950"
-          style={{ textShadow: "0 1px 0 rgba(255,240,200,0.6)" }}
+          className="truncate font-serif text-[18px] font-semibold leading-tight text-amber-950"
+          style={{ textShadow: "0 1px 0 rgba(255,250,235,0.7)", letterSpacing: "0.01em" }}
         >
           {display}
         </span>
-        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/65 sm:inline">
+        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/60 sm:inline">
           · {stageLabels[idea.stage]}
         </span>
-        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-70 transition group-hover:opacity-100" />
+        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100" />
       </button>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
