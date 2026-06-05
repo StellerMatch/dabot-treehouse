@@ -365,6 +365,7 @@ function Dashboard() {
       setCategoryAsk(null);
       return;
     }
+    if (selectedExtras.answeredQuestions.includes(currentQuestion.id)) return;
     updateExtras({
       answeredQuestions: [
         ...selectedExtras.answeredQuestions,
