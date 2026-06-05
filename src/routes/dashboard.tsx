@@ -1379,7 +1379,7 @@ function DeskIconButton({
 }: {
   onClick: () => void;
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
 }) {
   return (
