@@ -32,70 +32,63 @@ export const Route = createFileRoute("/dashboard")({
 
 // ——— types ———
 type CategoryKey =
-  | "lightbulb"
-  | "pre-clarity"
-  | "clarity"
-  | "market"
-  | "build"
+  | "core-idea"
+  | "problem"
+  | "audience"
+  | "features"
+  | "workflow"
   | "design"
-  | "money"
-  | "risks"
-  | "ready";
+  | "business"
+  | "concerns";
 
 const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: string }[] = [
   {
-    key: "lightbulb",
-    label: "Idea Notes",
-    hint: "Dump everything you know",
-    guidance: "Add any loose thoughts, reminders, or pieces of the idea.",
+    key: "core-idea",
+    label: "Core Idea",
+    hint: "What it is & its purpose",
+    guidance: "Describe what this project, app, or product is and its main purpose.",
   },
   {
-    key: "pre-clarity",
-    label: "Info Gathered",
-    hint: "Files, links, context",
-    guidance: "Add useful facts, details, links, examples, or background for this idea.",
+    key: "problem",
+    label: "Problem",
+    hint: "Why this should exist",
+    guidance: "Describe the pain point, need, opportunity, or reason this should exist.",
   },
   {
-    key: "clarity",
-    label: "Clarity",
-    hint: "Turn messy notes into a clear plan",
-    guidance: "Talk about what is still confusing, missing, or not fully decided.",
-  },
-  {
-    key: "market",
+    key: "audience",
     label: "Audience",
     hint: "Who it's for",
-    guidance: "Talk about who this idea is for and what problem it helps them with.",
+    guidance: "Describe the users, buyers, roles, or customer types this is for.",
+  },
+  {
+    key: "features",
+    label: "Features",
+    hint: "Tools, screens, actions",
+    guidance: "List the tools, functions, screens, actions, and product capabilities.",
+  },
+  {
+    key: "workflow",
+    label: "Workflow",
+    hint: "How the process flows",
+    guidance: "Describe how the user or business process moves from step to step.",
   },
   {
     key: "design",
-    label: "Design",
-    hint: "How it looks & feels",
-    guidance: "Talk about how this idea should look, feel, or be easy to use.",
+    label: "Design / UX",
+    hint: "Layout, feel, interactions",
+    guidance: "Describe layout, visual feel, interactions, usability, and screen behavior.",
   },
   {
-    key: "money",
-    label: "Money",
-    hint: "How it sustains",
-    guidance: "Talk about how this idea could make money, save money, or become worth paying for.",
+    key: "business",
+    label: "Business",
+    hint: "Pricing & commercial angle",
+    guidance: "Describe pricing, revenue model, buyer logic, costs, and market value.",
   },
   {
-    key: "risks",
-    label: "Risks",
-    hint: "What to watch out for",
-    guidance: "Talk about what could go wrong, what might be hard, or what needs protection.",
-  },
-  {
-    key: "build",
-    label: "Build Plan",
-    hint: "How it gets made",
-    guidance: "Talk about the first steps needed to build or test this idea.",
-  },
-  {
-    key: "ready",
-    label: "Ready",
-    hint: "Greenlight for project",
-    guidance: "Talk about what would make this idea ready for the next stage.",
+    key: "concerns",
+    label: "Concerns",
+    hint: "Watch-outs for later",
+    guidance: "Note things to watch, fix later, avoid, validate, or revisit in later phases.",
   },
 ];
 
@@ -104,28 +97,26 @@ const postItCategoryPalette: Record<
   CategoryKey | "mixed",
   { bg: string; edge: string; tape: string; chip: string; label: string }
 > = {
-  lightbulb:    { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Idea Notes" },
-  "pre-clarity":{ bg: "linear-gradient(180deg,#f6e3c0 0%,#e6c98c 100%)", edge: "#9a7128", tape: "rgba(120,80,30,0.55)", chip: "#f7e6c2", label: "Info Gathered" },
-  clarity:      { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Clarity" },
-  market:       { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
-  design:       { bg: "linear-gradient(180deg,#dfe5fb 0%,#b8c4f0 100%)", edge: "#4f5fa3", tape: "rgba(40,40,90,0.5)",   chip: "#e3e8fb", label: "Design" },
-  money:        { bg: "linear-gradient(180deg,#d6efd6 0%,#a8d8a8 100%)", edge: "#3f7a3f", tape: "rgba(30,80,30,0.55)",  chip: "#dcefdc", label: "Money" },
-  risks:        { bg: "linear-gradient(180deg,#fbd2cf 0%,#f0a39c 100%)", edge: "#9c3a32", tape: "rgba(100,30,20,0.55)", chip: "#fcdad6", label: "Risks" },
-  build:        { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Build Plan" },
-  ready:        { bg: "linear-gradient(180deg,#d2efe6 0%,#9ed6c1 100%)", edge: "#317a64", tape: "rgba(20,80,60,0.55)",  chip: "#dbf2e9", label: "Ready" },
-  mixed:        { bg: "linear-gradient(180deg,#f0e6d4 0%,#d7c5a0 100%)", edge: "#7a6238", tape: "rgba(80,60,20,0.55)",  chip: "#efe4c8", label: "Mixed" },
+  "core-idea": { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Core Idea" },
+  problem:     { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Problem" },
+  audience:    { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
+  features:    { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Features" },
+  workflow:    { bg: "linear-gradient(180deg,#cfeaf0 0%,#9bcfd9 100%)", edge: "#34788a", tape: "rgba(20,70,90,0.55)",  chip: "#ddeef2", label: "Workflow" },
+  design:      { bg: "linear-gradient(180deg,#dfe5fb 0%,#b8c4f0 100%)", edge: "#4f5fa3", tape: "rgba(40,40,90,0.5)",   chip: "#e3e8fb", label: "Design / UX" },
+  business:    { bg: "linear-gradient(180deg,#d6efd6 0%,#a8d8a8 100%)", edge: "#3f7a3f", tape: "rgba(30,80,30,0.55)",  chip: "#dcefdc", label: "Business" },
+  concerns:    { bg: "linear-gradient(180deg,#fbd2cf 0%,#f0a39c 100%)", edge: "#9c3a32", tape: "rgba(100,30,20,0.55)", chip: "#fcdad6", label: "Concerns" },
+  mixed:       { bg: "linear-gradient(180deg,#f0e6d4 0%,#d7c5a0 100%)", edge: "#7a6238", tape: "rgba(80,60,20,0.55)",  chip: "#efe4c8", label: "Mixed" },
 };
 
 const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
-  lightbulb:    [/\bidea\b/i, /\bspark\b/i, /\bthought\b/i],
-  "pre-clarity":[/https?:\/\//i, /\blink\b/i, /\barticle\b/i, /\bsource\b/i, /\bfound\b/i, /\breference\b/i],
-  clarity:      [/\bconfus/i, /\bunclear\b/i, /\bdecide\b/i, /\bstill\b/i, /\bmissing\b/i, /\bnot sure\b/i],
-  market:       [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bpeople\b/i, /\bneighbor/i, /\bcommunit/i],
-  design:       [/\bdesign\b/i, /\blook\b/i, /\bfeel\b/i, /\bui\b/i, /\bcolor\b/i, /\bstyle\b/i, /\blayout\b/i],
-  money:        [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bdonat/i, /\$\d/],
-  risks:        [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bwrong\b/i, /\bfail/i, /\bhard\b/i, /\btheft\b/i, /\bdamage\b/i],
-  build:        [/\bbuild\b/i, /\bstep\b/i, /\bprototype\b/i, /\btest\b/i, /\bmake\b/i, /\bplan\b/i],
-  ready:        [/\bready\b/i, /\blaunch\b/i, /\bship\b/i, /\bgreenlight\b/i, /\bgo live\b/i],
+  "core-idea": [/\bidea\b/i, /\bapp\b/i, /\btool\b/i, /\bplatform\b/i, /\bproduct\b/i, /\bpurpose\b/i, /\bsummary\b/i],
+  problem:     [/\bproblem\b/i, /\bpain\b/i, /\bneed\b/i, /\bstruggle\b/i, /\bopportunit/i, /\bbecause\b/i, /\bfrustrat/i],
+  audience:    [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bbuyer/i, /\bpeople\b/i, /\bmanager\b/i, /\bcrew\b/i, /\bworker\b/i, /\bemployee\b/i, /\bteam\b/i, /\bowner\b/i],
+  features:    [/\bfeature/i, /\bfunction\b/i, /\bscreen\b/i, /\bbutton\b/i, /\bform\b/i, /\baction\b/i, /\bcapabilit/i, /\bability\b/i, /\bsupport/i, /\bnotif/i],
+  workflow:    [/\bworkflow\b/i, /\bstep\b/i, /\bprocess\b/i, /\bflow\b/i, /\bschedul/i, /\bassign/i, /\bpipeline\b/i, /\bhandoff\b/i, /\bsequence\b/i],
+  design:      [/\bdesign\b/i, /\blayout\b/i, /\bui\b/i, /\bux\b/i, /\blook\b/i, /\bfeel\b/i, /\bcolor\b/i, /\bstyle\b/i, /\binteraction\b/i, /\busabilit/i],
+  business:    [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bsubscri/i, /\bbusiness model\b/i, /\$\d/],
+  concerns:    [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bavoid\b/i, /\bfail/i, /\blegal\b/i, /\bprivacy\b/i, /\bvalidate\b/i, /\bwatch\b/i],
 };
 
 function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
@@ -133,7 +124,8 @@ function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
   for (const [k, regs] of Object.entries(CATEGORY_KEYWORDS) as [CategoryKey, RegExp[]][]) {
     if (regs.some((r) => r.test(text))) found.add(k);
   }
-  if (found.size === 0) found.add(kind === "info-gathered" ? "pre-clarity" : "lightbulb");
+  if (found.size === 0) found.add("core-idea");
+  void kind;
   return Array.from(found);
 }
 
