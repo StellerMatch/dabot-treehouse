@@ -35,16 +35,21 @@ type CategoryKey =
   | "ready";
 
 const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
-  { key: "lightbulb", label: "Lightbulb", hint: "The messy spark" },
-  { key: "pre-clarity", label: "Pre-Clarity", hint: "Shape & signals" },
-  { key: "clarity", label: "Clarity", hint: "What it really is" },
-  { key: "market", label: "Market / Audience", hint: "Who it helps" },
-  { key: "build", label: "Build Notes", hint: "How it gets made" },
-  { key: "design", label: "Design Notes", hint: "How it feels" },
+  { key: "lightbulb", label: "Idea Notes", hint: "Dump everything you know" },
+  { key: "pre-clarity", label: "Info Gathered", hint: "Files, links, context" },
+  {
+    key: "clarity",
+    label: "Clarity",
+    hint: "Turn messy notes into a clear plan",
+  },
+  { key: "market", label: "Audience", hint: "Who it's for" },
+  { key: "build", label: "Build Plan", hint: "How it gets made" },
+  { key: "design", label: "Design Notes", hint: "How it looks & feels" },
   { key: "money", label: "Money Notes", hint: "How it sustains" },
-  { key: "risks", label: "Risks / Questions", hint: "What to watch" },
+  { key: "risks", label: "Risks", hint: "What to watch out for" },
   { key: "ready", label: "Ready for Project", hint: "Greenlight gate" },
 ];
+
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
 type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
