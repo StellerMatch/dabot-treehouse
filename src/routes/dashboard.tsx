@@ -676,8 +676,8 @@ function Dashboard() {
 
   // chunk ideas into shelves of 3
   const ideaShelves = chunk(ideas, 3);
-  // chunk categories into shelves of 3
-  const categoryShelves = chunk(categoryDefs, 3);
+  // chunk categories into shelves of 4
+  const categoryShelves = chunk(categoryDefs, 4);
 
   // overall progress = average category status across all categories
   const overallPct = useMemo(() => {
