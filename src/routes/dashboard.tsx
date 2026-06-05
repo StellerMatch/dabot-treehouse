@@ -1109,7 +1109,7 @@ function NewLightbulbPopover({
       <PopoverTrigger asChild>
         <button type="button" className="bg-transparent p-0">
           <LaidBook
-            label="New Lightbulb"
+            label="New Idea"
             variant="ember"
             open={open}
             size="md"
