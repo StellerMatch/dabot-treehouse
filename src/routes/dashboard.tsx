@@ -99,6 +99,53 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: s
   },
 ];
 
+// Soft, post-it-friendly palette keyed to each Idea Progress category.
+const postItCategoryPalette: Record<
+  CategoryKey | "mixed",
+  { bg: string; edge: string; tape: string; chip: string; label: string }
+> = {
+  lightbulb:    { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Idea Notes" },
+  "pre-clarity":{ bg: "linear-gradient(180deg,#f6e3c0 0%,#e6c98c 100%)", edge: "#9a7128", tape: "rgba(120,80,30,0.55)", chip: "#f7e6c2", label: "Info Gathered" },
+  clarity:      { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Clarity" },
+  market:       { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
+  design:       { bg: "linear-gradient(180deg,#dfe5fb 0%,#b8c4f0 100%)", edge: "#4f5fa3", tape: "rgba(40,40,90,0.5)",   chip: "#e3e8fb", label: "Design" },
+  money:        { bg: "linear-gradient(180deg,#d6efd6 0%,#a8d8a8 100%)", edge: "#3f7a3f", tape: "rgba(30,80,30,0.55)",  chip: "#dcefdc", label: "Money" },
+  risks:        { bg: "linear-gradient(180deg,#fbd2cf 0%,#f0a39c 100%)", edge: "#9c3a32", tape: "rgba(100,30,20,0.55)", chip: "#fcdad6", label: "Risks" },
+  build:        { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Build Plan" },
+  ready:        { bg: "linear-gradient(180deg,#d2efe6 0%,#9ed6c1 100%)", edge: "#317a64", tape: "rgba(20,80,60,0.55)",  chip: "#dbf2e9", label: "Ready" },
+  mixed:        { bg: "linear-gradient(180deg,#f0e6d4 0%,#d7c5a0 100%)", edge: "#7a6238", tape: "rgba(80,60,20,0.55)",  chip: "#efe4c8", label: "Mixed" },
+};
+
+const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
+  lightbulb:    [/\bidea\b/i, /\bspark\b/i, /\bthought\b/i],
+  "pre-clarity":[/https?:\/\//i, /\blink\b/i, /\barticle\b/i, /\bsource\b/i, /\bfound\b/i, /\breference\b/i],
+  clarity:      [/\bconfus/i, /\bunclear\b/i, /\bdecide\b/i, /\bstill\b/i, /\bmissing\b/i, /\bnot sure\b/i],
+  market:       [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bpeople\b/i, /\bneighbor/i, /\bcommunit/i],
+  design:       [/\bdesign\b/i, /\blook\b/i, /\bfeel\b/i, /\bui\b/i, /\bcolor\b/i, /\bstyle\b/i, /\blayout\b/i],
+  money:        [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bdonat/i, /\$\d/],
+  risks:        [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bwrong\b/i, /\bfail/i, /\bhard\b/i, /\btheft\b/i, /\bdamage\b/i],
+  build:        [/\bbuild\b/i, /\bstep\b/i, /\bprototype\b/i, /\btest\b/i, /\bmake\b/i, /\bplan\b/i],
+  ready:        [/\bready\b/i, /\blaunch\b/i, /\bship\b/i, /\bgreenlight\b/i, /\bgo live\b/i],
+};
+
+function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
+  const found = new Set<CategoryKey>();
+  for (const [k, regs] of Object.entries(CATEGORY_KEYWORDS) as [CategoryKey, RegExp[]][]) {
+    if (regs.some((r) => r.test(text))) found.add(k);
+  }
+  if (found.size === 0) found.add(kind === "info-gathered" ? "pre-clarity" : "lightbulb");
+  return Array.from(found);
+}
+
+function postItPaletteFor(categories: CategoryKey[] | undefined, fallback: CategoryKey) {
+  const cats = categories && categories.length ? categories : [fallback];
+  const key: CategoryKey | "mixed" = cats.length > 1 ? "mixed" : cats[0];
+  return { palette: postItCategoryPalette[key], label: postItCategoryPalette[key].label, isMixed: cats.length > 1 };
+}
+
+
+
+
 
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
@@ -108,6 +155,7 @@ type PostIt = {
   kind: "idea-notes" | "info-gathered";
   text: string;
   ts: number;
+  categories?: CategoryKey[];
 };
 type IdeaExtras = {
   notes: CategoryNotes;
@@ -335,11 +383,13 @@ function Dashboard() {
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
+    const cleaned = text.trim();
     const p: PostIt = {
       id: `post-${Date.now()}`,
       kind,
-      text: text.trim(),
+      text: cleaned,
       ts: Date.now(),
+      categories: detectCategories(cleaned, kind),
     };
     const nextPosts = [p, ...selectedExtras.posts];
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
@@ -2907,6 +2957,7 @@ function NoteDesk(props: {
               ts={selected.updatedAt}
               hue={0}
               pinned
+              categories={["lightbulb"]}
             />
           )}
           {extras.posts.map((p, i) => (
@@ -2916,6 +2967,7 @@ function NoteDesk(props: {
               kind={p.kind}
               ts={p.ts}
               hue={i + 1}
+              categories={p.categories}
             />
           ))}
         </div>
@@ -3070,39 +3122,78 @@ function PostItCard({
   ts,
   hue,
   pinned,
+  categories,
 }: {
   text: string;
   kind: PostIt["kind"];
   ts: number;
   hue: number;
   pinned?: boolean;
+  categories?: CategoryKey[];
 }) {
-  const palette = postItPalettes[hue % postItPalettes.length];
+  const [open, setOpen] = useState(false);
+  const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
+  const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
+  const preview = (() => {
+    const firstLine = text.split(/\n/)[0]?.trim() ?? "";
+    const base = firstLine || text.trim();
+    return base.length > 64 ? base.slice(0, 62).replace(/\s+\S*$/, "") + "…" : base;
+  })();
   return (
-    <div
-      className="relative w-[150px] rounded-sm border shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] sm:w-[170px]"
-      style={{
-        background: palette.bg,
-        borderColor: palette.edge,
-        transform: `rotate(${rot}deg)`,
-      }}
-    >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
-        style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
-      />
-      <div className="px-2.5 pt-3 pb-2">
-        <div className="mb-1 flex items-center justify-between font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
-          <span>{kind === "idea-notes" ? "Idea" : "Info"}</span>
-          {pinned ? <span>· seed</span> : <span>{timeAgo(ts)}</span>}
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="relative w-[150px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] sm:w-[170px]"
+        style={{
+          background: palette.bg,
+          borderColor: palette.edge,
+          transform: `rotate(${rot}deg)`,
+        }}
+        title="Open full note"
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
+          style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+        />
+        <div className="px-2.5 pt-3 pb-2">
+          <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
+            <span
+              className="truncate rounded-sm border px-1 py-[1px]"
+              style={{ background: palette.chip, borderColor: palette.edge }}
+              title={isMixed ? "Covers multiple categories" : label}
+            >
+              {isMixed ? "Mixed" : label}
+            </span>
+            {pinned ? <span>· seed</span> : <span className="shrink-0">{timeAgo(ts)}</span>}
+          </div>
+          <p className="line-clamp-2 break-words font-serif text-[12.5px] leading-snug text-amber-950">
+            {preview}
+          </p>
         </div>
-        <p className="whitespace-pre-wrap break-words font-serif text-[12.5px] leading-snug text-amber-950">
-          {text}
-        </p>
-      </div>
-    </div>
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md border-amber-950/80 text-amber-950" style={{ background: palette.bg }}>
+          <DialogHeader>
+            <DialogTitle className="font-serif text-amber-950">
+              {isMixed ? "Mixed note" : label}
+            </DialogTitle>
+            <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
+              {pinned ? "Seed note" : timeAgo(ts)}
+              {categories && categories.length > 0 && (
+                <> · {categories.map((c) => postItCategoryPalette[c].label).join(", ")}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="whitespace-pre-wrap break-words font-serif text-[14px] leading-relaxed text-amber-950">
+            {text}
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
 
