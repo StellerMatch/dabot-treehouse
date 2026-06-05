@@ -1540,8 +1540,8 @@ function IdeaBookplate({
         />
         <Lightbulb className="h-4 w-4 shrink-0 text-amber-700" />
         <span
-          className="truncate font-serif text-[18px] font-semibold leading-tight text-amber-950"
-          style={{ textShadow: "0 1px 0 rgba(255,250,235,0.7)", letterSpacing: "0.01em" }}
+          className="truncate font-serif text-[20px] font-bold leading-tight text-amber-950"
+          style={{ textShadow: "0 1px 0 rgba(255,250,235,0.85)", letterSpacing: "0.015em" }}
         >
           {display}
         </span>
