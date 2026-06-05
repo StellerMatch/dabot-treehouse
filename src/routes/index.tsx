@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
+import logoImage from "@/assets/dabottree-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
