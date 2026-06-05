@@ -8,8 +8,8 @@ import {
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 import logo from "@/assets/dabottree-logo.png";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Menu, BookOpen, Paperclip, Link2, Plus } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BookOpen, Paperclip, Link2, Plus, ChevronDown, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -408,9 +408,9 @@ function Dashboard() {
         }}
       />
 
-      {/* Header — carved wood beam */}
+      {/* Header — carved wood beam with three-zone controls */}
       <header
-        className="relative flex items-center justify-between gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-3"
+        className="relative z-30 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-2.5"
         style={{
           background:
             "linear-gradient(180deg, #3b1f0a 0%, #5a3210 60%, #3b1f0a 100%)",
@@ -418,132 +418,114 @@ function Dashboard() {
       >
         <WoodGrain />
 
-        {/* Mobile: Ideas drawer */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <button
-              className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
-              aria-label="Open Ideas"
-            >
-              <Menu className="h-4 w-4" />
-              <span>Ideas</span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
-            style={{
-              background:
-                "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
-            }}
-          >
-            <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
-              <SheetTitle className="font-serif text-amber-100">My Ideas</SheetTitle>
-            </SheetHeader>
-            <div className="space-y-6 px-2 py-4">{renderLeftShelfContent()}</div>
-          </SheetContent>
-        </Sheet>
-
-        <div className="relative flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2">
+        {/* LEFT: Progress popover */}
+        <div className="relative flex items-center gap-2">
+          <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
             <img src={logo} alt="DaBotTree" className="h-7 w-7 object-contain" />
-            <span className="font-serif text-base font-semibold tracking-wide text-amber-100">
-              DaBotTree
-            </span>
           </Link>
-          <span className="hidden text-xs text-amber-200/60 sm:inline">·</span>
-          <span className="hidden font-serif text-sm italic text-amber-100/80 sm:inline">
-            Creator Library
-          </span>
+          <ProgressPopover
+            disabled={!selected}
+            categories={categoryDefs}
+            getValue={getCategoryValue}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+          />
         </div>
 
-        <div className="relative flex items-center gap-2 text-xs">
-          <Link
-            to="/"
-            className="hidden rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60 sm:inline-block"
-          >
-            Doorway
-          </Link>
+        {/* CENTER: My Library + New Lightbulb */}
+        <div className="relative flex items-center justify-center gap-2">
+          <LibraryPopover
+            ideas={ideas}
+            selectedId={selected?.id ?? ""}
+            onSelect={(id) => setSelectedId(id)}
+          />
+          <NewLightbulbPopover
+            onBlank={addIdea}
+            seeds={suggestedSeeds}
+            onSeed={(title) => {
+              const id = `idea-${Date.now()}`;
+              setIdeas((prev) => [
+                {
+                  id,
+                  title,
+                  messy: "",
+                  shelfReadiness: 5,
+                  updatedAt: Date.now(),
+                  stage: "lightbulb",
+                  nextAction: "Dump your messy idea",
+                },
+                ...prev,
+              ]);
+              setSelectedId(id);
+              setActiveCategory("lightbulb");
+            }}
+          />
+        </div>
+
+        {/* RIGHT: Organize Idea + Account */}
+        <div className="relative flex items-center justify-end gap-2">
+          <OrganizeButton
+            readiness={selected?.shelfReadiness ?? 0}
+            stage={selected?.stage ?? "lightbulb"}
+            onClick={() => selected && moveToPreClarity(selected.id)}
+          />
           <Link
             to="/signin"
-            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
+            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-2.5 py-1.5 font-serif text-[11px] font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
           >
             Account
           </Link>
-
-          {/* Mobile: Progress drawer */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
-                aria-label="Open Progress"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span>Progress</span>
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
-              }}
-            >
-              <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
-                <SheetTitle className="font-serif text-amber-100">Idea Progress</SheetTitle>
-              </SheetHeader>
-              <div className="space-y-6 px-2 py-4">{renderRightShelfContent()}</div>
-            </SheetContent>
-          </Sheet>
         </div>
       </header>
 
-      {/* Three-column tree-library interior */}
-      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[300px_minmax(0,1fr)_320px]">
-        {/* LEFT shelves — desktop only */}
-        <ShelfWall
-          side="left"
-          title="My Ideas"
-          subtitle="Pull a book to open it"
-          className="hidden lg:block"
-        >
-          {renderLeftShelfContent()}
-        </ShelfWall>
-
-        {/* CENTER — Post-it note desk */}
-        <section className="relative flex min-h-[70vh] flex-col px-3 py-4 lg:px-8 lg:py-8">
+      {/* Active idea title strip — parchment plaque for readability */}
+      {selected && (
+        <div className="relative z-20 mx-auto mt-3 w-full max-w-[860px] px-3">
           <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-10 top-0 h-40 -z-0 opacity-60"
+            className="relative flex items-center gap-3 rounded-md border border-amber-950/60 px-4 py-2 shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] backdrop-blur-[2px]"
             style={{
               background:
-                "radial-gradient(ellipse at 50% 0%, rgba(255,220,150,0.6), transparent 70%)",
+                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
             }}
-          />
-          {!selected ? (
-            <div className="relative mx-auto max-w-md rounded-md border border-amber-900/40 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
-              Pull a book from the shelf to open it on the desk.
+          >
+            <Lightbulb className="h-5 w-5 shrink-0 text-amber-700" />
+            <div className="min-w-0 flex-1">
+              <div className="font-serif text-[10px] uppercase tracking-[0.28em] text-amber-900/70">
+                Active Idea · {stageLabels[selected.stage]}
+              </div>
+              <input
+                value={selected.title}
+                onChange={(e) => updateSelected({ title: e.target.value })}
+                placeholder="Name this idea…"
+                className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 placeholder:text-amber-800/40 focus:outline-none sm:text-2xl"
+              />
             </div>
-          ) : (
-            <NoteDesk
-              selected={selected}
-              extras={selectedExtras}
-              addPostIt={addPostIt}
-              addAttachment={addAttachment}
-              updateSelected={updateSelected}
-              moveToPreClarity={moveToPreClarity}
-              fileInputRef={fileInputRef}
-            />
-          )}
-        </section>
+            <span className="hidden shrink-0 font-serif text-[11px] italic text-amber-900/70 sm:inline">
+              Updated {timeAgo(selected.updatedAt)}
+            </span>
+          </div>
+        </div>
+      )}
 
-        {/* RIGHT shelves — desktop only */}
-        <ShelfWall
-          side="right"
-          title="Idea Progress"
-          subtitle="Each note fills a shelf"
-          className="hidden lg:block"
-        >
-          {renderRightShelfContent()}
-        </ShelfWall>
+      {/* Center stage — full width, the library room breathes */}
+      <div className="relative flex flex-1 flex-col px-3 pb-4 pt-3 lg:px-6">
+        {!selected ? (
+          <div className="relative mx-auto mt-12 max-w-md rounded-md border border-amber-950/50 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
+            Open My Library and pick an idea to begin.
+          </div>
+        ) : (
+          <NoteDesk
+            selected={selected}
+            extras={selectedExtras}
+            addPostIt={addPostIt}
+            addAttachment={addAttachment}
+            updateSelected={updateSelected}
+            moveToPreClarity={moveToPreClarity}
+            fileInputRef={fileInputRef}
+          />
+        )}
       </div>
+
 
       {/* floor shadow */}
       <div
@@ -560,6 +542,309 @@ function Dashboard() {
 
 
 // ============================================================
+// Top bar controls — popovers & organize button
+// ============================================================
+
+function ShelfTabButton({
+  icon,
+  label,
+  open,
+  glow,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon: React.ReactNode;
+  label: string;
+  open?: boolean;
+  glow?: boolean;
+}) {
+  return (
+    <button
+      {...rest}
+      className={
+        "relative inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-serif text-[11px] font-medium shadow-sm transition focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/80 " +
+        (open
+          ? "border-amber-200/80 text-amber-50"
+          : "border-amber-200/40 text-amber-100 hover:brightness-110")
+      }
+      style={{
+        background: open
+          ? "linear-gradient(180deg, #7a4a18 0%, #4a2810 100%)"
+          : "linear-gradient(180deg, #4a2810 0%, #2a1505 100%)",
+        boxShadow: glow
+          ? "0 0 14px 2px rgba(255,210,130,0.45), inset 0 1px 0 rgba(255,210,150,0.2)"
+          : "inset 0 1px 0 rgba(255,210,150,0.18), 0 2px 4px rgba(0,0,0,0.4)",
+      }}
+    >
+      <span className="text-amber-200">{icon}</span>
+      <span>{label}</span>
+      <ChevronDown
+        className={"h-3 w-3 transition-transform " + (open ? "rotate-180" : "")}
+      />
+    </button>
+  );
+}
+
+function ProgressPopover({
+  disabled,
+  categories,
+  getValue,
+  activeCategory,
+  setActiveCategory,
+}: {
+  disabled: boolean;
+  categories: { key: CategoryKey; label: string; hint: string }[];
+  getValue: (k: CategoryKey) => string;
+  activeCategory: CategoryKey;
+  setActiveCategory: (k: CategoryKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <ShelfTabButton
+          icon={<BookOpen className="h-3.5 w-3.5" />}
+          label="Progress"
+          open={open}
+          disabled={disabled}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={8}
+        className="z-40 w-[min(92vw,460px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+        }}
+      >
+        <div className="mb-2 flex items-center justify-between font-serif">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-amber-100/80">
+            Idea Progress
+          </span>
+          <span className="text-[10px] italic text-amber-100/60">
+            Each note fills a shelf
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {categories.map((c) => {
+            const status = categoryStatus(getValue(c.key));
+            return (
+              <CategoryBook
+                key={c.key}
+                label={c.label}
+                hint={c.hint}
+                pct={status.pct}
+                statusLabel={status.label}
+                active={activeCategory === c.key}
+                onClick={() => setActiveCategory(c.key)}
+              />
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function LibraryPopover({
+  ideas,
+  selectedId,
+  onSelect,
+}: {
+  ideas: LightbulbIdea[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <ShelfTabButton
+          icon={<BookOpen className="h-3.5 w-3.5" />}
+          label="My Library"
+          open={open}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="center"
+        sideOffset={8}
+        className="z-40 w-[min(92vw,420px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+        }}
+      >
+        <div className="mb-2 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/80">
+          My Library
+        </div>
+        <ul className="max-h-[60vh] space-y-1 overflow-y-auto pr-1">
+          {ideas.map((idea) => {
+            const active = idea.id === selectedId;
+            return (
+              <li key={idea.id}>
+                <button
+                  onClick={() => {
+                    onSelect(idea.id);
+                    setOpen(false);
+                  }}
+                  className={
+                    "group flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 text-left font-serif text-[12px] transition " +
+                    (active
+                      ? "border-amber-200/80 bg-amber-900/60 text-amber-50"
+                      : "border-amber-200/20 bg-amber-950/30 text-amber-100 hover:bg-amber-900/40")
+                  }
+                >
+                  <span
+                    className="block h-6 w-1.5 shrink-0 rounded-sm"
+                    style={{
+                      background:
+                        spinePalettes[
+                          (idea.title.length + idea.id.length) %
+                            spinePalettes.length
+                        ][1],
+                    }}
+                  />
+                  <span className="min-w-0 flex-1 truncate">
+                    {idea.title || "Untitled"}
+                  </span>
+                  <span className="shrink-0 text-[10px] italic text-amber-100/60">
+                    {stageLabels[idea.stage]}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+          {ideas.length === 0 && (
+            <li className="px-2 py-3 font-serif text-[11px] italic text-amber-100/70">
+              No ideas yet. Tap New Lightbulb to begin.
+            </li>
+          )}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function NewLightbulbPopover({
+  onBlank,
+  seeds,
+  onSeed,
+}: {
+  onBlank: () => void;
+  seeds: { id: string; title: string }[];
+  onSeed: (title: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <ShelfTabButton
+          icon={<Lightbulb className="h-3.5 w-3.5" />}
+          label="New Lightbulb"
+          open={open}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="center"
+        sideOffset={8}
+        className="z-40 w-[min(92vw,360px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+        }}
+      >
+        <button
+          onClick={() => {
+            onBlank();
+            setOpen(false);
+          }}
+          className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-950 shadow-md transition hover:brightness-110"
+          style={{
+            background:
+              "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+          }}
+        >
+          <Plus className="h-3.5 w-3.5" /> Blank Idea
+        </button>
+        <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/70">
+          · Sparks ·
+        </div>
+        <ul className="space-y-1">
+          {seeds.map((s) => (
+            <li key={s.id}>
+              <button
+                onClick={() => {
+                  onSeed(s.title);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-sm border border-amber-200/20 bg-amber-950/30 px-2 py-1.5 text-left font-serif text-[12px] text-amber-100 transition hover:bg-amber-900/40"
+              >
+                <Sparkles className="h-3 w-3 text-amber-300" />
+                <span className="truncate">{s.title}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function OrganizeButton({
+  readiness,
+  stage,
+  onClick,
+}: {
+  readiness: number;
+  stage: LightbulbIdea["stage"];
+  onClick: () => void;
+}) {
+  const ready = readiness >= 60;
+  const strong = readiness >= 35;
+  const label =
+    stage === "lightbulb" ? "Organize Idea" : "Next Stage";
+  const disabled = stage !== "lightbulb";
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={disabled ? "Already organized" : `Move forward (${readiness}% ready)`}
+      className={
+        "relative inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 font-serif text-[11px] font-semibold transition focus:outline-none disabled:opacity-50 " +
+        (ready
+          ? "border-amber-200/80 text-amber-950 hover:brightness-110"
+          : strong
+            ? "border-emerald-200/60 text-emerald-50 hover:brightness-110"
+            : "border-amber-200/30 text-amber-100/80 hover:brightness-110")
+      }
+      style={{
+        background: ready
+          ? "linear-gradient(180deg, #ffe9a3 0%, #f0c050 50%, #b07a18 100%)"
+          : strong
+            ? "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)"
+            : "linear-gradient(180deg, #4a2810 0%, #2a1505 100%)",
+        boxShadow: ready
+          ? "0 0 22px 4px rgba(255,210,120,0.55), inset 0 1px 0 rgba(255,255,255,0.35)"
+          : strong
+            ? "0 0 10px 1px rgba(110,220,140,0.35), inset 0 1px 0 rgba(255,255,255,0.15)"
+            : "inset 0 1px 0 rgba(255,210,150,0.15), 0 2px 4px rgba(0,0,0,0.4)",
+      }}
+    >
+      {ready && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
+          style={{ background: "rgba(255,220,140,0.45)" }}
+        />
+      )}
+      <span>{label}</span>
+      <ArrowRight className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
+
+
 // Wood / shelf primitives
 // ============================================================
 
@@ -1489,12 +1774,13 @@ function formatSignals(idea: LightbulbIdea): string {
 // ============================================================
 
 const postItPalettes: Array<{ bg: string; edge: string; tape: string }> = [
-  { bg: "#fff6a8", edge: "#e0c855", tape: "rgba(220,200,120,0.85)" },
-  { bg: "#ffd6a8", edge: "#d99a4a", tape: "rgba(220,150,80,0.85)" },
-  { bg: "#c7f0c7", edge: "#7ec27a", tape: "rgba(140,200,140,0.85)" },
-  { bg: "#c9defa", edge: "#6e9cd2", tape: "rgba(140,180,220,0.85)" },
-  { bg: "#f6c7e0", edge: "#cf86b0", tape: "rgba(220,160,200,0.85)" },
+  { bg: "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)", edge: "#b08840", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #f4dcae 0%, #e2c084 100%)", edge: "#9c6b28", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #efe1c0 0%, #d8c290 100%)", edge: "#8a6020", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #e8d3a0 0%, #c9ad6e 100%)", edge: "#7a5018", tape: "rgba(120,80,30,0.55)" },
+  { bg: "linear-gradient(180deg, #ead7ab 0%, #cdb47a 100%)", edge: "#8a5e22", tape: "rgba(120,80,30,0.55)" },
 ];
+
 
 function NoteDesk(props: {
   selected: LightbulbIdea;
@@ -1580,46 +1866,20 @@ function NoteDesk(props: {
 
   return (
     <div className="relative flex w-full flex-1 flex-col">
-      <div className="relative z-10 mx-auto w-full max-w-[760px] px-1">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
-              Active Idea
-            </div>
-            <input
-              value={selected.title}
-              onChange={(e) => updateSelected({ title: e.target.value })}
-              className="w-full bg-transparent font-serif text-2xl font-semibold leading-tight text-amber-50 drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] focus:outline-none"
-              placeholder="Name this idea…"
-            />
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="rounded-sm border border-amber-100/30 bg-amber-950/55 px-2 py-0.5 font-serif text-[10px] uppercase tracking-wider text-amber-100">
-              {stageLabels[selected.stage]}
-            </span>
-            {selected.stage === "lightbulb" && (
-              <button
-                onClick={() => moveToPreClarity(selected.id)}
-                className="rounded-sm border border-emerald-900/60 px-3 py-1.5 font-serif text-[11px] font-medium text-emerald-50 shadow"
-                style={{ background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)" }}
-              >
-                Organize Idea →
-              </button>
-            )}
-          </div>
-        </div>
-        <p className="mt-1 font-serif text-[11px] italic text-amber-100/70">
-          Each note you add fills this idea's progress shelf. {extras.posts.length} {extras.posts.length === 1 ? "note" : "notes"} collected.
-        </p>
-      </div>
-
-      <div className="relative mx-auto mt-4 w-full max-w-[860px] flex-1">
+      {/* Notes collection — parchment slips on the desk */}
+      <div className="relative mx-auto w-full max-w-[920px] flex-1">
         {extras.posts.length === 0 && !selected.messy && (
-          <div className="relative mx-auto max-w-md rounded-md border border-amber-100/30 bg-amber-950/35 p-5 text-center font-serif italic text-amber-50/85 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)] backdrop-blur-sm">
-            No notes yet. Jot a quick thought below — each Post-it strengthens this idea.
+          <div
+            className="relative mx-auto max-w-md rounded-md border border-amber-950/40 px-5 py-4 text-center font-serif italic text-amber-950 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)]"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
+            }}
+          >
+            No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-32">
+        <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-36">
           {selected.messy && (
             <PostItCard
               text={selected.messy}
@@ -1641,103 +1901,133 @@ function NoteDesk(props: {
         </div>
       </div>
 
+      {/* Quick capture — parchment slip on a carved wood tray */}
       <div className="sticky bottom-0 left-0 right-0 z-20 mt-2">
         <div
-          className="mx-auto w-full max-w-[760px] px-1 pb-2"
-          style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+          className="mx-auto w-full max-w-[760px] px-2 pb-3"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
-          <div
-            className="relative overflow-hidden rounded-xl border border-amber-950/70 shadow-[0_14px_30px_-12px_rgba(20,8,2,0.8)]"
-            style={{ background: "linear-gradient(180deg, #fff5b8 0%, #f6dd86 100%)" }}
-          >
-            <span
+          {/* wood tray under the parchment */}
+          <div className="relative">
+            <div
               aria-hidden
-              className="pointer-events-none absolute -top-2 left-1/2 h-4 w-20 -translate-x-1/2 rotate-[-2deg] rounded-sm"
-              style={{ background: "rgba(220,200,120,0.85)", boxShadow: "0 2px 4px rgba(0,0,0,0.25)" }}
+              className="pointer-events-none absolute -inset-x-2 -inset-y-1 rounded-[14px]"
+              style={{
+                background:
+                  "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+                boxShadow:
+                  "0 14px 30px -12px rgba(20,8,2,0.8), inset 0 1px 0 rgba(255,210,150,0.2)",
+              }}
             />
-            <div className="flex items-center gap-1 border-b border-amber-900/20 px-2 py-1 font-serif text-[10px] uppercase tracking-wider text-amber-900/70">
-              <button
-                onClick={() => setKind("idea-notes")}
-                className={
-                  "rounded-sm px-2 py-0.5 transition " +
-                  (kind === "idea-notes" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
-                }
-              >
-                Idea Notes
-              </button>
-              <button
-                onClick={() => setKind("info-gathered")}
-                className={
-                  "rounded-sm px-2 py-0.5 transition " +
-                  (kind === "info-gathered" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
-                }
-              >
-                Info Gathered
-              </button>
-              <span className="ml-auto italic normal-case tracking-normal">
-                {voiceState === "listening"
-                  ? "Listening…"
-                  : voiceState === "processing"
-                    ? "Transcribing…"
-                    : "Quick capture"}
-              </span>
-            </div>
-            <div className="flex items-end gap-2 px-2 py-2">
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={onKeyDown}
-                rows={2}
-                placeholder="Type a thought… (⌘/Ctrl + Enter to add)"
-                className="block min-h-[44px] flex-1 resize-none bg-transparent px-1 font-serif text-[14px] leading-snug text-amber-950 placeholder:text-amber-900/45 focus:outline-none"
-              />
-              <button
-                onClick={submit}
-                disabled={!draft.trim()}
-                className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
-                style={{ background: "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)" }}
-              >
-                Add Note
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 border-t border-amber-900/15 px-2 py-1.5">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  files.forEach((f) => addAttachment("file", f.name));
-                  if (fileInputRef.current) fileInputRef.current.value = "";
+            <div
+              className="relative overflow-hidden rounded-[10px] border border-amber-950/70 shadow-inner"
+              style={{
+                background:
+                  "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)",
+              }}
+            >
+              {/* parchment grain */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-20"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
+                  backgroundSize: "12px 12px",
                 }}
               />
-              <MicButton
-                state={voiceState}
-                onStart={startVoice}
-                onStop={stopVoice}
-                supported={voiceSupported}
-              />
-              <DeskIconButton
-                onClick={() => fileInputRef.current?.click()}
-                title="Attach File / Photo"
-                icon={<Paperclip className="h-3.5 w-3.5" />}
-                label="Attach"
-              />
-              <DeskIconButton
-                onClick={() => {
-                  const url = window.prompt("Paste a link to attach");
-                  if (url) addAttachment("link", url);
-                }}
-                title="Add Link"
-                icon={<Link2 className="h-3.5 w-3.5" />}
-                label="Link"
-              />
-              {extras.attachments.length > 0 && (
-                <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
-                  {extras.attachments.length} attachment{extras.attachments.length === 1 ? "" : "s"} · updated {timeAgo(selected.updatedAt)}
+              <div className="relative flex items-center gap-1 border-b border-amber-900/20 px-3 py-1 font-serif text-[10px] uppercase tracking-wider text-amber-900/70">
+                <button
+                  onClick={() => setKind("idea-notes")}
+                  className={
+                    "rounded-sm px-2 py-0.5 transition " +
+                    (kind === "idea-notes"
+                      ? "bg-amber-900 text-amber-50 shadow"
+                      : "hover:bg-amber-900/10")
+                  }
+                >
+                  Idea Notes
+                </button>
+                <button
+                  onClick={() => setKind("info-gathered")}
+                  className={
+                    "rounded-sm px-2 py-0.5 transition " +
+                    (kind === "info-gathered"
+                      ? "bg-amber-900 text-amber-50 shadow"
+                      : "hover:bg-amber-900/10")
+                  }
+                >
+                  Info Gathered
+                </button>
+                <span className="ml-auto italic normal-case tracking-normal">
+                  {voiceState === "listening"
+                    ? "Listening…"
+                    : voiceState === "processing"
+                      ? "Transcribing…"
+                      : `${extras.posts.length} ${extras.posts.length === 1 ? "note" : "notes"}`}
                 </span>
-              )}
+              </div>
+              <div className="relative flex items-end gap-2 px-3 py-2">
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  rows={2}
+                  placeholder="Add one thought… type or tap the mic to speak. (⌘/Ctrl + Enter to add)"
+                  className="block min-h-[44px] flex-1 resize-none bg-transparent px-1 font-serif text-[14px] leading-snug text-amber-950 placeholder:text-amber-900/50 focus:outline-none"
+                />
+                <button
+                  onClick={submit}
+                  disabled={!draft.trim()}
+                  className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+              <div className="relative flex flex-wrap items-center gap-1.5 border-t border-amber-900/15 px-3 py-1.5">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    files.forEach((f) => addAttachment("file", f.name));
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                />
+                <MicButton
+                  state={voiceState}
+                  onStart={startVoice}
+                  onStop={stopVoice}
+                  supported={voiceSupported}
+                />
+                <DeskIconButton
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach File / Photo"
+                  icon={<Paperclip className="h-3.5 w-3.5" />}
+                  label="Attach"
+                />
+                <DeskIconButton
+                  onClick={() => {
+                    const url = window.prompt("Paste a link to attach");
+                    if (url) addAttachment("link", url);
+                  }}
+                  title="Add Link"
+                  icon={<Link2 className="h-3.5 w-3.5" />}
+                  label="Link"
+                />
+                {extras.attachments.length > 0 && (
+                  <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
+                    {extras.attachments.length} attachment
+                    {extras.attachments.length === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1745,6 +2035,7 @@ function NoteDesk(props: {
     </div>
   );
 }
+
 
 function PostItCard({
   text,
