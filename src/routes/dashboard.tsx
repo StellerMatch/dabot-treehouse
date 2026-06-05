@@ -514,20 +514,12 @@ function Dashboard() {
 
 
 
-      {/* Header — carved wood beam with three-zone controls */}
-      <header
-        className="relative z-30 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-2.5"
-        style={{
-          background:
-            "linear-gradient(180deg, #3b1f0a 0%, #5a3210 60%, #3b1f0a 100%)",
-        }}
-      >
-        <WoodGrain />
-
-        {/* LEFT: Progress popover */}
-        <div className="relative flex items-center gap-2">
+      {/* Header — laid-down book controls floating over the library scene */}
+      <header className="relative z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 pt-4 sm:px-6 sm:pt-5">
+        {/* LEFT: Logo + Progress book */}
+        <div className="relative flex items-center gap-3">
           <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
-            <img src={logo} alt="DaBotTree" className="h-7 w-7 object-contain" />
+            <img src={logo} alt="DaBotTree" className="h-9 w-9 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />
           </Link>
           <ProgressPopover
             disabled={!selected}
@@ -539,7 +531,7 @@ function Dashboard() {
         </div>
 
         {/* CENTER: My Library + New Lightbulb */}
-        <div className="relative flex items-center justify-center gap-2">
+        <div className="relative flex items-center justify-center gap-3">
           <LibraryPopover
             ideas={ideas}
             selectedId={selected?.id ?? ""}
@@ -568,19 +560,13 @@ function Dashboard() {
           />
         </div>
 
-        {/* RIGHT: Organize Idea + Account */}
-        <div className="relative flex items-center justify-end gap-2">
+        {/* RIGHT: Organize / Next Stage */}
+        <div className="relative flex items-center justify-end gap-3">
           <OrganizeButton
             readiness={selected?.shelfReadiness ?? 0}
             stage={selected?.stage ?? "lightbulb"}
             onClick={() => selected && moveToPreClarity(selected.id)}
           />
-          <Link
-            to="/signin"
-            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-2.5 py-1.5 font-serif text-[11px] font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
-          >
-            Account
-          </Link>
         </div>
       </header>
 
