@@ -1512,8 +1512,11 @@ function IdeaBookplate({
         >
           {display}
         </span>
-        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/60 sm:inline">
-          · {stageLabels[idea.stage]}
+        <span
+          className="hidden shrink-0 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-0.5 font-serif text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-900/80 sm:inline"
+          title="Idea type — edit in the idea details"
+        >
+          {idea.ideaType?.trim() || "Idea Type"}
         </span>
         <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100" />
       </button>
