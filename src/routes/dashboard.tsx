@@ -108,6 +108,7 @@ type PostIt = {
   kind: "idea-notes" | "info-gathered";
   text: string;
   ts: number;
+  categories?: CategoryKey[];
 };
 type IdeaExtras = {
   notes: CategoryNotes;
