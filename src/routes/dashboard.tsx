@@ -740,7 +740,7 @@ function Journal(props: {
   const activeDef = categoryDefs.find((c) => c.key === activeCategory)!;
 
   return (
-    <div className="relative mx-auto max-w-3xl">
+    <div className="relative mx-auto max-w-xl">
       {/* desk shadow under journal */}
       <div
         aria-hidden
