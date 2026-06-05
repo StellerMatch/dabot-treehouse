@@ -341,64 +341,93 @@ function generateTitle(text: string, ideaType?: string): string {
   return titleCase(`${words || "New"} ${suffix}`);
 }
 
-// ——— Idea analyzer: produce a clean summary per category ———
-// Always returns all 9 categories. Each summary is plain-language about that
-// category's meaning — never a sliced copy of the user's first words. If a
-// category has no signal in the source, a "missing info" prompt is shown.
+// ——— Idea analyzer: semantically parse a pasted Clarity prompt into the
+// nine category folders. Each folder collects sentences that belong to it
+// (a sentence can land in multiple folders). Empty folders get a
+// "Missing…" prompt instead of fabricated content.
 const CATEGORY_ORDER: CategoryKey[] = [
   "lightbulb", "clarity", "market", "build", "design", "risks", "money", "ready", "pre-clarity",
 ];
-function cap(s: string) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
-function buildCategorySummaries(text: string, _ideaType?: string): Record<CategoryKey, string> {
-  const t = text.toLowerCase();
-  const has = (re: RegExp) => re.test(t);
 
-  const domain =
-    has(/\b(construction|crew|jobsite|contractor)\b/) ? "construction crew"
-    : has(/\bpet|dog|cat\b/) ? "pet care"
-    : has(/\brecipe|cook|kitchen\b/) ? "family recipe"
-    : has(/\bplant|garden\b/) ? "garden"
-    : has(/\bclassroom|teacher|student|school\b/) ? "classroom"
-    : has(/\bneighborhood|community\b/) ? "neighborhood"
-    : "this";
+const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
+  lightbulb:     /\b(app|tool|platform|system|idea|concept|wants? (?:an?|to)|build(?:s|ing)? (?:an?|the)|create|main purpose|summary)\b/i,
+  clarity:       /\b(problem|solve[sd]?|unclear|uncertain|decid|defin|still needs?|not sure|figure out|sort out|undecided|main goal|trying to)\b/i,
+  market:        /\b(manager|crew|worker|employee|user|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona)\b/i,
+  build:         /\b(feature|workflow|schedul|screen|step|data|field|input|output|function|ability|support|allow|track|assign|notif|integrat|api|database|backend|jobsite|hours|availab|skill|pickup|recommend|backup|action|button|form)\b/i,
+  design:        /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|simple|clean|practical|tone)\b/i,
+  money:         /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value)\b/i,
+  risks:         /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|not\s+(?:payroll|timeclock|hr|route|autonomous))\b/i,
+  ready:         /\b(ready|already decided|confirmed|solid|locked|agreed|launch|greenlight|next step|set in stone|good to go)\b/i,
+  "pre-clarity": /(\?\s*$)|\b(unknown|missing|tbd|need to know|need to define|next question|open question|still need)\b/i,
+};
 
-  const purpose =
-    has(/\bschedul/) ? "build schedules faster than paper"
-    : has(/\btrack/) ? "track things in one place"
-    : has(/\bplan/) ? "plan things faster"
-    : has(/\bremind/) ? "remember the small things"
-    : "do the job faster than the current way";
+const CATEGORY_MISSING: Record<CategoryKey, string> = {
+  lightbulb:     "Missing: a one-line summary of the core idea.",
+  clarity:       "Missing: the main problem this solves and the next decision to make.",
+  market:        "Missing: who exactly this is for and the pain it removes for them.",
+  build:         "Missing: features, workflow steps, screens, and the data this needs.",
+  design:        "Missing: layout, key screens, and interaction style.",
+  money:         "Missing: pricing, first buyer, and business model.",
+  risks:         "Missing: scope boundaries and things this should not try to do.",
+  ready:         "Missing: what is already decided and ready to move forward.",
+  "pre-clarity": "Next question: what important detail still needs an answer?",
+};
 
-  const audience =
-    has(/\b(manager|crew|worker|supervisor|contractor|jobsite)\b/)
-      ? "construction managers, crew leads, and workers receiving schedule updates"
-    : has(/\bteacher|student|classroom\b/) ? "teachers and the students they support"
-    : has(/\bparent|kid|child\b/) ? "parents and the kids they care for"
-    : has(/\bneighbor|community\b/) ? "neighbors who want to help each other"
-    : "the people closest to this problem";
-
-  return {
-    lightbulb: `${cap(domain)} ${has(/\bapp\b/) ? "app" : "tool"} to help managers ${purpose}.`,
-    clarity: has(/\bdraft|published|control|approve/)
-      ? "Managers need faster scheduling while staying in control of draft and published schedules."
-      : `Why this matters: a clearer, faster way to ${purpose}.`,
-    market: `Built for ${audience}.`,
-    build: has(/\b(jobsite|skill|availability|hours|pickup|recommend|backup|notif)\b/)
-      ? "Uses jobsites, worker needs, skills, availability, pickups, hours, notes, recommendations, and backups."
-      : "First workflow, inputs, and outputs still need to be mapped.",
-    design: has(/\b(draft|published|board|simple|clean|practical|notif)\b/)
-      ? "Manager-side planning board with private drafts, clear published state, pickup clarity, and simple worker updates."
-      : "Design direction (layout, tone, key screens) still to be defined.",
-    risks: has(/\b(not\s+(payroll|timeclock|hr|route|autonomous)|avoid|should\s+not|guardrail|out of scope)\b/)
-      ? "Avoid payroll, timeclock, HR analytics, route optimization, and autonomous AI scheduling."
-      : "Guardrails and out-of-scope areas still need to be defined.",
-    money: has(/\bprice|paid|subscri|charge|\$|revenue|sell/)
-      ? "Pricing direction noted; first buyer and willingness-to-pay still need detail."
-      : "Pricing and buyer details still need to be defined.",
-    ready: "Strong starting direction, but first workflow and launch scope still need decisions.",
-    "pre-clarity": "Ask one missing product or buyer question at a time.",
-  };
+function splitSentences(text: string): string[] {
+  return text
+    .replace(/\r\n/g, "\n")
+    .split(/(?<=[.!?])\s+|\n+|(?:^|\s)[•·]\s+|(?:^|\s)-\s+/g)
+    .map((s) => s.replace(/^[-•·\s]+/, "").trim())
+    .filter((s) => s.length >= 6);
 }
+
+function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> {
+  const sentences = splitSentences(text);
+  const out: Record<CategoryKey, string[]> = {
+    lightbulb: [], "pre-clarity": [], clarity: [], market: [],
+    design: [], money: [], risks: [], build: [], ready: [],
+  };
+  if (sentences[0]) out.lightbulb.push(sentences[0]);
+  for (const s of sentences) {
+    for (const [k, re] of Object.entries(CAT_PATTERNS) as [CategoryKey, RegExp][]) {
+      if (re.test(s) && !out[k].includes(s)) out[k].push(s);
+    }
+  }
+  return out;
+}
+
+function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
+  const buckets = parsePromptIntoCategories(text);
+  return CATEGORY_ORDER.map((cat, i) => {
+    const items = buckets[cat];
+    const body = items.length
+      ? items.map((s) => `• ${s}`).join("\n")
+      : CATEGORY_MISSING[cat];
+    return {
+      id: `post-${ts}-${cat}`,
+      kind: cat === "pre-clarity" ? "info-gathered" : "idea-notes",
+      text: postItCategoryPalette[cat].label,
+      fullText:
+        cat === "lightbulb"
+          ? `${body}\n\n— Original prompt —\n${text}`
+          : body,
+      ts: ts - i,
+      categories: [cat],
+    };
+  });
+}
+
+function lightbulbSummaryFrom(text: string): string {
+  const first = splitSentences(text)[0] ?? text.trim();
+  return first.length > 160 ? first.slice(0, 158).replace(/\s+\S*$/, "") + "…" : first;
+}
+
+function isLongClarityPrompt(text: string): boolean {
+  const t = text.trim();
+  if (t.length >= 220) return true;
+  return splitSentences(t).length >= 3;
+}
+
 function clarityAnsweredFrom(text: string): string[] {
   const lower = ` ${text.toLowerCase()} `;
   return CLARITY_QUESTIONS.filter(
@@ -441,22 +470,14 @@ function Dashboard() {
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
-      const summaries = buildCategorySummaries(draft, draftType || undefined);
       const answered = clarityAnsweredFrom(draft);
       const title = generateTitle(draft, draftType || undefined);
       const ts = Date.now();
-      const posts: PostIt[] = CATEGORY_ORDER.map((cat, i) => ({
-        id: `post-${ts}-${i}`,
-        kind: cat === "pre-clarity" ? "info-gathered" : "idea-notes",
-        text: summaries[cat],
-        fullText: cat === "lightbulb" ? draft : undefined,
-        ts: ts - i,
-        categories: [cat],
-      }));
+      const posts: PostIt[] = buildCategoryFolderPosts(draft, ts);
       const newIdea: LightbulbIdea = {
         id,
         title,
-        messy: summaries.lightbulb,
+        messy: lightbulbSummaryFrom(draft),
         shelfReadiness: 32,
         updatedAt: ts,
         stage: "lightbulb",
@@ -535,6 +556,30 @@ function Dashboard() {
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
     const cleaned = text.trim();
+
+    // If the user pastes a full Clarity prompt / idea packet, parse the
+    // whole thing and (re)build the nine category folders from it instead
+    // of saving one generic note.
+    if (isLongClarityPrompt(cleaned)) {
+      const ts = Date.now();
+      const folderPosts = buildCategoryFolderPosts(cleaned, ts);
+      const newAnswered = clarityAnsweredFrom(cleaned);
+      const mergedAnswered = Array.from(
+        new Set([...selectedExtras.answeredQuestions, ...newAnswered]),
+      );
+      updateExtras({
+        posts: folderPosts,
+        answeredQuestions: mergedAnswered,
+      });
+      updateSelected({
+        title: generateTitle(cleaned, selected.ideaType),
+        messy: lightbulbSummaryFrom(cleaned),
+        shelfReadiness: Math.max(selected.shelfReadiness, 45),
+      });
+      if (categoryAsk) setCategoryAsk(null);
+      return;
+    }
+
     const p: PostIt = {
       id: `post-${Date.now()}`,
       kind,
@@ -3257,10 +3302,6 @@ function PostItCard({
   const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
-  const preview = (() => {
-    const base = text.replace(/\s+/g, " ").trim();
-    return base.length > 140 ? base.slice(0, 138).replace(/\s+\S*$/, "") + "…" : base;
-  })();
   return (
     <>
       <button
@@ -3283,20 +3324,22 @@ function PostItCard({
           <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
             {isMixed ? "Mixed" : label}
           </div>
-          <div className="hidden lg:block">
-            <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
+          <div className="hidden lg:flex lg:h-full lg:flex-col lg:items-center lg:justify-center">
+            <span
+              className="rounded-sm border px-2 py-[2px] font-serif text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950"
+              style={{ background: palette.chip, borderColor: palette.edge }}
+              title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
+            >
+              {isMixed ? "Mixed" : label}
+            </span>
+            {!pinned && (
               <span
-                className="truncate rounded-sm border px-1 py-[1px]"
-                style={{ background: palette.chip, borderColor: palette.edge }}
-                title={isMixed ? "Covers multiple categories" : label}
+                className="mt-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/70"
+                suppressHydrationWarning
               >
-                {isMixed ? "Mixed" : label}
+                {timeAgo(ts)}
               </span>
-              {pinned ? <span>· seed</span> : <span className="shrink-0" suppressHydrationWarning>{timeAgo(ts)}</span>}
-            </div>
-            <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
-              {preview}
-            </p>
+            )}
           </div>
         </div>
       </button>
