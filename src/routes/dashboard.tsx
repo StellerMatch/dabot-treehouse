@@ -616,7 +616,13 @@ function Dashboard() {
 
 
       {/* Clarity guide presence */}
-      <ClarityGuide selected={selected} />
+      <ClarityGuide
+        selected={selected}
+        currentQuestion={currentQuestion}
+        answeredCount={selectedExtras.answeredQuestions.length}
+        totalQuestions={CLARITY_QUESTIONS.length}
+        onSkip={skipClarityQuestion}
+      />
 
       {/* floor shadow */}
       <div
