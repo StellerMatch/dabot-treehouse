@@ -822,7 +822,7 @@ function Journal(props: {
                     "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)",
                 }}
               >
-                Move to Pre-Clarity →
+                Start Building This Idea →
               </button>
             )}
           </div>
