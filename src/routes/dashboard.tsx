@@ -58,7 +58,21 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
 type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
-type IdeaExtras = { notes: CategoryNotes; attachments: Attachment[] };
+type PostIt = {
+  id: string;
+  kind: "idea-notes" | "info-gathered";
+  text: string;
+  ts: number;
+};
+type IdeaExtras = {
+  notes: CategoryNotes;
+  attachments: Attachment[];
+  posts: PostIt[];
+};
+
+function emptyExtras(): IdeaExtras {
+  return { notes: {}, attachments: [], posts: [] };
+}
 
 function timeAgo(ts: number) {
   const s = Math.floor((Date.now() - ts) / 1000);
@@ -66,6 +80,11 @@ function timeAgo(ts: number) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
+}
+
+function pctFromCount(count: number, weights: number[] = [25, 45, 65, 80, 92, 100]) {
+  if (count <= 0) return 0;
+  return weights[Math.min(count - 1, weights.length - 1)];
 }
 
 function categoryStatus(value: string | undefined) {
@@ -76,6 +95,7 @@ function categoryStatus(value: string | undefined) {
   if (v.length < 280) return { pct: 80, label: "Needs Review" };
   return { pct: 100, label: "Ready" };
 }
+
 
 // suggested idea seeds based on a creator field
 const suggestedSeeds = [
