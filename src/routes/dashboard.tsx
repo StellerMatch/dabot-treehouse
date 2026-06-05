@@ -514,7 +514,7 @@ function Dashboard() {
         src={claritySquirrel}
         alt="Clarity"
         aria-hidden
-        className="pointer-events-none fixed z-10 select-none right-[-60px] bottom-[140px] h-[320px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
+        className="pointer-events-none fixed z-10 select-none right-[-30px] bottom-[150px] h-[200px] sm:right-2 sm:bottom-[220px] sm:h-[240px] lg:right-6 lg:bottom-28 lg:h-[360px]"
         style={{
           width: "auto",
           filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
