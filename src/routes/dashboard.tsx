@@ -632,8 +632,6 @@ function Dashboard() {
             onSelect={(id) => setSelectedId(id)}
           />
           <NewLightbulbPopover
-            ideaType={selected?.ideaType ?? ""}
-            onSetType={(t) => selected && updateSelected({ ideaType: t })}
             onBlank={addIdea}
             seeds={suggestedSeeds}
             onSeed={(title) => {
@@ -1207,27 +1205,21 @@ function LibraryPopover({
 }
 
 function NewLightbulbPopover({
-  ideaType,
-  onSetType,
   onBlank,
   seeds,
   onSeed,
 }: {
-  ideaType: string;
-  onSetType: (t: string) => void;
   onBlank: () => void;
   seeds: { id: string; title: string }[];
   onSeed: (title: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const label = ideaType?.trim() ? ideaType : "Idea Type";
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className="bg-transparent p-0" title="Set idea type or start a new idea">
+        <button type="button" className="bg-transparent p-0">
           <LaidBook
-            label={label}
-            sublabel={ideaType?.trim() ? "Type" : "Undecided"}
+            label="New Idea"
             variant="ember"
             open={open}
             size="md"
@@ -1246,31 +1238,6 @@ function NewLightbulbPopover({
           borderRadius: 6,
         }}
       >
-        <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
-          · Idea Type ·
-        </div>
-        <div className="mb-3 flex flex-wrap gap-1">
-          {IDEA_TYPE_OPTIONS.map((t) => {
-            const active = ideaType === t;
-            return (
-              <button
-                key={t}
-                onClick={() => {
-                  onSetType(t);
-                  setOpen(false);
-                }}
-                className={
-                  "rounded-sm border px-2 py-1 font-serif text-[11px] transition " +
-                  (active
-                    ? "border-amber-950/80 bg-amber-200/80 text-amber-950"
-                    : "border-amber-900/40 bg-amber-50/50 text-amber-950 hover:bg-amber-100/70")
-                }
-              >
-                {t}
-              </button>
-            );
-          })}
-        </div>
         <button
           onClick={() => {
             onBlank();
@@ -1282,7 +1249,7 @@ function NewLightbulbPopover({
               "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
           }}
         >
-          <Plus className="h-3.5 w-3.5" /> Start New Idea
+          <Plus className="h-3.5 w-3.5" /> Blank Idea
         </button>
         <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
           · Sparks ·
@@ -1545,8 +1512,11 @@ function IdeaBookplate({
         >
           {display}
         </span>
-        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/60 sm:inline">
-          · {stageLabels[idea.stage]}
+        <span
+          className="hidden shrink-0 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-0.5 font-serif text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-900/80 sm:inline"
+          title="Idea type — edit in the idea details"
+        >
+          {idea.ideaType?.trim() || "Idea Type"}
         </span>
         <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100" />
       </button>
