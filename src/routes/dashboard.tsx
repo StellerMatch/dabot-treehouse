@@ -546,9 +546,22 @@ function Ivy({ side }: { side: "left" | "right" }) {
 }
 
 
-function Shelf({ children }: { children: React.ReactNode }) {
+function Shelf({
+  children,
+  widthPct = 100,
+  align = "center",
+}: {
+  children: React.ReactNode;
+  widthPct?: number;
+  align?: "left" | "right" | "center";
+}) {
+  const marginClass =
+    align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto";
   return (
-    <div className="relative">
+    <div
+      className={`relative ${marginClass}`}
+      style={{ width: `${widthPct}%` }}
+    >
       {/* books sitting on the plank */}
       <div className="flex items-end justify-center gap-1.5 px-2">
         {children}
