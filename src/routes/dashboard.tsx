@@ -6,7 +6,9 @@ import {
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 const libraryBg = libraryBgAsset.url;
+const claritySquirrel = claritySquirrelAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BookOpen, Paperclip, Link2, Plus, ChevronDown, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
