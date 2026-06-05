@@ -372,6 +372,16 @@ function Dashboard() {
   // chunk categories into shelves of 3
   const categoryShelves = chunk(categoryDefs, 3);
 
+  // overall progress = average category status across all categories
+  const overallPct = useMemo(() => {
+    if (!selected) return 0;
+    const sum = categoryDefs.reduce(
+      (acc, c) => acc + categoryStatus(getCategoryValue(c.key)).pct,
+      0,
+    );
+    return Math.round(sum / categoryDefs.length);
+  }, [selected, selectedExtras, categoryDefs]);
+
   const leftWidths = [60, 70, 90];
   const rightWidths = [60, 70, 85];
 
