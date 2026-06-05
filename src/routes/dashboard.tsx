@@ -2957,6 +2957,7 @@ function NoteDesk(props: {
               ts={selected.updatedAt}
               hue={0}
               pinned
+              categories={["lightbulb"]}
             />
           )}
           {extras.posts.map((p, i) => (
@@ -2966,6 +2967,7 @@ function NoteDesk(props: {
               kind={p.kind}
               ts={p.ts}
               hue={i + 1}
+              categories={p.categories}
             />
           ))}
         </div>
