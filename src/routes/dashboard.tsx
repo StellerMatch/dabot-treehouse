@@ -309,8 +309,10 @@ function Dashboard() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     let draft = "";
+    let draftType = "";
     try {
       draft = sessionStorage.getItem("dabottree:draftIdea") ?? "";
+      draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
@@ -322,11 +324,13 @@ function Dashboard() {
         updatedAt: Date.now(),
         stage: "lightbulb",
         nextAction: "Add more notes & start building",
+        ideaType: draftType || undefined,
       };
       setIdeas((prev) => [newIdea, ...prev]);
       setSelectedId(id);
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
+        sessionStorage.removeItem("dabottree:draftIdeaType");
       } catch {}
     }
   }, []);
