@@ -1282,7 +1282,7 @@ function NewLightbulbPopover({
               "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
           }}
         >
-          <Plus className="h-3.5 w-3.5" /> New Idea
+          <Plus className="h-3.5 w-3.5" /> Start New Idea
         </button>
         <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
           · Sparks ·
@@ -1357,9 +1357,7 @@ function OrganizeButton({
           trailing={
             unlocked ? (
               <ArrowRight className="h-3 w-3 opacity-90" />
-            ) : (
-              <span className="text-[10px] opacity-75">zZz</span>
-            )
+            ) : null
           }
         />
       </div>

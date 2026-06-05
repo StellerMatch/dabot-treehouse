@@ -39,7 +39,7 @@ export const seedIdeas: LightbulbIdea[] = [
     id: "idea-1",
     title: "Neighborhood tool library",
     messy:
-      "everyone on my block has the same drill collecting dust… could we share? maybe an app or just a shed?",
+      "everyone on my block has the same drill collecting dust… could we share? maybe a simple tool, shared shelf, or shed?",
     shelfReadiness: 28,
     updatedAt: Date.now() - 1000 * 60 * 60 * 6,
     stage: "lightbulb",
