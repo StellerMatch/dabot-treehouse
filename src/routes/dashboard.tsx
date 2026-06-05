@@ -15,22 +15,14 @@ export const Route = createFileRoute("/dashboard")({
       {
         name: "description",
         content:
-          "Your living tree library: ideas on the left shelf, workspace in the middle, progress shelf on the right.",
+          "Your living tree library: ideas as books on the left shelf, an open journal in the middle, a progress shelf on the right.",
       },
     ],
   }),
   component: Dashboard,
 });
 
-function timeAgo(ts: number) {
-  const s = Math.floor((Date.now() - ts) / 1000);
-  if (s < 60) return `${s}s ago`;
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
-}
-
-// ——— Category shelves on the right side ———
+// ——— types ———
 type CategoryKey =
   | "lightbulb"
   | "pre-clarity"
@@ -55,11 +47,18 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
 ];
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
+type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
+type IdeaExtras = { notes: CategoryNotes; attachments: Attachment[] };
 
-function categoryStatus(value: string | undefined): {
-  pct: number;
-  label: string;
-} {
+function timeAgo(ts: number) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function categoryStatus(value: string | undefined) {
   const v = (value ?? "").trim();
   if (!v) return { pct: 0, label: "empty" };
   if (v.length < 40) return { pct: 35, label: "sapling" };
@@ -67,12 +66,16 @@ function categoryStatus(value: string | undefined): {
   return { pct: 100, label: "rooted" };
 }
 
-type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
-
-type IdeaExtras = {
-  notes: CategoryNotes;
-  attachments: Attachment[];
-};
+// ——— book spine palettes (rich leather tones) ———
+const spinePalettes: Array<[string, string, string]> = [
+  ["#5a1a14", "#8a2e22", "#c7975a"], // burgundy + gold
+  ["#1c3a2a", "#2e6045", "#c7975a"], // forest + gold
+  ["#3a230a", "#6b3f1a", "#d8b06a"], // tobacco + gold
+  ["#1b2f4a", "#3a5c84", "#c7975a"], // ink blue + gold
+  ["#4a2a05", "#7a4a12", "#e3c275"], // ochre + gold
+  ["#2a1338", "#502572", "#c7975a"], // plum + gold
+  ["#3d0f0a", "#7a1f10", "#d8b06a"], // oxblood + gold
+];
 
 function Dashboard() {
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
@@ -82,7 +85,7 @@ function Dashboard() {
     useState<CategoryKey>("lightbulb");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Pull draft from front-page intake if present
+  // Pull draft from front-page intake
   useEffect(() => {
     if (typeof window === "undefined") return;
     let draft = "";
@@ -93,7 +96,7 @@ function Dashboard() {
       const id = `idea-${Date.now()}`;
       const newIdea: LightbulbIdea = {
         id,
-        title: draft.split(/\s+/).slice(0, 6).join(" ") || "Untitled spark",
+        title: draft.split(/\s+/).slice(0, 5).join(" ") || "Untitled spark",
         messy: draft,
         shelfReadiness: 18,
         updatedAt: Date.now(),
@@ -164,7 +167,7 @@ function Dashboard() {
               ...i,
               stage: "pre-clarity",
               shelfReadiness: Math.max(i.shelfReadiness, 45),
-              nextAction: "Fill Clarity shelf",
+              nextAction: "Fill the Clarity shelf",
               updatedAt: Date.now(),
             }
           : i,
@@ -174,7 +177,6 @@ function Dashboard() {
     setActiveCategory("pre-clarity");
   };
 
-  // Map textarea content per active category
   const getCategoryValue = (key: CategoryKey): string => {
     if (!selected) return "";
     if (key === "lightbulb") return selected.messy;
@@ -185,11 +187,8 @@ function Dashboard() {
 
   const setCategoryValue = (key: CategoryKey, value: string) => {
     if (!selected) return;
-    if (key === "lightbulb") {
-      updateSelected({ messy: value });
-    } else {
-      updateExtras({ notes: { [key]: value } });
-    }
+    if (key === "lightbulb") updateSelected({ messy: value });
+    else updateExtras({ notes: { [key]: value } });
   };
 
   const addAttachment = (kind: Attachment["kind"], label: string) => {
@@ -202,432 +201,739 @@ function Dashboard() {
     updateExtras({ attachments: [a, ...selectedExtras.attachments] });
   };
 
+  // chunk ideas into shelves of 3
+  const ideaShelves = chunk(ideas, 3);
+  // chunk categories into shelves of 3
+  const categoryShelves = chunk(categoryDefs, 3);
+
   return (
     <main
       className="relative flex w-screen flex-col text-amber-950"
       style={{ minHeight: "100dvh" }}
     >
-      {/* Living tree library background */}
+      {/* living tree library background */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 -z-20 bg-cover bg-center"
+        className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
+      {/* sun shaft + warm wash */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
+        className="pointer-events-none fixed inset-0 -z-20"
         style={{
           background:
-            "radial-gradient(ellipse at 50% -10%, rgba(255,236,189,0.55), rgba(255,221,160,0.18) 40%, rgba(70,38,12,0.35) 100%)",
+            "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,225,160,0.55), transparent 70%), linear-gradient(180deg, rgba(60,30,8,0.15), rgba(40,18,2,0.45))",
+        }}
+      />
+      {/* floating dust motes */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(255,230,170,0.6) 1px, transparent 1.5px)",
+          backgroundSize: "120px 120px",
+          backgroundPosition: "0 0, 60px 60px",
         }}
       />
 
-      <header className="flex items-center justify-between border-b border-amber-900/20 bg-amber-50/60 px-5 py-3 backdrop-blur-md">
-        <div className="flex items-center gap-3">
+      {/* Header — carved wood beam */}
+      <header
+        className="relative flex items-center justify-between px-5 py-3 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3b1f0a 0%, #5a3210 60%, #3b1f0a 100%)",
+        }}
+      >
+        <WoodGrain />
+        <div className="relative flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="DaBotTree" className="h-7 w-7 object-contain" />
-            <span className="text-sm font-semibold tracking-wide text-amber-900">
+            <span className="font-serif text-base font-semibold tracking-wide text-amber-100">
               DaBotTree
             </span>
           </Link>
-          <span className="hidden text-xs text-amber-700/60 sm:inline">/</span>
-          <span className="hidden text-sm text-amber-800/80 sm:inline">
+          <span className="hidden text-xs text-amber-200/60 sm:inline">·</span>
+          <span className="hidden font-serif text-sm italic text-amber-100/80 sm:inline">
             Creator Library
           </span>
         </div>
-        <div className="flex items-center gap-2 text-xs">
+        <div className="relative flex items-center gap-2 text-xs">
           <Link
             to="/"
-            className="rounded-md border border-amber-900/25 bg-amber-50/70 px-3 py-1.5 text-amber-900 hover:bg-amber-100"
+            className="rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60"
           >
             Doorway
           </Link>
           <Link
             to="/signin"
-            className="rounded-md bg-amber-900 px-3 py-1.5 font-medium text-amber-50 shadow-sm hover:bg-amber-800"
+            className="rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200"
           >
             Account
           </Link>
         </div>
       </header>
 
-      <div className="grid flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-[300px_1fr_320px]">
-        {/* Left bookshelf — ideas as books */}
-        <Bookshelf title="Your Ideas" subtitle="Books on the shelf">
-          <div className="px-3 pb-2 pt-1">
-            <button
-              onClick={addIdea}
-              className="w-full rounded-md bg-amber-900 px-3 py-2 text-xs font-medium text-amber-50 shadow hover:bg-amber-800"
-            >
-              + New Lightbulb
-            </button>
-          </div>
-          <ul className="flex flex-col gap-2 px-3 pb-4">
-            {ideas.map((idea, idx) => (
-              <li key={idea.id}>
+      {/* Three-column tree-library interior */}
+      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
+        {/* ============ LEFT BOOKSHELF WALL ============ */}
+        <ShelfWall side="left" title="Idea Books" subtitle="Pull one to open it">
+          <ShelfAction
+            label="+ New Lightbulb"
+            onClick={addIdea}
+          />
+          {ideaShelves.map((row, rIdx) => (
+            <Shelf key={rIdx}>
+              {row.map((idea, idx) => (
                 <BookSpine
+                  key={idea.id}
                   title={idea.title}
-                  stage={stageLabels[idea.stage]}
+                  meta={stageLabels[idea.stage]}
                   active={idea.id === selected?.id}
-                  hue={idx}
+                  hue={rIdx * 3 + idx}
                   onClick={() => setSelectedId(idea.id)}
                 />
-              </li>
-            ))}
-          </ul>
-        </Bookshelf>
+              ))}
+              {row.length < 3 &&
+                Array.from({ length: 3 - row.length }).map((_, i) => (
+                  <BookGhost key={`g-${i}`} />
+                ))}
+            </Shelf>
+          ))}
+          {/* empty shelf to feel like there's room to grow */}
+          {ideaShelves.length < 3 && (
+            <Shelf>
+              <BookGhost />
+              <BookGhost />
+              <BookGhost />
+            </Shelf>
+          )}
+        </ShelfWall>
 
-        {/* Center workspace — parchment desk */}
-        <section className="relative overflow-hidden rounded-2xl border border-amber-900/25 shadow-[0_20px_60px_-20px_rgba(60,30,5,0.5)]">
+        {/* ============ CENTER — open journal on writing desk ============ */}
+        <section className="relative px-4 py-6 lg:px-8 lg:py-8">
+          {/* sunbeam */}
           <div
             aria-hidden
-            className="absolute inset-0 -z-10"
+            className="pointer-events-none absolute inset-x-10 top-0 h-40 -z-0 opacity-60"
             style={{
               background:
-                "linear-gradient(180deg, rgba(255,247,224,0.96), rgba(248,232,198,0.94))",
-            }}
-          />
-          {/* parchment grain */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 opacity-30"
-            style={{
-              backgroundImage:
-                "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
-              backgroundSize: "14px 14px",
+                "radial-gradient(ellipse at 50% 0%, rgba(255,220,150,0.6), transparent 70%)",
             }}
           />
           {!selected ? (
-            <div className="p-8 text-sm text-amber-900/70">
+            <div className="relative mx-auto max-w-2xl rounded-md border border-amber-900/40 bg-amber-50/85 p-10 text-center font-serif italic text-amber-900 shadow-2xl">
               Pull a book from the shelf to open it on the desk.
             </div>
           ) : (
-            <div className="flex h-full flex-col">
-              {/* Desk header */}
-              <div className="flex items-start justify-between gap-3 border-b border-amber-900/15 px-5 py-4">
-                <div className="min-w-0 flex-1">
-                  <input
-                    value={selected.title}
-                    onChange={(e) => updateSelected({ title: e.target.value })}
-                    className="w-full bg-transparent text-xl font-semibold text-amber-950 focus:outline-none"
-                    placeholder="Name this idea…"
-                  />
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-amber-900/70">
-                    <span className="rounded-full bg-amber-200/80 px-2 py-0.5 uppercase tracking-wider text-amber-900">
-                      {stageLabels[selected.stage]}
-                    </span>
-                    <span>·</span>
-                    <span>Updated {timeAgo(selected.updatedAt)}</span>
-                    <span>·</span>
-                    <span>Next: {selected.nextAction}</span>
-                  </div>
-                </div>
-                {selected.stage === "lightbulb" && (
-                  <button
-                    onClick={() => moveToPreClarity(selected.id)}
-                    className="shrink-0 rounded-md bg-emerald-700 px-3 py-2 text-xs font-medium text-emerald-50 shadow hover:bg-emerald-800"
-                  >
-                    Move to Pre-Clarity →
-                  </button>
-                )}
-              </div>
-
-              {/* Category tabs (which "page" of the book) */}
-              <div className="flex flex-wrap gap-1 border-b border-amber-900/10 bg-amber-50/40 px-3 py-2">
-                {categoryDefs.map((c) => {
-                  const status = categoryStatus(getCategoryValue(c.key));
-                  const isActive = activeCategory === c.key;
-                  return (
-                    <button
-                      key={c.key}
-                      onClick={() => setActiveCategory(c.key)}
-                      className={
-                        "flex items-center gap-2 rounded-t-md border border-b-0 px-2.5 py-1.5 text-[11px] font-medium transition " +
-                        (isActive
-                          ? "border-amber-900/30 bg-amber-50 text-amber-950 shadow-sm"
-                          : "border-transparent text-amber-900/70 hover:bg-amber-100/60 hover:text-amber-900")
-                      }
-                    >
-                      <Dot pct={status.pct} />
-                      {c.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Active category editor */}
-              <div className="flex flex-1 flex-col gap-3 px-5 py-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium uppercase tracking-wider text-amber-900/80">
-                    {categoryDefs.find((c) => c.key === activeCategory)?.label}
-                    <span className="ml-2 text-amber-800/60 normal-case">
-                      ·{" "}
-                      {
-                        categoryDefs.find((c) => c.key === activeCategory)
-                          ?.hint
-                      }
-                    </span>
-                  </label>
-                </div>
-                <textarea
-                  value={getCategoryValue(activeCategory)}
-                  onChange={(e) =>
-                    setCategoryValue(activeCategory, e.target.value)
-                  }
-                  rows={9}
-                  placeholder="Add to this shelf. Type, paste, ramble — every word grows the idea."
-                  className="w-full flex-1 resize-none rounded-md border border-amber-900/20 bg-amber-50/80 p-3 text-sm leading-relaxed text-amber-950 placeholder:text-amber-900/40 focus:outline-none focus:ring-1 focus:ring-amber-700/50"
-                />
-
-                {/* Add-things row */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files ?? []);
-                      files.forEach((f) => addAttachment("file", f.name));
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="rounded-md border border-amber-900/25 bg-amber-50/80 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-100"
-                  >
-                    + Files / Photos
-                  </button>
-                  <button
-                    onClick={() => {
-                      const url = window.prompt("Paste a link to attach");
-                      if (url) addAttachment("link", url);
-                    }}
-                    className="rounded-md border border-amber-900/25 bg-amber-50/80 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-100"
-                  >
-                    + Link
-                  </button>
-                  <button
-                    onClick={() => {
-                      const note = window.prompt("Quick note");
-                      if (note) addAttachment("note", note);
-                    }}
-                    className="rounded-md border border-amber-900/25 bg-amber-50/80 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-100"
-                  >
-                    + Note
-                  </button>
-                </div>
-
-                {/* Attachments list */}
-                {selectedExtras.attachments.length > 0 && (
-                  <ul className="flex flex-wrap gap-2 pt-1">
-                    {selectedExtras.attachments.map((a) => (
-                      <li
-                        key={a.id}
-                        className="flex items-center gap-1.5 rounded-md border border-amber-900/20 bg-amber-100/60 px-2 py-1 text-[11px] text-amber-900"
-                      >
-                        <span className="uppercase tracking-wider text-amber-700/80">
-                          {a.kind}
-                        </span>
-                        <span className="max-w-[180px] truncate">
-                          {a.label}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+            <Journal
+              selected={selected}
+              activeCategory={activeCategory}
+              setActiveCategory={setActiveCategory}
+              getCategoryValue={getCategoryValue}
+              setCategoryValue={setCategoryValue}
+              updateSelected={updateSelected}
+              moveToPreClarity={moveToPreClarity}
+              extras={selectedExtras}
+              addAttachment={addAttachment}
+              fileInputRef={fileInputRef}
+            />
           )}
         </section>
 
-        {/* Right bookshelf — progress / category status */}
-        <Bookshelf title="Progress Shelf" subtitle="What this idea still needs">
+        {/* ============ RIGHT BOOKSHELF WALL ============ */}
+        <ShelfWall
+          side="right"
+          title="Progress Shelf"
+          subtitle="What this idea still needs"
+        >
           {!selected ? (
-            <div className="px-4 py-6 text-xs text-amber-100/80">
+            <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
               Open an idea to see its shelves.
             </div>
           ) : (
-            <ul className="flex flex-col gap-2 px-3 pb-4">
-              {categoryDefs.map((c) => {
-                const status = categoryStatus(getCategoryValue(c.key));
-                const isActive = activeCategory === c.key;
-                return (
-                  <li key={c.key}>
-                    <button
+            categoryShelves.map((row, rIdx) => (
+              <Shelf key={rIdx}>
+                {row.map((c) => {
+                  const status = categoryStatus(getCategoryValue(c.key));
+                  return (
+                    <CategoryBook
+                      key={c.key}
+                      label={c.label}
+                      hint={c.hint}
+                      pct={status.pct}
+                      statusLabel={status.label}
+                      active={activeCategory === c.key}
                       onClick={() => setActiveCategory(c.key)}
-                      className={
-                        "group flex w-full items-center gap-3 rounded-md border px-3 py-2 text-left transition " +
-                        (isActive
-                          ? "border-amber-300/60 bg-amber-50/95 text-amber-950 shadow"
-                          : "border-amber-900/30 bg-amber-50/70 text-amber-900 hover:bg-amber-100/90")
-                      }
-                    >
-                      {/* mini book spine indicator */}
-                      <span
-                        className="h-7 w-2 shrink-0 rounded-sm shadow-inner"
-                        style={{
-                          background:
-                            status.pct === 0
-                              ? "linear-gradient(180deg,#caa472,#9a6a36)"
-                              : status.pct < 50
-                                ? "linear-gradient(180deg,#d97a3b,#8b3f12)"
-                                : status.pct < 100
-                                  ? "linear-gradient(180deg,#caa14a,#7a5410)"
-                                  : "linear-gradient(180deg,#2f7a4e,#16432a)",
-                        }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-[12px] font-medium">
-                            {c.label}
-                          </span>
-                          <span className="text-[10px] uppercase tracking-wider text-amber-800/70">
-                            {status.label}
-                          </span>
-                        </div>
-                        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-amber-900/15">
-                          <div
-                            className="h-full"
-                            style={{
-                              width: `${status.pct}%`,
-                              background:
-                                status.pct === 100
-                                  ? "linear-gradient(90deg,#3f9c63,#1f6a3a)"
-                                  : "linear-gradient(90deg,#caa14a,#a3661a)",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+                    />
+                  );
+                })}
+              </Shelf>
+            ))
           )}
-        </Bookshelf>
+        </ShelfWall>
       </div>
+
+      {/* floor shadow */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 bottom-0 h-24 -z-10"
+        style={{
+          background:
+            "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
+        }}
+      />
     </main>
   );
 }
 
-// ——— Bookshelf chrome: wooden frame with shelf lines ———
-function Bookshelf({
+// ============================================================
+// Wood / shelf primitives
+// ============================================================
+
+function WoodGrain() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 opacity-50 mix-blend-overlay"
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, rgba(255,210,150,0.07) 0 2px, transparent 2px 13px)",
+      }}
+    />
+  );
+}
+
+function ShelfWall({
+  side,
   title,
   subtitle,
   children,
 }: {
+  side: "left" | "right";
   title: string;
   subtitle?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className="relative overflow-hidden rounded-2xl border border-amber-950/40 shadow-[0_20px_60px_-20px_rgba(40,18,2,0.6)]"
+    <aside
+      className="relative"
       style={{
         background:
-          "linear-gradient(180deg, #4a2a10 0%, #5c361a 12%, #6b3f1f 100%)",
+          "linear-gradient(180deg, #3a1d08 0%, #4b2810 8%, #5d3416 100%)",
+        boxShadow:
+          side === "left"
+            ? "inset -16px 0 30px -10px rgba(0,0,0,0.6), inset 8px 0 14px rgba(255,200,140,0.08)"
+            : "inset 16px 0 30px -10px rgba(0,0,0,0.6), inset -8px 0 14px rgba(255,200,140,0.08)",
       }}
     >
-      {/* wood grain */}
+      <WoodGrain />
+      {/* curved tree-trunk inner edge */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
+        className="pointer-events-none absolute inset-y-0 w-10"
         style={{
-          backgroundImage:
-            "repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 7px), repeating-linear-gradient(90deg, rgba(255,220,170,0.06) 0 2px, transparent 2px 11px)",
-        }}
-      />
-      {/* top lantern glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full"
-        style={{
+          [side === "left" ? "right" : "left"]: 0,
           background:
-            "radial-gradient(circle, rgba(255,196,110,0.55), transparent 70%)",
+            side === "left"
+              ? "linear-gradient(90deg, transparent, rgba(20,10,2,0.55))"
+              : "linear-gradient(270deg, transparent, rgba(20,10,2,0.55))",
         }}
       />
-      <header className="relative border-b border-amber-950/40 bg-amber-950/30 px-4 py-3">
-        <h2 className="text-sm font-semibold text-amber-50">{title}</h2>
-        {subtitle && (
-          <p className="text-[11px] text-amber-100/70">{subtitle}</p>
-        )}
+      {/* hanging lantern */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2"
+      >
+        <div className="h-1 w-px bg-amber-900/60 mx-auto" />
+        <div
+          className="mx-auto h-3 w-3 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, #ffd98a 0%, #d98a2a 60%, #6b2f08 100%)",
+            boxShadow: "0 0 18px 6px rgba(255,196,110,0.55)",
+          }}
+        />
+      </div>
+      {/* header plaque */}
+      <header className="relative px-4 pb-3 pt-7">
+        <div
+          className="relative rounded-sm border border-amber-200/30 px-3 py-2 shadow-inner"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(70,40,12,0.7), rgba(40,22,6,0.7))",
+          }}
+        >
+          <h2 className="font-serif text-sm font-semibold tracking-wide text-amber-100">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="font-serif text-[11px] italic text-amber-200/70">
+              {subtitle}
+            </p>
+          )}
+        </div>
       </header>
-      <div className="relative">{children}</div>
-      {/* bottom shelf edge */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-3"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.05))",
-        }}
-      />
-    </section>
+
+      <div className="relative space-y-5 px-3 pb-6">{children}</div>
+    </aside>
   );
 }
 
-// ——— A single idea rendered as a book on the shelf ———
+function Shelf({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      {/* books sitting on the plank */}
+      <div className="flex items-end justify-center gap-1.5 px-2">
+        {children}
+      </div>
+      {/* plank */}
+      <div
+        aria-hidden
+        className="relative mt-0 h-3 rounded-sm"
+        style={{
+          background:
+            "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+          boxShadow:
+            "0 6px 12px -4px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,210,150,0.25)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-40 mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, rgba(0,0,0,0.25) 0 1px, transparent 1px 9px)",
+          }}
+        />
+      </div>
+      {/* under-shelf shadow */}
+      <div
+        aria-hidden
+        className="h-2 -mt-1 rounded-b-sm opacity-70"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.55), transparent)",
+        }}
+      />
+    </div>
+  );
+}
+
+function ShelfAction({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <div className="relative px-2 pb-1">
+      <button
+        onClick={onClick}
+        className="w-full rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-xs font-medium text-amber-950 shadow-md transition hover:brightness-110"
+        style={{
+          background:
+            "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+        }}
+      >
+        {label}
+      </button>
+    </div>
+  );
+}
+
+// ============================================================
+// Books
+// ============================================================
+
 function BookSpine({
   title,
-  stage,
+  meta,
   active,
   hue,
   onClick,
 }: {
   title: string;
-  stage: string;
+  meta: string;
   active: boolean;
   hue: number;
   onClick: () => void;
 }) {
-  const palettes = [
-    ["#7a2a1f", "#a8463a"], // burgundy
-    ["#1f4d3a", "#356b53"], // forest
-    ["#5a3a12", "#8a6028"], // tobacco
-    ["#274060", "#3e5f86"], // ink blue
-    ["#6a4a1a", "#a37a30"], // ochre
-    ["#3d2454", "#5e3a7a"], // plum
-  ];
-  const [a, b] = palettes[hue % palettes.length];
+  const [a, b, gold] = spinePalettes[hue % spinePalettes.length];
+  const height = 110 + ((hue * 13) % 22); // vary heights for organic look
+  const width = 36 + ((hue * 7) % 10);
   return (
     <button
       onClick={onClick}
+      title={title}
       className={
-        "group flex w-full items-stretch overflow-hidden rounded-md border text-left shadow-sm transition " +
-        (active
-          ? "border-amber-200 ring-2 ring-amber-200/70"
-          : "border-amber-950/50 hover:translate-x-0.5")
+        "group relative flex shrink-0 flex-col items-center justify-between overflow-hidden rounded-t-[3px] border border-black/40 text-center transition-transform " +
+        (active ? "-translate-y-1 ring-2 ring-amber-200/80" : "hover:-translate-y-1")
       }
       style={{
-        background: `linear-gradient(90deg, ${a} 0%, ${b} 70%, ${a} 100%)`,
+        width,
+        height,
+        background: `linear-gradient(90deg, ${a} 0%, ${b} 50%, ${a} 100%)`,
+        boxShadow:
+          "inset 2px 0 0 rgba(255,255,255,0.08), inset -2px 0 0 rgba(0,0,0,0.45), 0 4px 8px -2px rgba(0,0,0,0.6)",
       }}
     >
-      {/* spine ridge */}
-      <div
+      {/* top gilt band */}
+      <span
         aria-hidden
-        className="w-1.5 shrink-0"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(255,220,160,0.6), rgba(0,0,0,0.2))",
-        }}
+        className="block w-full"
+        style={{ height: 6, background: gold, opacity: 0.85 }}
       />
-      <div className="flex min-w-0 flex-1 items-center justify-between gap-2 px-3 py-2.5">
-        <div className="min-w-0">
-          <div className="truncate text-[13px] font-semibold tracking-wide text-amber-50">
-            {title || "Untitled"}
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.15em] text-amber-100/75">
-            {stage}
-          </div>
-        </div>
-        <span
-          className="shrink-0 rounded-sm border border-amber-100/40 bg-amber-50/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-amber-50/90"
-          aria-hidden
-        >
-          vol.
+      {/* vertical title */}
+      <span
+        className="flex flex-1 items-center justify-center px-1 font-serif text-[10px] font-semibold leading-tight tracking-wider text-amber-50"
+        style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+      >
+        <span className="line-clamp-3 max-h-full">{title || "Untitled"}</span>
+      </span>
+      {/* meta dot */}
+      <span
+        className="block w-full text-[7px] uppercase tracking-widest text-amber-100/70"
+        style={{ paddingBottom: 2 }}
+        aria-hidden
+      >
+        ·
+      </span>
+      {/* bottom gilt band */}
+      <span
+        aria-hidden
+        className="block w-full"
+        style={{ height: 6, background: gold, opacity: 0.85 }}
+      />
+      <span className="sr-only">{meta}</span>
+    </button>
+  );
+}
+
+function BookGhost() {
+  return (
+    <div
+      aria-hidden
+      className="shrink-0 rounded-t-sm border border-dashed border-amber-200/15 opacity-40"
+      style={{
+        width: 30,
+        height: 95,
+        background:
+          "repeating-linear-gradient(180deg, rgba(255,220,170,0.04) 0 4px, transparent 4px 8px)",
+      }}
+    />
+  );
+}
+
+function CategoryBook({
+  label,
+  hint,
+  pct,
+  statusLabel,
+  active,
+  onClick,
+}: {
+  label: string;
+  hint: string;
+  pct: number;
+  statusLabel: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  // color by progress
+  const palette: [string, string, string] =
+    pct === 0
+      ? ["#3a2614", "#5c3d1f", "#8a6a3a"]
+      : pct < 50
+        ? ["#5a1a14", "#8a2e22", "#e0a85a"]
+        : pct < 100
+          ? ["#4a3a05", "#9a7820", "#f5d27a"]
+          : ["#1c3a2a", "#2e6045", "#f5d27a"];
+  const [a, b, gold] = palette;
+  const height = 118;
+  return (
+    <button
+      onClick={onClick}
+      title={`${label} — ${hint}`}
+      className={
+        "group relative flex shrink-0 flex-col items-stretch overflow-hidden rounded-t-[3px] border border-black/40 transition-transform " +
+        (active ? "-translate-y-1 ring-2 ring-amber-200/80" : "hover:-translate-y-1")
+      }
+      style={{
+        width: 64,
+        height,
+        background: `linear-gradient(90deg, ${a} 0%, ${b} 50%, ${a} 100%)`,
+        boxShadow:
+          "inset 2px 0 0 rgba(255,255,255,0.1), inset -2px 0 0 rgba(0,0,0,0.45), 0 4px 8px -2px rgba(0,0,0,0.6)",
+      }}
+    >
+      <span
+        aria-hidden
+        className="block w-full"
+        style={{ height: 8, background: gold, opacity: 0.9 }}
+      />
+      <span className="flex flex-1 items-center justify-center px-1 text-center font-serif text-[10px] font-semibold leading-tight text-amber-50">
+        {label}
+      </span>
+      {/* progress ink at bottom */}
+      <div
+        className="relative w-full"
+        style={{ height: 16, background: "rgba(0,0,0,0.25)" }}
+      >
+        <div
+          className="absolute inset-y-0 left-0"
+          style={{
+            width: `${pct}%`,
+            background: gold,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+          }}
+        />
+        <span className="absolute inset-0 flex items-center justify-center text-[8px] uppercase tracking-wider text-amber-50/90">
+          {statusLabel}
         </span>
       </div>
+    </button>
+  );
+}
+
+// ============================================================
+// Journal (center)
+// ============================================================
+
+function Journal(props: {
+  selected: LightbulbIdea;
+  activeCategory: CategoryKey;
+  setActiveCategory: (k: CategoryKey) => void;
+  getCategoryValue: (k: CategoryKey) => string;
+  setCategoryValue: (k: CategoryKey, v: string) => void;
+  updateSelected: (p: Partial<LightbulbIdea>) => void;
+  moveToPreClarity: (id: string) => void;
+  extras: IdeaExtras;
+  addAttachment: (kind: Attachment["kind"], label: string) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const {
+    selected,
+    activeCategory,
+    setActiveCategory,
+    getCategoryValue,
+    setCategoryValue,
+    updateSelected,
+    moveToPreClarity,
+    extras,
+    addAttachment,
+    fileInputRef,
+  } = props;
+
+  const activeDef = categoryDefs.find((c) => c.key === activeCategory)!;
+
+  return (
+    <div className="relative mx-auto max-w-3xl">
+      {/* desk shadow under journal */}
+      <div
+        aria-hidden
+        className="absolute -inset-x-6 -bottom-8 h-16 rounded-full opacity-70 blur-2xl"
+        style={{ background: "rgba(20,10,2,0.7)" }}
+      />
+      {/* journal book */}
+      <div
+        className="relative overflow-hidden rounded-md border border-amber-950/60 shadow-2xl"
+        style={{
+          background:
+            "linear-gradient(180deg, #f8ecc8 0%, #f1dfae 100%), radial-gradient(circle at 20% 10%, rgba(255,255,255,0.5), transparent 60%)",
+          backgroundBlendMode: "overlay",
+        }}
+      >
+        {/* leather binding edges */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-3"
+          style={{
+            background:
+              "linear-gradient(90deg, #3a1d08, #6b3f1a 60%, rgba(60,30,8,0))",
+            boxShadow: "inset -1px 0 0 rgba(255,210,150,0.2)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-3"
+          style={{
+            background:
+              "linear-gradient(270deg, #3a1d08, #6b3f1a 60%, rgba(60,30,8,0))",
+          }}
+        />
+        {/* parchment grain */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
+            backgroundSize: "12px 12px",
+          }}
+        />
+        {/* deckle/torn page edges via subtle inset */}
+        <div className="relative px-7 py-6">
+          {/* top: title & stage */}
+          <div className="flex items-start justify-between gap-3 border-b border-amber-900/25 pb-4">
+            <div className="min-w-0 flex-1">
+              <div className="font-serif text-[11px] uppercase tracking-[0.25em] text-amber-900/60">
+                Open Journal · Vol. {selected.id.slice(-3)}
+              </div>
+              <input
+                value={selected.title}
+                onChange={(e) => updateSelected({ title: e.target.value })}
+                className="mt-1 w-full bg-transparent font-serif text-2xl font-semibold text-amber-950 focus:outline-none"
+                placeholder="Name this idea…"
+              />
+              <div className="mt-1 flex flex-wrap items-center gap-2 font-serif text-xs italic text-amber-900/70">
+                <span className="rounded-sm border border-amber-900/30 bg-amber-200/60 px-2 py-0.5 not-italic uppercase tracking-wider text-amber-900">
+                  {stageLabels[selected.stage]}
+                </span>
+                <span>·</span>
+                <span>Updated {timeAgo(selected.updatedAt)}</span>
+                <span>·</span>
+                <span>Next: {selected.nextAction}</span>
+              </div>
+            </div>
+            {selected.stage === "lightbulb" && (
+              <button
+                onClick={() => moveToPreClarity(selected.id)}
+                className="shrink-0 rounded-sm border border-emerald-900/60 px-3 py-2 font-serif text-xs font-medium text-emerald-50 shadow"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)",
+                }}
+              >
+                Move to Pre-Clarity →
+              </button>
+            )}
+          </div>
+
+          {/* tab strip — like ribbon bookmarks */}
+          <div className="-mx-7 mt-3 flex flex-wrap gap-1 border-b border-amber-900/20 bg-amber-200/30 px-7 py-2">
+            {categoryDefs.map((c) => {
+              const status = categoryStatus(getCategoryValue(c.key));
+              const isActive = activeCategory === c.key;
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setActiveCategory(c.key)}
+                  className={
+                    "flex items-center gap-1.5 rounded-sm border px-2 py-1 font-serif text-[11px] transition " +
+                    (isActive
+                      ? "border-amber-900/50 bg-amber-50 text-amber-950 shadow-sm"
+                      : "border-transparent text-amber-900/70 hover:bg-amber-100/70 hover:text-amber-900")
+                  }
+                >
+                  <Dot pct={status.pct} />
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* writing area */}
+          <div className="mt-4">
+            <div className="flex items-baseline justify-between">
+              <h3 className="font-serif text-lg font-semibold text-amber-950">
+                {activeDef.label}
+              </h3>
+              <span className="font-serif text-xs italic text-amber-900/70">
+                {activeDef.hint}
+              </span>
+            </div>
+            <textarea
+              value={getCategoryValue(activeCategory)}
+              onChange={(e) => setCategoryValue(activeCategory, e.target.value)}
+              rows={10}
+              placeholder="Write into the journal. Type, paste, ramble — every word grows the idea."
+              className="mt-3 w-full resize-none rounded-sm border-0 bg-transparent p-2 font-serif text-[15px] leading-7 text-amber-950 placeholder:text-amber-900/40 focus:outline-none"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(180deg, transparent 0 27px, rgba(120,72,20,0.18) 27px 28px)",
+                lineHeight: "28px",
+              }}
+            />
+
+            {/* desk tools */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  files.forEach((f) => addAttachment("file", f.name));
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              />
+              <DeskButton
+                onClick={() => fileInputRef.current?.click()}
+                label="📎 Files / Photos"
+              />
+              <DeskButton
+                onClick={() => {
+                  const url = window.prompt("Paste a link to attach");
+                  if (url) addAttachment("link", url);
+                }}
+                label="🔗 Link"
+              />
+              <DeskButton
+                onClick={() => {
+                  const note = window.prompt("Quick note");
+                  if (note) addAttachment("note", note);
+                }}
+                label="📝 Note"
+              />
+            </div>
+
+            {extras.attachments.length > 0 && (
+              <div className="mt-4 rounded-sm border border-amber-900/25 bg-amber-100/60 p-3">
+                <div className="font-serif text-[11px] uppercase tracking-widest text-amber-900/70">
+                  Pinned to this page
+                </div>
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {extras.attachments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-center gap-1.5 rounded-sm border border-amber-900/30 bg-amber-50 px-2 py-1 font-serif text-[11px] text-amber-900 shadow-sm"
+                    >
+                      <span className="uppercase tracking-wider text-amber-700/80">
+                        {a.kind}
+                      </span>
+                      <span className="max-w-[220px] truncate">{a.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeskButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-sm border border-amber-900/40 px-3 py-1.5 font-serif text-xs text-amber-950 shadow-sm transition hover:brightness-105"
+      style={{
+        background:
+          "linear-gradient(180deg, #f3dca3 0%, #d8b06a 60%, #a87a2a 100%)",
+      }}
+    >
+      {label}
     </button>
   );
 }
@@ -647,6 +953,16 @@ function Dot({ pct }: { pct: number }) {
       style={{ background: color, boxShadow: `0 0 6px ${color}` }}
     />
   );
+}
+
+// ============================================================
+// helpers
+// ============================================================
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
 }
 
 function formatSignals(idea: LightbulbIdea): string {
