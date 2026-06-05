@@ -239,6 +239,10 @@ function Dashboard() {
           notes: { ...current.notes, ...(patch.notes ?? {}) },
           attachments: patch.attachments ?? current.attachments,
           posts: patch.posts ?? current.posts,
+          answeredQuestions:
+            patch.answeredQuestions ?? current.answeredQuestions,
+          skippedQuestions:
+            patch.skippedQuestions ?? current.skippedQuestions,
         },
       };
     });
