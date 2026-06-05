@@ -58,4 +58,25 @@ export const seedIdeas: LightbulbIdea[] = [
       riskWatch: "privacy of recordings",
     },
   },
+  {
+    id: "idea-3",
+    title: "Sunday family recipe box",
+    messy:
+      "want a place to keep grandma's recipes with photos and audio of her telling the stories.",
+    shelfReadiness: 15,
+    updatedAt: Date.now() - 1000 * 60 * 60 * 50,
+    stage: "lightbulb",
+    nextAction: "Add more notes & start building",
+  },
+  {
+    id: "idea-4",
+    title: "Calm-down corner for classrooms",
+    messy:
+      "teachers need a tiny kit / playlist / cards for kids who get overwhelmed mid-lesson.",
+    shelfReadiness: 22,
+    updatedAt: Date.now() - 1000 * 60 * 60 * 72,
+    stage: "lightbulb",
+    nextAction: "Add more notes & start building",
+  },
 ];
+
