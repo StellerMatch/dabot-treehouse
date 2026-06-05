@@ -33,6 +33,7 @@ export const Route = createFileRoute("/dashboard")({
 // ——— types ———
 type CategoryKey =
   | "core-idea"
+  | "clarity"
   | "problem"
   | "audience"
   | "features"
