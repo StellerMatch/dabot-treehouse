@@ -1880,24 +1880,28 @@ function ClarityGuide({
   const bubbleText = fallbackTip ?? currentQuestion!.prompt;
   const showQuestionControls = !!selected && !!currentQuestion;
 
+  // Speech bubble anchored to Clarity (the squirrel) in the background art.
+  // Desktop: floats above the squirrel's head on the right side of the scene,
+  // with a tail pointing down-right toward her. Mobile: tucked bottom-right
+  // above the composer with a downward tail.
   return (
     <div
       className={[
-        // Desktop: mid-right of the scene
-        "fixed z-30",
-        "lg:right-6 lg:top-[38%] lg:-translate-y-1/2",
-        // Mobile: bottom-right above composer
+        "pointer-events-none fixed z-30",
+        // Desktop placement — near the squirrel's head
+        "lg:right-[16rem] lg:top-[22%]",
+        // Mobile placement — above composer
         "right-3 bottom-[148px] sm:bottom-[160px]",
       ].join(" ")}
     >
-      <div className="relative flex flex-col items-end gap-2">
-        {/* Speech / question bubble */}
-        {open && !minimized && (
+      <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
+        {open && !minimized ? (
           <div
-            className="relative w-[min(78vw,18rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:absolute lg:right-full lg:top-1/2 lg:mr-3 lg:-translate-y-1/2 lg:w-64"
+            className="relative w-[min(78vw,18rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:w-72"
             style={{
               background:
                 "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
+              animation: "clarity-float 5s ease-in-out infinite",
             }}
           >
             <div className="flex items-center justify-between">
@@ -1932,68 +1936,46 @@ function ClarityGuide({
                 </button>
               </div>
             )}
-            {/* Tail — desktop points right, mobile points down */}
+
+            {/* Desktop tail — points down-right toward the squirrel */}
             <div
-              className="absolute hidden h-3 w-3 rotate-45 border-t border-r border-amber-950/60 lg:block lg:-right-1.5 lg:top-1/2 lg:-translate-y-1/2"
-              style={{ background: "#f0dca5" }}
+              aria-hidden
+              className="absolute hidden lg:block"
+              style={{
+                right: "1.75rem",
+                bottom: "-10px",
+                width: 0,
+                height: 0,
+                borderLeft: "10px solid transparent",
+                borderRight: "16px solid transparent",
+                borderTop: "16px solid #f0dca5",
+                filter: "drop-shadow(0 1px 0 rgba(60,30,8,0.5))",
+              }}
             />
+            {/* Mobile tail — straight down */}
             <div
+              aria-hidden
               className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-b border-r border-amber-950/60 lg:hidden"
               style={{ background: "#f0dca5" }}
             />
           </div>
-        )}
-
-        {/* Avatar */}
-        <button
-          onClick={() => {
-            if (!open) setOpen(true);
-            else setMinimized((m) => !m);
-          }}
-          title="Clarity — your library guide"
-          aria-label="Clarity guide"
-          className="relative flex h-[60px] w-[60px] items-center justify-center rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80 lg:h-[72px] lg:w-[72px]"
-          style={{
-            background:
-              "radial-gradient(circle at 35% 35%, #fff4c0 0%, #f5d27a 30%, #c88020 80%, #5a3010 100%)",
-            animation: "clarity-float 4s ease-in-out infinite",
-            boxShadow:
-              "0 0 40px 10px rgba(255,200,90,0.45), inset 0 -2px 8px rgba(0,0,0,0.3)",
-          }}
-        >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 34 34"
-            className="pointer-events-none opacity-85 lg:h-[34px] lg:w-[34px]"
-          >
-            <ellipse cx="12" cy="14" rx="3" ry="3.5" fill="#3a1d08" />
-            <ellipse cx="22" cy="14" rx="3" ry="3.5" fill="#3a1d08" />
-            <path
-              d="M13 23 Q17 26.5 21 23"
-              stroke="#3a1d08"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <circle cx="17" cy="19" r="1.8" fill="#d97a3b" opacity="0.5" />
-          </svg>
-          {showQuestionControls && (
-            <span
-              aria-hidden
-              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-50 font-serif text-[11px] font-bold text-amber-900 shadow-md ring-2 ring-amber-950/60"
-            >
-              ?
-            </span>
-          )}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-1 rounded-full"
-            style={{
-              boxShadow: "inset 0 0 14px rgba(255,240,180,0.5)",
+        ) : (
+          <button
+            onClick={() => {
+              setOpen(true);
+              setMinimized(false);
             }}
-          />
-        </button>
+            aria-label="Show Clarity's question"
+            className="rounded-full border border-amber-950/60 px-3 py-1.5 font-serif text-[11px] uppercase tracking-[0.18em] text-amber-950 shadow-lg transition hover:brightness-105"
+            style={{
+              background:
+                "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
+              animation: "clarity-float 5s ease-in-out infinite",
+            }}
+          >
+            Clarity asks{showQuestionControls ? " ?" : "…"}
+          </button>
+        )}
       </div>
     </div>
   );
