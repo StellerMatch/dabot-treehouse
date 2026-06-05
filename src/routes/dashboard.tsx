@@ -106,7 +106,7 @@ function Dashboard() {
         shelfReadiness: 18,
         updatedAt: Date.now(),
         stage: "lightbulb",
-        nextAction: "Move to pre-Clarity",
+        nextAction: "Add more notes & start building",
       };
       setIdeas((prev) => [newIdea, ...prev]);
       setSelectedId(id);
