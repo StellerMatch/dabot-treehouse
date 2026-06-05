@@ -244,6 +244,7 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
 // Premade Clarity questions per category — used when a user clicks a category folder
 const CATEGORY_QUESTIONS: Record<CategoryKey, string> = {
   "core-idea": "In one line, what is this project and what's its main purpose?",
+  clarity: "In one line, what does Clarity already understand and where is the direction still fuzzy?",
   problem: "What pain point, need, or opportunity makes this worth building?",
   audience: "Who exactly is this for — which users, buyers, or roles?",
   features: "What tools, screens, or actions does this need to do its job?",
