@@ -1888,10 +1888,8 @@ function ClarityGuide({
     <div
       className={[
         "pointer-events-none fixed z-30",
-        // Desktop placement — near the squirrel's head
-        "lg:right-[16rem] lg:top-[22%]",
-        // Mobile placement — above composer
-        "right-3 bottom-[148px] sm:bottom-[160px]",
+        // Always sit just above the composer on the right
+        "right-3 bottom-[148px] sm:bottom-[160px] lg:right-6 lg:bottom-[180px]",
       ].join(" ")}
     >
       <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
