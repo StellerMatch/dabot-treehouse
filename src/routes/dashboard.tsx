@@ -872,28 +872,11 @@ function Journal(props: {
             )}
           </div>
 
-          {/* tab strip — like ribbon bookmarks */}
-          <div className="-mx-7 mt-3 flex flex-wrap gap-1 border-b border-amber-900/20 bg-amber-200/30 px-7 py-2">
-            {categoryDefs.map((c) => {
-              const status = categoryStatus(getCategoryValue(c.key));
-              const isActive = activeCategory === c.key;
-              return (
-                <button
-                  key={c.key}
-                  onClick={() => setActiveCategory(c.key)}
-                  className={
-                    "flex items-center gap-1.5 rounded-sm border px-2 py-1 font-serif text-[11px] transition " +
-                    (isActive
-                      ? "border-amber-900/50 bg-amber-50 text-amber-950 shadow-sm"
-                      : "border-transparent text-amber-900/70 hover:bg-amber-100/70 hover:text-amber-900")
-                  }
-                >
-                  <Dot pct={status.pct} />
-                  {c.label}
-                </button>
-              );
-            })}
+          {/* tiny breadcrumb — main switching lives on the right shelf */}
+          <div className="mt-2 font-serif text-[11px] italic text-amber-900/60">
+            Now working on: <span className="not-italic font-semibold text-amber-900">{activeDef.label}</span>
           </div>
+
 
           {/* writing area */}
           <div className="mt-4">
