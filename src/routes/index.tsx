@@ -107,7 +107,13 @@ function Index() {
           <p className="mt-1.5 text-sm text-white/85">
             Start messy. DaBotTree will help shape the path.
           </p>
+          {ideaType && (
+            <p className="mt-2 inline-block rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-0.5 text-[11px] uppercase tracking-[0.2em] text-amber-100/90">
+              Starting a {ideaType}
+            </p>
+          )}
         </div>
+
 
         <div
           className="relative rounded-2xl border border-amber-200/20 bg-[rgba(28,16,8,0.45)] p-4 backdrop-blur-xl"
