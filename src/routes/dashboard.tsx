@@ -445,7 +445,7 @@ function Dashboard() {
   const [selectedId, setSelectedId] = useState<string>(seedIdeas[0]?.id ?? "");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
   const [activeCategory, setActiveCategory] =
-    useState<CategoryKey>("lightbulb");
+    useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
