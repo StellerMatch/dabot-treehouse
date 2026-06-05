@@ -470,22 +470,14 @@ function Dashboard() {
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
-      const summaries = buildCategorySummaries(draft, draftType || undefined);
       const answered = clarityAnsweredFrom(draft);
       const title = generateTitle(draft, draftType || undefined);
       const ts = Date.now();
-      const posts: PostIt[] = CATEGORY_ORDER.map((cat, i) => ({
-        id: `post-${ts}-${i}`,
-        kind: cat === "pre-clarity" ? "info-gathered" : "idea-notes",
-        text: summaries[cat],
-        fullText: cat === "lightbulb" ? draft : undefined,
-        ts: ts - i,
-        categories: [cat],
-      }));
+      const posts: PostIt[] = buildCategoryFolderPosts(draft, ts);
       const newIdea: LightbulbIdea = {
         id,
         title,
-        messy: summaries.lightbulb,
+        messy: lightbulbSummaryFrom(draft),
         shelfReadiness: 32,
         updatedAt: ts,
         stage: "lightbulb",
