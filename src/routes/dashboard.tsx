@@ -3266,11 +3266,11 @@ function PostItCard({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative aspect-[2.35/1] w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:aspect-auto lg:max-w-[200px] lg:text-left"
+        className="relative aspect-[2.35/1] w-full cursor-pointer rounded-sm border text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
         style={{
           background: palette.bg,
           borderColor: palette.edge,
-          transform: `rotate(${typeof window !== "undefined" && window.innerWidth >= 1024 ? rot : 0}deg)`,
+          ["--note-rot" as string]: `${rot}deg`,
         }}
         title="Open full note"
       >
