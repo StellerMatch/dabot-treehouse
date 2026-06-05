@@ -321,9 +321,16 @@ function Dashboard() {
   };
 
   const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
+    if (categoryAsk) {
+      return {
+        id: `cat-${categoryAsk}`,
+        prompt: CATEGORY_QUESTIONS[categoryAsk],
+        keywords: [],
+      };
+    }
     const answered = new Set(selectedExtras.answeredQuestions);
     return CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
-  }, [selectedExtras.answeredQuestions]);
+  }, [selectedExtras.answeredQuestions, categoryAsk]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
