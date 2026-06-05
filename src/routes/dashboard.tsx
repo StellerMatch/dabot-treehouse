@@ -1341,7 +1341,7 @@ function OrganizeButton({
         <LaidBook
           label={label}
           sublabel={unlocked ? "Ready" : "Not Yet"}
-          pct={overall}
+          pct={unlocked ? overall : undefined}
           variant={variant}
           glow={unlocked}
           size={size}
