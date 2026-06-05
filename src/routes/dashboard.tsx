@@ -254,6 +254,7 @@ function Dashboard() {
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
   const [activeCategory, setActiveCategory] =
     useState<CategoryKey>("lightbulb");
+  const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Pull draft from front-page intake
