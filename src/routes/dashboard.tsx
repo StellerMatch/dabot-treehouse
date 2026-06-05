@@ -8,6 +8,9 @@ import {
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 import logo from "@/assets/dabottree-logo.png";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Menu, BookOpen, Paperclip, Link2, Plus } from "lucide-react";
+
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -55,7 +58,21 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
 type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
-type IdeaExtras = { notes: CategoryNotes; attachments: Attachment[] };
+type PostIt = {
+  id: string;
+  kind: "idea-notes" | "info-gathered";
+  text: string;
+  ts: number;
+};
+type IdeaExtras = {
+  notes: CategoryNotes;
+  attachments: Attachment[];
+  posts: PostIt[];
+};
+
+function emptyExtras(): IdeaExtras {
+  return { notes: {}, attachments: [], posts: [] };
+}
 
 function timeAgo(ts: number) {
   const s = Math.floor((Date.now() - ts) / 1000);
@@ -63,6 +80,11 @@ function timeAgo(ts: number) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
+}
+
+function pctFromCount(count: number, weights: number[] = [25, 45, 65, 80, 92, 100]) {
+  if (count <= 0) return 0;
+  return weights[Math.min(count - 1, weights.length - 1)];
 }
 
 function categoryStatus(value: string | undefined) {
@@ -73,6 +95,7 @@ function categoryStatus(value: string | undefined) {
   if (v.length < 280) return { pct: 80, label: "Needs Review" };
   return { pct: 100, label: "Ready" };
 }
+
 
 // suggested idea seeds based on a creator field
 const suggestedSeeds = [
@@ -135,8 +158,8 @@ function Dashboard() {
   );
 
   const selectedExtras: IdeaExtras = selected
-    ? extras[selected.id] ?? { notes: {}, attachments: [] }
-    : { notes: {}, attachments: [] };
+    ? extras[selected.id] ?? emptyExtras()
+    : emptyExtras();
 
   const updateSelected = (patch: Partial<LightbulbIdea>) => {
     if (!selected) return;
@@ -150,16 +173,34 @@ function Dashboard() {
   const updateExtras = (patch: Partial<IdeaExtras>) => {
     if (!selected) return;
     setExtras((prev) => {
-      const current = prev[selected.id] ?? { notes: {}, attachments: [] };
+      const current = prev[selected.id] ?? emptyExtras();
       return {
         ...prev,
         [selected.id]: {
           notes: { ...current.notes, ...(patch.notes ?? {}) },
           attachments: patch.attachments ?? current.attachments,
+          posts: patch.posts ?? current.posts,
         },
       };
     });
   };
+
+  const addPostIt = (text: string, kind: PostIt["kind"]) => {
+    if (!selected || !text.trim()) return;
+    const p: PostIt = {
+      id: `post-${Date.now()}`,
+      kind,
+      text: text.trim(),
+      ts: Date.now(),
+    };
+    const nextPosts = [p, ...selectedExtras.posts];
+    updateExtras({ posts: nextPosts });
+    // bump idea readiness a little for each captured thought
+    updateSelected({
+      shelfReadiness: Math.min(100, selected.shelfReadiness + 4),
+    });
+  };
+
 
   const addIdea = () => {
     const id = `idea-${Date.now()}`;
@@ -197,11 +238,28 @@ function Dashboard() {
 
   const getCategoryValue = (key: CategoryKey): string => {
     if (!selected) return "";
-    if (key === "lightbulb") return selected.messy;
+    const ideaPosts = selectedExtras.posts
+      .filter((p) => p.kind === "idea-notes")
+      .map((p) => p.text)
+      .join("\n");
+    const infoPosts = selectedExtras.posts
+      .filter((p) => p.kind === "info-gathered")
+      .map((p) => p.text)
+      .join("\n");
+    const attachBlob = selectedExtras.attachments.map((a) => a.label).join("\n");
+    if (key === "lightbulb")
+      return [selected.messy, ideaPosts].filter(Boolean).join("\n");
     if (key === "pre-clarity")
-      return selectedExtras.notes["pre-clarity"] ?? formatSignals(selected);
+      return [
+        selectedExtras.notes["pre-clarity"] ?? formatSignals(selected),
+        infoPosts,
+        attachBlob,
+      ]
+        .filter(Boolean)
+        .join("\n");
     return selectedExtras.notes[key] ?? "";
   };
+
 
   const setCategoryValue = (key: CategoryKey, value: string) => {
     if (!selected) return;
@@ -224,6 +282,102 @@ function Dashboard() {
   // chunk categories into shelves of 3
   const categoryShelves = chunk(categoryDefs, 3);
 
+  const leftWidths = [60, 70, 90];
+  const rightWidths = [60, 70, 85];
+
+  const renderLeftShelfContent = () => (
+    <>
+      {ideaShelves.map((row, rIdx) => (
+        <Shelf key={rIdx} widthPct={leftWidths[rIdx] ?? 90} align="left">
+          {row.map((idea, idx) => (
+            <BookSpine
+              key={idea.id}
+              title={idea.title}
+              meta={stageLabels[idea.stage]}
+              active={idea.id === selected?.id}
+              hue={rIdx * 3 + idx}
+              onClick={() => setSelectedId(idea.id)}
+            />
+          ))}
+          {row.length < 3 &&
+            Array.from({ length: 3 - row.length }).map((_, i) => (
+              <BookGhost key={`g-${i}`} />
+            ))}
+        </Shelf>
+      ))}
+
+      <div className="relative px-2 pt-4">
+        <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
+          · Idea Sparks ·
+        </div>
+      </div>
+      <Shelf widthPct={leftWidths[ideaShelves.length] ?? 90} align="left">
+        {suggestedSeeds.map((seed, i) => (
+          <BookSpine
+            key={seed.id}
+            title={seed.title}
+            meta="Spark"
+            active={false}
+            hue={i + 4}
+            onClick={() => {
+              const id = `idea-${Date.now()}`;
+              setIdeas((prev) => [
+                {
+                  id,
+                  title: seed.title,
+                  messy: "",
+                  shelfReadiness: 5,
+                  updatedAt: Date.now(),
+                  stage: "lightbulb",
+                  nextAction: "Dump your messy idea",
+                },
+                ...prev,
+              ]);
+              setSelectedId(id);
+              setActiveCategory("lightbulb");
+            }}
+          />
+        ))}
+      </Shelf>
+
+      <div className="relative flex justify-center pt-2">
+        <button
+          onClick={addIdea}
+          title="Add a new idea book"
+          className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
+        >
+          <Plus className="h-3 w-3" /> New Idea
+        </button>
+      </div>
+    </>
+  );
+
+  const renderRightShelfContent = () =>
+    !selected ? (
+      <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
+        Open an idea to see its progress.
+      </div>
+    ) : (
+      categoryShelves.map((row, rIdx) => (
+        <Shelf key={rIdx} widthPct={rightWidths[rIdx] ?? 85} align="right">
+          {row.map((c) => {
+            const status = categoryStatus(getCategoryValue(c.key));
+            return (
+              <CategoryBook
+                key={c.key}
+                label={c.label}
+                hint={c.hint}
+                pct={status.pct}
+                statusLabel={status.label}
+                active={activeCategory === c.key}
+                onClick={() => setActiveCategory(c.key)}
+              />
+            );
+          })}
+        </Shelf>
+      ))
+    );
+
   return (
     <main
       className="relative flex w-screen flex-col text-amber-950"
@@ -235,7 +389,6 @@ function Dashboard() {
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
-      {/* gentle sun wash — keep background visible */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-20"
@@ -244,8 +397,6 @@ function Dashboard() {
             "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,225,160,0.35), transparent 70%), linear-gradient(180deg, rgba(60,30,8,0.05), rgba(40,18,2,0.15))",
         }}
       />
-
-      {/* floating dust motes */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 opacity-40"
@@ -259,13 +410,38 @@ function Dashboard() {
 
       {/* Header — carved wood beam */}
       <header
-        className="relative flex items-center justify-between px-5 py-3 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)]"
+        className="relative flex items-center justify-between gap-2 px-3 py-2 shadow-[0_8px_20px_-10px_rgba(20,10,2,0.7)] sm:px-5 sm:py-3"
         style={{
           background:
             "linear-gradient(180deg, #3b1f0a 0%, #5a3210 60%, #3b1f0a 100%)",
         }}
       >
         <WoodGrain />
+
+        {/* Mobile: Ideas drawer */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
+              aria-label="Open Ideas"
+            >
+              <Menu className="h-4 w-4" />
+              <span>Ideas</span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
+            style={{
+              background:
+                "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+            }}
+          >
+            <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
+              <SheetTitle className="font-serif text-amber-100">My Ideas</SheetTitle>
+            </SheetHeader>
+            <div className="space-y-6 px-2 py-4">{renderLeftShelfContent()}</div>
+          </SheetContent>
+        </Sheet>
+
         <div className="relative flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="DaBotTree" className="h-7 w-7 object-contain" />
@@ -278,110 +454,61 @@ function Dashboard() {
             Creator Library
           </span>
         </div>
+
         <div className="relative flex items-center gap-2 text-xs">
           <Link
             to="/"
-            className="rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60"
+            className="hidden rounded-sm border border-amber-200/30 bg-amber-950/40 px-3 py-1.5 text-amber-100 hover:bg-amber-900/60 sm:inline-block"
           >
             Doorway
           </Link>
           <Link
             to="/signin"
-            className="rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200"
+            className="hidden rounded-sm border border-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-600 px-3 py-1.5 font-medium text-amber-950 shadow-sm hover:from-amber-200 sm:inline-block"
           >
             Account
           </Link>
+
+          {/* Mobile: Progress drawer */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="relative inline-flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/50 px-2.5 py-1.5 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60 lg:hidden"
+                aria-label="Open Progress"
+              >
+                <BookOpen className="h-4 w-4" />
+                <span>Progress</span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[88vw] max-w-[340px] overflow-y-auto border-amber-950/60 p-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+              }}
+            >
+              <SheetHeader className="border-b border-amber-200/15 px-4 py-3">
+                <SheetTitle className="font-serif text-amber-100">Idea Progress</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-6 px-2 py-4">{renderRightShelfContent()}</div>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 
       {/* Three-column tree-library interior */}
-      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
-        {/* ============ LEFT BOOKSHELF WALL — My Ideas ============ */}
-        <ShelfWall side="left" title="My Ideas" subtitle="Pull a book to open it">
-          {(() => {
-            const leftWidths = [60, 70, 90];
-            return (
-              <>
-                {ideaShelves.map((row, rIdx) => (
-                  <Shelf
-                    key={rIdx}
-                    widthPct={leftWidths[rIdx] ?? 90}
-                    align="left"
-                  >
-                    {row.map((idea, idx) => (
-                      <BookSpine
-                        key={idea.id}
-                        title={idea.title}
-                        meta={stageLabels[idea.stage]}
-                        active={idea.id === selected?.id}
-                        hue={rIdx * 3 + idx}
-                        onClick={() => setSelectedId(idea.id)}
-                      />
-                    ))}
-                    {row.length < 3 &&
-                      Array.from({ length: 3 - row.length }).map((_, i) => (
-                        <BookGhost key={`g-${i}`} />
-                      ))}
-                  </Shelf>
-                ))}
-
-                {/* Suggested Seeds sub-section */}
-                <div className="relative px-2 pt-4">
-                  <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
-                    · Idea Sparks ·
-                  </div>
-                </div>
-                <Shelf
-                  widthPct={leftWidths[ideaShelves.length] ?? 90}
-                  align="left"
-                >
-                  {suggestedSeeds.map((seed, i) => (
-                    <BookSpine
-                      key={seed.id}
-                      title={seed.title}
-                      meta="Spark"
-                      active={false}
-                      hue={i + 4}
-                      onClick={() => {
-                        const id = `idea-${Date.now()}`;
-                        setIdeas((prev) => [
-                          {
-                            id,
-                            title: seed.title,
-                            messy: "",
-                            shelfReadiness: 5,
-                            updatedAt: Date.now(),
-                            stage: "lightbulb",
-                            nextAction: "Dump your messy idea",
-                          },
-                          ...prev,
-                        ]);
-                        setSelectedId(id);
-                        setActiveCategory("lightbulb");
-                      }}
-                    />
-                  ))}
-                </Shelf>
-              </>
-            );
-          })()}
-
-          {/* tiny + new idea marker at the very bottom */}
-          <div className="relative flex justify-center pt-2">
-            <button
-              onClick={addIdea}
-              title="Add a new idea book"
-              className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
-            >
-              <span className="text-base leading-none">+</span> New Idea
-            </button>
-          </div>
+      <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[300px_minmax(0,1fr)_320px]">
+        {/* LEFT shelves — desktop only */}
+        <ShelfWall
+          side="left"
+          title="My Ideas"
+          subtitle="Pull a book to open it"
+          className="hidden lg:block"
+        >
+          {renderLeftShelfContent()}
         </ShelfWall>
 
-
-        {/* ============ CENTER — open journal on writing desk ============ */}
-        <section className="relative px-4 py-6 lg:px-8 lg:py-8">
-          {/* sunbeam */}
+        {/* CENTER — Post-it note desk */}
+        <section className="relative flex min-h-[70vh] flex-col px-3 py-4 lg:px-8 lg:py-8">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-10 top-0 h-40 -z-0 opacity-60"
@@ -391,63 +518,30 @@ function Dashboard() {
             }}
           />
           {!selected ? (
-            <div className="relative mx-auto max-w-2xl rounded-md border border-amber-900/40 bg-amber-50/85 p-10 text-center font-serif italic text-amber-900 shadow-2xl">
+            <div className="relative mx-auto max-w-md rounded-md border border-amber-900/40 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
               Pull a book from the shelf to open it on the desk.
             </div>
           ) : (
-            <Journal
+            <NoteDesk
               selected={selected}
-              activeCategory={activeCategory}
-              setActiveCategory={setActiveCategory}
-              getCategoryValue={getCategoryValue}
-              setCategoryValue={setCategoryValue}
+              extras={selectedExtras}
+              addPostIt={addPostIt}
+              addAttachment={addAttachment}
               updateSelected={updateSelected}
               moveToPreClarity={moveToPreClarity}
-              extras={selectedExtras}
-              addAttachment={addAttachment}
               fileInputRef={fileInputRef}
             />
           )}
         </section>
 
-        {/* ============ RIGHT BOOKSHELF WALL ============ */}
+        {/* RIGHT shelves — desktop only */}
         <ShelfWall
           side="right"
           title="Idea Progress"
-          subtitle="Tap a shelf book to work on it"
-
+          subtitle="Each note fills a shelf"
+          className="hidden lg:block"
         >
-          {!selected ? (
-            <div className="px-4 py-8 text-center font-serif italic text-amber-100/80">
-              Open an idea to see its shelves.
-            </div>
-          ) : (
-            (() => {
-              const rightWidths = [60, 70, 85];
-              return categoryShelves.map((row, rIdx) => (
-                <Shelf
-                  key={rIdx}
-                  widthPct={rightWidths[rIdx] ?? 85}
-                  align="right"
-                >
-                  {row.map((c) => {
-                    const status = categoryStatus(getCategoryValue(c.key));
-                    return (
-                      <CategoryBook
-                        key={c.key}
-                        label={c.label}
-                        hint={c.hint}
-                        pct={status.pct}
-                        statusLabel={status.label}
-                        active={activeCategory === c.key}
-                        onClick={() => setActiveCategory(c.key)}
-                      />
-                    );
-                  })}
-                </Shelf>
-              ));
-            })()
-          )}
+          {renderRightShelfContent()}
         </ShelfWall>
       </div>
 
@@ -463,6 +557,7 @@ function Dashboard() {
     </main>
   );
 }
+
 
 // ============================================================
 // Wood / shelf primitives
@@ -486,14 +581,17 @@ function ShelfWall({
   title,
   subtitle,
   children,
+  className,
 }: {
   side: "left" | "right";
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <aside className="relative">
+    <aside className={`relative ${className ?? ""}`}>
+
       {/* hanging lantern */}
       <div
         aria-hidden
@@ -1281,7 +1379,7 @@ function DeskIconButton({
 }: {
   onClick: () => void;
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
 }) {
   return (
@@ -1385,3 +1483,308 @@ function formatSignals(idea: LightbulbIdea): string {
   if (s.riskWatch) lines.push(`Risk watch: ${s.riskWatch}`);
   return lines.join("\n");
 }
+
+// ============================================================
+// NoteDesk — Post-it note capture
+// ============================================================
+
+const postItPalettes: Array<{ bg: string; edge: string; tape: string }> = [
+  { bg: "#fff6a8", edge: "#e0c855", tape: "rgba(220,200,120,0.85)" },
+  { bg: "#ffd6a8", edge: "#d99a4a", tape: "rgba(220,150,80,0.85)" },
+  { bg: "#c7f0c7", edge: "#7ec27a", tape: "rgba(140,200,140,0.85)" },
+  { bg: "#c9defa", edge: "#6e9cd2", tape: "rgba(140,180,220,0.85)" },
+  { bg: "#f6c7e0", edge: "#cf86b0", tape: "rgba(220,160,200,0.85)" },
+];
+
+function NoteDesk(props: {
+  selected: LightbulbIdea;
+  extras: IdeaExtras;
+  addPostIt: (text: string, kind: PostIt["kind"]) => void;
+  addAttachment: (kind: Attachment["kind"], label: string) => void;
+  updateSelected: (p: Partial<LightbulbIdea>) => void;
+  moveToPreClarity: (id: string) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const {
+    selected,
+    extras,
+    addPostIt,
+    addAttachment,
+    updateSelected,
+    moveToPreClarity,
+    fileInputRef,
+  } = props;
+
+  const [draft, setDraft] = useState("");
+  const [kind, setKind] = useState<PostIt["kind"]>("idea-notes");
+
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
+  const recognitionRef = useRef<any>(null);
+  const voiceSupported = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  }, []);
+
+  const startVoice = useCallback(() => {
+    if (!voiceSupported) {
+      window.alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    let finalText = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      setDraft((d) => {
+        const base = d ? d.replace(/\s+$/, "") + " " : "";
+        return base + finalText + interim;
+      });
+    };
+    rec.onerror = () => setVoiceState("idle");
+    rec.onend = () => {
+      setVoiceState((s) => (s === "listening" ? "processing" : s));
+      setTimeout(() => setVoiceState("idle"), 350);
+    };
+    recognitionRef.current = rec;
+    setVoiceState("listening");
+    try { rec.start(); } catch { setVoiceState("idle"); }
+  }, [voiceSupported]);
+
+  const stopVoice = useCallback(() => {
+    try { recognitionRef.current?.stop(); } catch {}
+    setVoiceState("processing");
+  }, []);
+
+  useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
+
+  const submit = () => {
+    if (!draft.trim()) return;
+    addPostIt(draft, kind);
+    setDraft("");
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      submit();
+    }
+  };
+
+  return (
+    <div className="relative flex w-full flex-1 flex-col">
+      <div className="relative z-10 mx-auto w-full max-w-[760px] px-1">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+              Active Idea
+            </div>
+            <input
+              value={selected.title}
+              onChange={(e) => updateSelected({ title: e.target.value })}
+              className="w-full bg-transparent font-serif text-2xl font-semibold leading-tight text-amber-50 drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] focus:outline-none"
+              placeholder="Name this idea…"
+            />
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="rounded-sm border border-amber-100/30 bg-amber-950/55 px-2 py-0.5 font-serif text-[10px] uppercase tracking-wider text-amber-100">
+              {stageLabels[selected.stage]}
+            </span>
+            {selected.stage === "lightbulb" && (
+              <button
+                onClick={() => moveToPreClarity(selected.id)}
+                className="rounded-sm border border-emerald-900/60 px-3 py-1.5 font-serif text-[11px] font-medium text-emerald-50 shadow"
+                style={{ background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)" }}
+              >
+                Organize Idea →
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="mt-1 font-serif text-[11px] italic text-amber-100/70">
+          Each note you add fills this idea's progress shelf. {extras.posts.length} {extras.posts.length === 1 ? "note" : "notes"} collected.
+        </p>
+      </div>
+
+      <div className="relative mx-auto mt-4 w-full max-w-[860px] flex-1">
+        {extras.posts.length === 0 && !selected.messy && (
+          <div className="relative mx-auto max-w-md rounded-md border border-amber-100/30 bg-amber-950/35 p-5 text-center font-serif italic text-amber-50/85 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)] backdrop-blur-sm">
+            No notes yet. Jot a quick thought below — each Post-it strengthens this idea.
+          </div>
+        )}
+        <div className="flex flex-wrap items-start justify-center gap-3 pb-44 lg:pb-32">
+          {selected.messy && (
+            <PostItCard
+              text={selected.messy}
+              kind="idea-notes"
+              ts={selected.updatedAt}
+              hue={0}
+              pinned
+            />
+          )}
+          {extras.posts.map((p, i) => (
+            <PostItCard
+              key={p.id}
+              text={p.text}
+              kind={p.kind}
+              ts={p.ts}
+              hue={i + 1}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 left-0 right-0 z-20 mt-2">
+        <div
+          className="mx-auto w-full max-w-[760px] px-1 pb-2"
+          style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        >
+          <div
+            className="relative overflow-hidden rounded-xl border border-amber-950/70 shadow-[0_14px_30px_-12px_rgba(20,8,2,0.8)]"
+            style={{ background: "linear-gradient(180deg, #fff5b8 0%, #f6dd86 100%)" }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -top-2 left-1/2 h-4 w-20 -translate-x-1/2 rotate-[-2deg] rounded-sm"
+              style={{ background: "rgba(220,200,120,0.85)", boxShadow: "0 2px 4px rgba(0,0,0,0.25)" }}
+            />
+            <div className="flex items-center gap-1 border-b border-amber-900/20 px-2 py-1 font-serif text-[10px] uppercase tracking-wider text-amber-900/70">
+              <button
+                onClick={() => setKind("idea-notes")}
+                className={
+                  "rounded-sm px-2 py-0.5 transition " +
+                  (kind === "idea-notes" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
+                }
+              >
+                Idea Notes
+              </button>
+              <button
+                onClick={() => setKind("info-gathered")}
+                className={
+                  "rounded-sm px-2 py-0.5 transition " +
+                  (kind === "info-gathered" ? "bg-amber-900 text-amber-50 shadow" : "hover:bg-amber-900/10")
+                }
+              >
+                Info Gathered
+              </button>
+              <span className="ml-auto italic normal-case tracking-normal">
+                {voiceState === "listening"
+                  ? "Listening…"
+                  : voiceState === "processing"
+                    ? "Transcribing…"
+                    : "Quick capture"}
+              </span>
+            </div>
+            <div className="flex items-end gap-2 px-2 py-2">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={onKeyDown}
+                rows={2}
+                placeholder="Type a thought… (⌘/Ctrl + Enter to add)"
+                className="block min-h-[44px] flex-1 resize-none bg-transparent px-1 font-serif text-[14px] leading-snug text-amber-950 placeholder:text-amber-900/45 focus:outline-none"
+              />
+              <button
+                onClick={submit}
+                disabled={!draft.trim()}
+                className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
+                style={{ background: "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)" }}
+              >
+                Add Note
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 border-t border-amber-900/15 px-2 py-1.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  files.forEach((f) => addAttachment("file", f.name));
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              />
+              <MicButton
+                state={voiceState}
+                onStart={startVoice}
+                onStop={stopVoice}
+                supported={voiceSupported}
+              />
+              <DeskIconButton
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach File / Photo"
+                icon={<Paperclip className="h-3.5 w-3.5" />}
+                label="Attach"
+              />
+              <DeskIconButton
+                onClick={() => {
+                  const url = window.prompt("Paste a link to attach");
+                  if (url) addAttachment("link", url);
+                }}
+                title="Add Link"
+                icon={<Link2 className="h-3.5 w-3.5" />}
+                label="Link"
+              />
+              {extras.attachments.length > 0 && (
+                <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
+                  {extras.attachments.length} attachment{extras.attachments.length === 1 ? "" : "s"} · updated {timeAgo(selected.updatedAt)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostItCard({
+  text,
+  kind,
+  ts,
+  hue,
+  pinned,
+}: {
+  text: string;
+  kind: PostIt["kind"];
+  ts: number;
+  hue: number;
+  pinned?: boolean;
+}) {
+  const palette = postItPalettes[hue % postItPalettes.length];
+  const rot = ((hue * 37) % 7) - 3;
+  return (
+    <div
+      className="relative w-[150px] rounded-sm border shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] sm:w-[170px]"
+      style={{
+        background: palette.bg,
+        borderColor: palette.edge,
+        transform: `rotate(${rot}deg)`,
+      }}
+    >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
+        style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+      />
+      <div className="px-2.5 pt-3 pb-2">
+        <div className="mb-1 flex items-center justify-between font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
+          <span>{kind === "idea-notes" ? "Idea" : "Info"}</span>
+          {pinned ? <span>· seed</span> : <span>{timeAgo(ts)}</span>}
+        </div>
+        <p className="whitespace-pre-wrap break-words font-serif text-[12.5px] leading-snug text-amber-950">
+          {text}
+        </p>
+      </div>
+    </div>
+  );
+}
+
