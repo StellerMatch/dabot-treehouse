@@ -337,31 +337,29 @@ function generateTitle(text: string, ideaType?: string): string {
 // (a sentence can land in multiple folders). Empty folders get a
 // "Missing…" prompt instead of fabricated content.
 const CATEGORY_ORDER: CategoryKey[] = [
-  "lightbulb", "clarity", "market", "build", "design", "risks", "money", "ready", "pre-clarity",
+  "core-idea", "problem", "audience", "features", "workflow", "design", "business", "concerns",
 ];
 
 const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
-  lightbulb:     /\b(app|tool|platform|system|idea|concept|wants? (?:an?|to)|build(?:s|ing)? (?:an?|the)|create|main purpose|summary)\b/i,
-  clarity:       /\b(problem|solve[sd]?|unclear|uncertain|decid|defin|still needs?|not sure|figure out|sort out|undecided|main goal|trying to)\b/i,
-  market:        /\b(manager|crew|worker|employee|user|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona)\b/i,
-  build:         /\b(feature|workflow|schedul|screen|step|data|field|input|output|function|ability|support|allow|track|assign|notif|integrat|api|database|backend|jobsite|hours|availab|skill|pickup|recommend|backup|action|button|form)\b/i,
-  design:        /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|simple|clean|practical|tone)\b/i,
-  money:         /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value)\b/i,
-  risks:         /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|not\s+(?:payroll|timeclock|hr|route|autonomous))\b/i,
-  ready:         /\b(ready|already decided|confirmed|solid|locked|agreed|launch|greenlight|next step|set in stone|good to go)\b/i,
-  "pre-clarity": /(\?\s*$)|\b(unknown|missing|tbd|need to know|need to define|next question|open question|still need)\b/i,
+  "core-idea": /\b(app|tool|platform|system|idea|concept|product|project|wants? (?:an?|to)|build(?:s|ing)? (?:an?|the)|create|main purpose|summary|core)\b/i,
+  problem:     /\b(problem|pain|need|opportunity|solve[sd]?|struggle|frustrat|because|hours|spend|waste|inefficien|gap|missing)\b/i,
+  audience:    /\b(manager|crew|worker|employee|user|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target)\b/i,
+  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support|allow|track|notif|integrat|api|tool)\b/i,
+  workflow:    /\b(workflow|process|step|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|moves? (?:to|through))\b/i,
+  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone)\b/i,
+  business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin)\b/i,
+  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|watch|validate|fix later)\b/i,
 };
 
 const CATEGORY_MISSING: Record<CategoryKey, string> = {
-  lightbulb:     "Missing: a one-line summary of the core idea.",
-  clarity:       "Missing: the main problem this solves and the next decision to make.",
-  market:        "Missing: who exactly this is for and the pain it removes for them.",
-  build:         "Missing: features, workflow steps, screens, and the data this needs.",
-  design:        "Missing: layout, key screens, and interaction style.",
-  money:         "Missing: pricing, first buyer, and business model.",
-  risks:         "Missing: scope boundaries and things this should not try to do.",
-  ready:         "Missing: what is already decided and ready to move forward.",
-  "pre-clarity": "Next question: what important detail still needs an answer?",
+  "core-idea": "Missing: a one-line summary of what this is and its main purpose.",
+  problem:     "Missing: the pain point, need, or opportunity this exists to address.",
+  audience:    "Missing: who exactly this is for and the role they play.",
+  features:    "Missing: tools, screens, actions, and capabilities this needs.",
+  workflow:    "Missing: how the process moves from step to step.",
+  design:      "Missing: layout, visual feel, and interaction style.",
+  business:    "Missing: pricing, buyer logic, and revenue model.",
+  concerns:    "Missing: things to watch, validate, or revisit later.",
 };
 
 function splitSentences(text: string): string[] {
@@ -375,10 +373,10 @@ function splitSentences(text: string): string[] {
 function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> {
   const sentences = splitSentences(text);
   const out: Record<CategoryKey, string[]> = {
-    lightbulb: [], "pre-clarity": [], clarity: [], market: [],
-    design: [], money: [], risks: [], build: [], ready: [],
+    "core-idea": [], problem: [], audience: [], features: [],
+    workflow: [], design: [], business: [], concerns: [],
   };
-  if (sentences[0]) out.lightbulb.push(sentences[0]);
+  if (sentences[0]) out["core-idea"].push(sentences[0]);
   for (const s of sentences) {
     for (const [k, re] of Object.entries(CAT_PATTERNS) as [CategoryKey, RegExp][]) {
       if (re.test(s) && !out[k].includes(s)) out[k].push(s);
@@ -396,17 +394,18 @@ function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
       : CATEGORY_MISSING[cat];
     return {
       id: `post-${ts}-${cat}`,
-      kind: cat === "pre-clarity" ? "info-gathered" : "idea-notes",
+      kind: "idea-notes",
       text: postItCategoryPalette[cat].label,
       fullText:
-        cat === "lightbulb"
-          ? `${body}\n\n— Original prompt —\n${text}`
+        cat === "core-idea"
+          ? `${body}\n\n— Source Notes —\n${text}`
           : body,
       ts: ts - i,
       categories: [cat],
     };
   });
 }
+
 
 function lightbulbSummaryFrom(text: string): string {
   const first = splitSentences(text)[0] ?? text.trim();
