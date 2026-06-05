@@ -527,10 +527,11 @@ function Dashboard() {
             getValue={getCategoryValue}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
+            overall={overallPct}
           />
         </div>
 
-        {/* CENTER: My Library + New Lightbulb */}
+        {/* CENTER: My Library + New Idea */}
         <div className="relative flex items-center justify-center gap-3">
           <LibraryPopover
             ideas={ideas}
@@ -563,39 +564,20 @@ function Dashboard() {
         {/* RIGHT: Organize / Next Stage */}
         <div className="relative flex items-center justify-end gap-3">
           <OrganizeButton
-            readiness={selected?.shelfReadiness ?? 0}
+            overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
             onClick={() => selected && moveToPreClarity(selected.id)}
           />
         </div>
       </header>
 
-      {/* Active idea title strip — parchment plaque for readability */}
+      {/* Active idea bookplate — compact carved label, centered */}
       {selected && (
-        <div className="relative z-20 mx-auto mt-3 w-full max-w-[860px] px-3">
-          <div
-            className="relative flex items-center gap-3 rounded-md border border-amber-950/60 px-4 py-2 shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] backdrop-blur-[2px]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
-            }}
-          >
-            <Lightbulb className="h-5 w-5 shrink-0 text-amber-700" />
-            <div className="min-w-0 flex-1">
-              <div className="font-serif text-[10px] uppercase tracking-[0.28em] text-amber-900/70">
-                Active Idea · {stageLabels[selected.stage]}
-              </div>
-              <input
-                value={selected.title}
-                onChange={(e) => updateSelected({ title: e.target.value })}
-                placeholder="Name this idea…"
-                className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 placeholder:text-amber-800/40 focus:outline-none sm:text-2xl"
-              />
-            </div>
-            <span suppressHydrationWarning className="hidden shrink-0 font-serif text-[11px] italic text-amber-900/70 sm:inline">
-              Updated {timeAgo(selected.updatedAt)}
-            </span>
-          </div>
+        <div className="relative z-20 mx-auto mt-3 flex w-full justify-center px-3">
+          <IdeaBookplate
+            idea={selected}
+            onUpdate={(patch) => updateSelected(patch)}
+          />
         </div>
       )}
 
