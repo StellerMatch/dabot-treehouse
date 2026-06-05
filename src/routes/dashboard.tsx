@@ -172,7 +172,7 @@ function Dashboard() {
               ...i,
               stage: "pre-clarity",
               shelfReadiness: Math.max(i.shelfReadiness, 45),
-              nextAction: "Fill the Clarity shelf",
+              nextAction: "Gather info, then move to Clarity",
               updatedAt: Date.now(),
             }
           : i,
