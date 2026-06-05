@@ -1282,7 +1282,7 @@ function NewLightbulbPopover({
               "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
           }}
         >
-          <Plus className="h-3.5 w-3.5" /> New Idea
+          <Plus className="h-3.5 w-3.5" /> Start New Idea
         </button>
         <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
           · Sparks ·
@@ -1341,7 +1341,7 @@ function OrganizeButton({
         <LaidBook
           label={label}
           sublabel={unlocked ? "Ready" : "Not Yet"}
-          pct={overall}
+          pct={unlocked ? overall : undefined}
           variant={variant}
           glow={unlocked}
           size={size}
@@ -1357,9 +1357,7 @@ function OrganizeButton({
           trailing={
             unlocked ? (
               <ArrowRight className="h-3 w-3 opacity-90" />
-            ) : (
-              <span className="text-[10px] opacity-75">zZz</span>
-            )
+            ) : null
           }
         />
       </div>
@@ -1542,8 +1540,8 @@ function IdeaBookplate({
         />
         <Lightbulb className="h-4 w-4 shrink-0 text-amber-700" />
         <span
-          className="truncate font-serif text-[18px] font-semibold leading-tight text-amber-950"
-          style={{ textShadow: "0 1px 0 rgba(255,250,235,0.7)", letterSpacing: "0.01em" }}
+          className="truncate font-serif text-[20px] font-bold leading-tight text-amber-950"
+          style={{ textShadow: "0 1px 0 rgba(255,250,235,0.85)", letterSpacing: "0.015em" }}
         >
           {display}
         </span>
