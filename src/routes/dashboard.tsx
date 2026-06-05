@@ -683,27 +683,8 @@ function Dashboard() {
             selectedId={selected?.id ?? ""}
             onSelect={(id) => setSelectedId(id)}
           />
-          <NewLightbulbPopover
-            onBlank={addIdea}
-            seeds={suggestedSeeds}
-            onSeed={(title) => {
-              const id = `idea-${Date.now()}`;
-              setIdeas((prev) => [
-                {
-                  id,
-                  title,
-                  messy: "",
-                  shelfReadiness: 5,
-                  updatedAt: Date.now(),
-                  stage: "lightbulb",
-                  nextAction: "Dump your messy idea",
-                },
-                ...prev,
-              ]);
-              setSelectedId(id);
-              setActiveCategory("lightbulb");
-            }}
-          />
+          <NewLightbulbPopover />
+
         </div>
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
