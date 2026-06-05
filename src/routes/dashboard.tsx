@@ -78,7 +78,9 @@ const suggestedSeeds = [
   { id: "seed-1", title: "Kids' bedtime story app" },
   { id: "seed-2", title: "Local skill swap board" },
   { id: "seed-3", title: "Plant care reminder game" },
+  { id: "seed-4", title: "Neighborhood pet help loop" },
 ];
+
 
 
 // ——— book spine palettes (rich leather tones) ———
