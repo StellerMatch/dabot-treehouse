@@ -803,22 +803,48 @@ function Journal(props: {
   const activeDef = categoryDefs.find((c) => c.key === activeCategory)!;
 
   return (
-    <div className="relative mx-auto max-w-xl">
+    <div className="relative mx-auto max-w-[520px]">
+      {/* warm desk pool of light behind the journal */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-10 -z-10 rounded-[40%] opacity-80 blur-3xl"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 35%, rgba(255,220,150,0.55), rgba(255,180,90,0.18) 55%, transparent 75%)",
+        }}
+      />
       {/* desk shadow under journal */}
       <div
         aria-hidden
-        className="absolute -inset-x-6 -bottom-8 h-16 rounded-full opacity-70 blur-2xl"
-        style={{ background: "rgba(20,10,2,0.7)" }}
+        className="pointer-events-none absolute -inset-x-10 -bottom-10 h-20 rounded-full opacity-80 blur-2xl"
+        style={{ background: "rgba(20,10,2,0.75)" }}
+      />
+      {/* wooden tray under the journal */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-x-3 -bottom-2 h-5 rounded-sm"
+        style={{
+          background:
+            "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+          boxShadow:
+            "0 8px 14px -6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,210,150,0.25)",
+        }}
       />
       {/* journal book */}
       <div
-        className="relative overflow-hidden rounded-md border border-amber-950/60 shadow-2xl"
+        className="relative overflow-hidden rounded-[6px] border-2 border-amber-950/70 shadow-[0_30px_60px_-20px_rgba(20,8,2,0.85),0_0_0_1px_rgba(255,210,150,0.15)_inset]"
         style={{
           background:
-            "linear-gradient(180deg, #f8ecc8 0%, #f1dfae 100%), radial-gradient(circle at 20% 10%, rgba(255,255,255,0.5), transparent 60%)",
+            "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%), radial-gradient(circle at 20% 10%, rgba(255,255,255,0.5), transparent 60%)",
           backgroundBlendMode: "overlay",
         }}
       >
+        {/* carved corner ornaments */}
+        <CornerOrnament position="tl" />
+        <CornerOrnament position="tr" />
+        <CornerOrnament position="bl" />
+        <CornerOrnament position="br" />
+
         {/* leather binding edges */}
         <div
           aria-hidden
