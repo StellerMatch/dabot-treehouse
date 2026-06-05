@@ -355,6 +355,7 @@ function Dashboard() {
         selected.shelfReadiness + (answeredCurrent ? 7 : 4),
       ),
     });
+    if (categoryAsk) setCategoryAsk(null);
   };
 
   const skipClarityQuestion = () => {
