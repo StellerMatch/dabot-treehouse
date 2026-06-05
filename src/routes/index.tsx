@@ -39,11 +39,15 @@ function Index() {
       <BackgroundMedia />
 
       {/* Hero logo — centered at top */}
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4 sm:top-6">
+      <div className="pointer-events-none absolute inset-x-0 -top-2 z-10 flex justify-center px-4 sm:-top-4">
         <img
           src={logoImage}
           alt="DaBotTree"
-          className="h-auto w-[min(67vw,615px)] drop-shadow-[0_8px_40px_rgba(255,170,70,0.45)]"
+          className="h-auto w-[min(67vw,615px)]"
+          style={{
+            filter:
+              "drop-shadow(0 6px 18px rgba(0,0,0,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.45)) drop-shadow(0 0 30px rgba(255,170,70,0.35))",
+          }}
         />
       </div>
 
