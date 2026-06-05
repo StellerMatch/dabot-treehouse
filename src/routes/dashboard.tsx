@@ -68,10 +68,69 @@ type IdeaExtras = {
   notes: CategoryNotes;
   attachments: Attachment[];
   posts: PostIt[];
+  answeredQuestions: string[];
+  skippedQuestions: string[];
 };
 
 function emptyExtras(): IdeaExtras {
-  return { notes: {}, attachments: [], posts: [] };
+  return {
+    notes: {},
+    attachments: [],
+    posts: [],
+    answeredQuestions: [],
+    skippedQuestions: [],
+  };
+}
+
+// ——— Clarity's clarifying questions ———
+type ClarityQuestion = {
+  id: string;
+  prompt: string;
+  keywords: string[];
+};
+const CLARITY_QUESTIONS: ClarityQuestion[] = [
+  {
+    id: "problem",
+    prompt: "What problem is this idea trying to solve?",
+    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because"],
+  },
+  {
+    id: "who",
+    prompt: "Who is this for? Picture one real person.",
+    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they"],
+  },
+  {
+    id: "why-now",
+    prompt: "Why does this matter to you right now?",
+    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care"],
+  },
+  {
+    id: "look-like",
+    prompt: "If it existed today, what would it look or feel like?",
+    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual"],
+  },
+  {
+    id: "first-step",
+    prompt: "What's one tiny first step you could take this week?",
+    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make"],
+  },
+  {
+    id: "success",
+    prompt: "How would you know it's working? What's a small win?",
+    keywords: ["success", "win", "work", "know", "measure", "sign", "happy", "users"],
+  },
+  {
+    id: "obstacle",
+    prompt: "What feels in the way? Name one obstacle.",
+    keywords: ["block", "stuck", "hard", "scared", "afraid", "obstacle", "time", "money", "skill"],
+  },
+];
+
+function detectAnswered(text: string, q: ClarityQuestion | undefined): boolean {
+  if (!q) return false;
+  const t = ` ${text.toLowerCase()} `;
+  if (t.trim().length < 12) return false;
+  return q.keywords.some((k) => t.includes(k));
 }
 
 function timeAgo(ts: number) {
