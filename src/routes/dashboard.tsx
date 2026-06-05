@@ -171,6 +171,32 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   },
 ];
 
+// Premade Clarity questions per category — used when a user clicks a category book
+const CATEGORY_QUESTIONS: Record<CategoryKey, string> = {
+  lightbulb: "What loose thought, reminder, or example should we save for this idea?",
+  "pre-clarity": "What fact, link, example, or background detail would help explain this idea better?",
+  clarity: "What part of this idea still feels unclear or undecided?",
+  market: "Who is this idea mainly for, and what problem does it help them solve?",
+  design: "How should this idea look, feel, or behave so people understand it quickly?",
+  money: "How could this idea make money, save money, or become worth paying for?",
+  risks: "What could go wrong, what might be hard, or what needs protection?",
+  build: "What is the first small step to build, test, or prove this idea?",
+  ready: "What would need to be true before this idea is ready for the next stage?",
+};
+
+const IDEA_TYPE_OPTIONS = [
+  "Tool",
+  "Service",
+  "Show",
+  "Game",
+  "Product",
+  "Community",
+  "Business",
+  "Story",
+  "App",
+  "Undecided",
+] as const;
+
 function detectAnswered(text: string, q: ClarityQuestion | undefined): boolean {
   if (!q) return false;
   const t = ` ${text.toLowerCase()} `;
