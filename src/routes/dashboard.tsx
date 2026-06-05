@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   seedIdeas,
   stageLabels,
@@ -2275,9 +2275,10 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
   const W = 64;
   const H = 110;
   const fillH = Math.max(0, Math.min(100, pct)) / 100;
+  const clipId = useId();
 
   // Build a vessel-shaped clip using SVG. The fill rises from bottom.
-  const vesselId = `vessel-${kind}-${Math.round(pct)}-${Math.random().toString(36).slice(2, 7)}`;
+  const vesselId = `vessel-${kind}-${Math.round(pct)}-${clipId.replace(/:/g, "")}`;
 
   // Outline path per kind
   const paths: Record<ObjectKind, string> = {
