@@ -157,7 +157,7 @@ function Dashboard() {
       shelfReadiness: 5,
       updatedAt: Date.now(),
       stage: "lightbulb",
-      nextAction: "Write the messy version",
+      nextAction: "Dump your messy idea",
     };
     setIdeas((prev) => [fresh, ...prev]);
     setSelectedId(id);
