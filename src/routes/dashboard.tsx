@@ -632,8 +632,6 @@ function Dashboard() {
             onSelect={(id) => setSelectedId(id)}
           />
           <NewLightbulbPopover
-            ideaType={selected?.ideaType ?? ""}
-            onSetType={(t) => selected && updateSelected({ ideaType: t })}
             onBlank={addIdea}
             seeds={suggestedSeeds}
             onSeed={(title) => {
