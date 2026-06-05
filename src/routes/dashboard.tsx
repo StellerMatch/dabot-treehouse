@@ -3055,7 +3055,7 @@ function NoteDesk(props: {
   return (
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
-      <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:mx-0 lg:ml-4 lg:max-w-[640px] xl:ml-12">
+      <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:max-w-[640px]">
         {extras.posts.length === 0 && !selected.messy && (
           <div
             className="relative mx-auto max-w-md rounded-md border border-amber-950/40 px-5 py-4 text-center font-serif italic text-amber-950 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)]"
