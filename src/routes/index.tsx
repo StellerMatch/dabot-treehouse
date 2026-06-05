@@ -156,7 +156,7 @@ function Index() {
           </div>
         </div>
 
-        <p className="mt-3 text-center text-[11px] text-amber-100/45">
+        <p className="mt-3 text-center text-[11px] text-amber-100/60">
           No payment, no commitments. This is the doorway.
         </p>
       </section>
