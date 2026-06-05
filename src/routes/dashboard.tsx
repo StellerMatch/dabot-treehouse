@@ -619,6 +619,7 @@ function Dashboard() {
             getValue={getCategoryValue}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
+            onAskCategory={(k) => setCategoryAsk(k)}
             overall={overallPct}
           />
         </div>
