@@ -42,20 +42,61 @@ type CategoryKey =
   | "risks"
   | "ready";
 
-const categoryDefs: { key: CategoryKey; label: string; hint: string }[] = [
-  { key: "lightbulb", label: "Idea Notes", hint: "Dump everything you know" },
-  { key: "pre-clarity", label: "Info Gathered", hint: "Files, links, context" },
+const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: string }[] = [
+  {
+    key: "lightbulb",
+    label: "Idea Notes",
+    hint: "Dump everything you know",
+    guidance: "Add any loose thoughts, reminders, or pieces of the idea.",
+  },
+  {
+    key: "pre-clarity",
+    label: "Info Gathered",
+    hint: "Files, links, context",
+    guidance: "Add useful facts, details, links, examples, or background for this idea.",
+  },
   {
     key: "clarity",
     label: "Clarity",
     hint: "Turn messy notes into a clear plan",
+    guidance: "Talk about what is still confusing, missing, or not fully decided.",
   },
-  { key: "market", label: "Audience", hint: "Who it's for" },
-  { key: "design", label: "Design", hint: "How it looks & feels" },
-  { key: "money", label: "Money", hint: "How it sustains" },
-  { key: "risks", label: "Risks", hint: "What to watch out for" },
-  { key: "build", label: "Build Plan", hint: "How it gets made" },
-  { key: "ready", label: "Ready", hint: "Greenlight for project" },
+  {
+    key: "market",
+    label: "Audience",
+    hint: "Who it's for",
+    guidance: "Talk about who this idea is for and what problem it helps them with.",
+  },
+  {
+    key: "design",
+    label: "Design",
+    hint: "How it looks & feels",
+    guidance: "Talk about how this idea should look, feel, or be easy to use.",
+  },
+  {
+    key: "money",
+    label: "Money",
+    hint: "How it sustains",
+    guidance: "Talk about how this idea could make money, save money, or become worth paying for.",
+  },
+  {
+    key: "risks",
+    label: "Risks",
+    hint: "What to watch out for",
+    guidance: "Talk about what could go wrong, what might be hard, or what needs protection.",
+  },
+  {
+    key: "build",
+    label: "Build Plan",
+    hint: "How it gets made",
+    guidance: "Talk about the first steps needed to build or test this idea.",
+  },
+  {
+    key: "ready",
+    label: "Ready",
+    hint: "Greenlight for project",
+    guidance: "Talk about what would make this idea ready for the next stage.",
+  },
 ];
 
 
