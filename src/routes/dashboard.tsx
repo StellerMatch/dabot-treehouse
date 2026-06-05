@@ -542,6 +542,309 @@ function Dashboard() {
 
 
 // ============================================================
+// Top bar controls — popovers & organize button
+// ============================================================
+
+function ShelfTabButton({
+  icon,
+  label,
+  open,
+  glow,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon: React.ReactNode;
+  label: string;
+  open?: boolean;
+  glow?: boolean;
+}) {
+  return (
+    <button
+      {...rest}
+      className={
+        "relative inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-serif text-[11px] font-medium shadow-sm transition focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/80 " +
+        (open
+          ? "border-amber-200/80 text-amber-50"
+          : "border-amber-200/40 text-amber-100 hover:brightness-110")
+      }
+      style={{
+        background: open
+          ? "linear-gradient(180deg, #7a4a18 0%, #4a2810 100%)"
+          : "linear-gradient(180deg, #4a2810 0%, #2a1505 100%)",
+        boxShadow: glow
+          ? "0 0 14px 2px rgba(255,210,130,0.45), inset 0 1px 0 rgba(255,210,150,0.2)"
+          : "inset 0 1px 0 rgba(255,210,150,0.18), 0 2px 4px rgba(0,0,0,0.4)",
+      }}
+    >
+      <span className="text-amber-200">{icon}</span>
+      <span>{label}</span>
+      <ChevronDown
+        className={"h-3 w-3 transition-transform " + (open ? "rotate-180" : "")}
+      />
+    </button>
+  );
+}
+
+function ProgressPopover({
+  disabled,
+  categories,
+  getValue,
+  activeCategory,
+  setActiveCategory,
+}: {
+  disabled: boolean;
+  categories: { key: CategoryKey; label: string; hint: string }[];
+  getValue: (k: CategoryKey) => string;
+  activeCategory: CategoryKey;
+  setActiveCategory: (k: CategoryKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <ShelfTabButton
+          icon={<BookOpen className="h-3.5 w-3.5" />}
+          label="Progress"
+          open={open}
+          disabled={disabled}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={8}
+        className="z-40 w-[min(92vw,460px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+        }}
+      >
+        <div className="mb-2 flex items-center justify-between font-serif">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-amber-100/80">
+            Idea Progress
+          </span>
+          <span className="text-[10px] italic text-amber-100/60">
+            Each note fills a shelf
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {categories.map((c) => {
+            const status = categoryStatus(getValue(c.key));
+            return (
+              <CategoryBook
+                key={c.key}
+                label={c.label}
+                hint={c.hint}
+                pct={status.pct}
+                statusLabel={status.label}
+                active={activeCategory === c.key}
+                onClick={() => setActiveCategory(c.key)}
+              />
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function LibraryPopover({
+  ideas,
+  selectedId,
+  onSelect,
+}: {
+  ideas: LightbulbIdea[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <ShelfTabButton
+          icon={<BookOpen className="h-3.5 w-3.5" />}
+          label="My Library"
+          open={open}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="center"
+        sideOffset={8}
+        className="z-40 w-[min(92vw,420px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+        }}
+      >
+        <div className="mb-2 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/80">
+          My Library
+        </div>
+        <ul className="max-h-[60vh] space-y-1 overflow-y-auto pr-1">
+          {ideas.map((idea) => {
+            const active = idea.id === selectedId;
+            return (
+              <li key={idea.id}>
+                <button
+                  onClick={() => {
+                    onSelect(idea.id);
+                    setOpen(false);
+                  }}
+                  className={
+                    "group flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 text-left font-serif text-[12px] transition " +
+                    (active
+                      ? "border-amber-200/80 bg-amber-900/60 text-amber-50"
+                      : "border-amber-200/20 bg-amber-950/30 text-amber-100 hover:bg-amber-900/40")
+                  }
+                >
+                  <span
+                    className="block h-6 w-1.5 shrink-0 rounded-sm"
+                    style={{
+                      background:
+                        spinePalettes[
+                          (idea.title.length + idea.id.length) %
+                            spinePalettes.length
+                        ][1],
+                    }}
+                  />
+                  <span className="min-w-0 flex-1 truncate">
+                    {idea.title || "Untitled"}
+                  </span>
+                  <span className="shrink-0 text-[10px] italic text-amber-100/60">
+                    {stageLabels[idea.stage]}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+          {ideas.length === 0 && (
+            <li className="px-2 py-3 font-serif text-[11px] italic text-amber-100/70">
+              No ideas yet. Tap New Lightbulb to begin.
+            </li>
+          )}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function NewLightbulbPopover({
+  onBlank,
+  seeds,
+  onSeed,
+}: {
+  onBlank: () => void;
+  seeds: { id: string; title: string }[];
+  onSeed: (title: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <ShelfTabButton
+          icon={<Lightbulb className="h-3.5 w-3.5" />}
+          label="New Lightbulb"
+          open={open}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="center"
+        sideOffset={8}
+        className="z-40 w-[min(92vw,360px)] border-amber-950/70 p-3 text-amber-50 shadow-[0_18px_40px_-16px_rgba(20,8,2,0.85)]"
+        style={{
+          background:
+            "linear-gradient(180deg, #3a1f08 0%, #2a1505 100%)",
+        }}
+      >
+        <button
+          onClick={() => {
+            onBlank();
+            setOpen(false);
+          }}
+          className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-950 shadow-md transition hover:brightness-110"
+          style={{
+            background:
+              "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+          }}
+        >
+          <Plus className="h-3.5 w-3.5" /> Blank Idea
+        </button>
+        <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-100/70">
+          · Sparks ·
+        </div>
+        <ul className="space-y-1">
+          {seeds.map((s) => (
+            <li key={s.id}>
+              <button
+                onClick={() => {
+                  onSeed(s.title);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-sm border border-amber-200/20 bg-amber-950/30 px-2 py-1.5 text-left font-serif text-[12px] text-amber-100 transition hover:bg-amber-900/40"
+              >
+                <Sparkles className="h-3 w-3 text-amber-300" />
+                <span className="truncate">{s.title}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function OrganizeButton({
+  readiness,
+  stage,
+  onClick,
+}: {
+  readiness: number;
+  stage: LightbulbIdea["stage"];
+  onClick: () => void;
+}) {
+  const ready = readiness >= 60;
+  const strong = readiness >= 35;
+  const label =
+    stage === "lightbulb" ? "Organize Idea" : "Next Stage";
+  const disabled = stage !== "lightbulb";
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={disabled ? "Already organized" : `Move forward (${readiness}% ready)`}
+      className={
+        "relative inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 font-serif text-[11px] font-semibold transition focus:outline-none disabled:opacity-50 " +
+        (ready
+          ? "border-amber-200/80 text-amber-950 hover:brightness-110"
+          : strong
+            ? "border-emerald-200/60 text-emerald-50 hover:brightness-110"
+            : "border-amber-200/30 text-amber-100/80 hover:brightness-110")
+      }
+      style={{
+        background: ready
+          ? "linear-gradient(180deg, #ffe9a3 0%, #f0c050 50%, #b07a18 100%)"
+          : strong
+            ? "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)"
+            : "linear-gradient(180deg, #4a2810 0%, #2a1505 100%)",
+        boxShadow: ready
+          ? "0 0 22px 4px rgba(255,210,120,0.55), inset 0 1px 0 rgba(255,255,255,0.35)"
+          : strong
+            ? "0 0 10px 1px rgba(110,220,140,0.35), inset 0 1px 0 rgba(255,255,255,0.15)"
+            : "inset 0 1px 0 rgba(255,210,150,0.15), 0 2px 4px rgba(0,0,0,0.4)",
+      }}
+    >
+      {ready && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
+          style={{ background: "rgba(255,220,140,0.45)" }}
+        />
+      )}
+      <span>{label}</span>
+      <ArrowRight className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
+
+
 // Wood / shelf primitives
 // ============================================================
 
