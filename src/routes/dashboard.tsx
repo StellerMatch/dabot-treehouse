@@ -105,6 +105,7 @@ const postItCategoryPalette: Record<
   { bg: string; edge: string; tape: string; chip: string; label: string }
 > = {
   "core-idea": { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Core Idea" },
+  clarity:     { bg: "linear-gradient(180deg,#fbe7c2 0%,#e8c98a 100%)", edge: "#a0741f", tape: "rgba(110,70,20,0.55)", chip: "#fbecca", label: "Clarity" },
   problem:     { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Problem" },
   audience:    { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
   features:    { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Features" },
