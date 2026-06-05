@@ -38,6 +38,16 @@ function Index() {
     >
       <BackgroundMedia />
 
+      {/* Hero logo — large, centered above the intake */}
+      <div className="pointer-events-none absolute inset-x-0 top-[10%] z-10 flex justify-center px-4 sm:top-[12%]">
+        <img
+          src={logoImage}
+          alt="DaBotTree"
+          className="h-auto w-[min(90vw,820px)] drop-shadow-[0_8px_40px_rgba(255,170,70,0.45)]"
+        />
+      </div>
+
+
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
         <div className="pointer-events-auto flex items-center gap-2">
