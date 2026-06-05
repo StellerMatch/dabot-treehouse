@@ -527,6 +527,9 @@ function Dashboard() {
       </div>
 
 
+      {/* Clarity guide presence */}
+      <ClarityGuide selected={selected} />
+
       {/* floor shadow */}
       <div
         aria-hidden
