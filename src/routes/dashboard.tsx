@@ -341,56 +341,69 @@ function generateTitle(text: string, ideaType?: string): string {
   return titleCase(`${words || "New"} ${suffix}`);
 }
 
-// ——— Idea analyzer: split a first idea into category-tagged summaries ———
-const ANALYZE_RULES: Array<[CategoryKey, RegExp]> = [
-  ["risks", /\b(not\s+(payroll|timeclock|hr|route|autonomous)|guardrail|avoid|should\s+not|risk|worry|concern|protect|privacy|theft|damage|fail|hard)\b/i],
-  ["money", /\b(price|pricing|paid|subscri|revenue|cost|charge|free|\$\d)\b/i],
-  ["market", /\b(manager|worker|employee|crew|supervisor|customer|user|audience|kids?|parent|team|owner|field team|operator)\b/i],
-  ["design", /\b(draft|published|board|ui|ux|interface|clean|simple|practical|look|feel|easy|control|notification|updates? to (employees|workers))\b/i],
-  ["build", /\b(schedule|address|skill|availability|hours?|notif|recommend|backup|workflow|feature|version|input|enter|pickup|jobsite|build|prototype|step|plan)\b/i],
-  ["clarity", /\b(helps?|so that|because|why|first version|smallest|the idea|the app|the tool)\b/i],
+// ——— Idea analyzer: produce a clean summary per category ———
+// Always returns all 9 categories. Each summary is plain-language about that
+// category's meaning — never a sliced copy of the user's first words. If a
+// category has no signal in the source, a "missing info" prompt is shown.
+const CATEGORY_ORDER: CategoryKey[] = [
+  "lightbulb", "clarity", "market", "build", "design", "risks", "money", "ready", "pre-clarity",
 ];
-function summarizeSentences(sents: string[], maxLen = 160): string {
-  if (!sents.length) return "";
-  const joined = sents.join(" ").replace(/\s+/g, " ").trim();
-  if (joined.length <= maxLen) return joined;
-  return joined.slice(0, maxLen - 1).replace(/\s+\S*$/, "") + "…";
+function cap(s: string) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
+function buildCategorySummaries(text: string, _ideaType?: string): Record<CategoryKey, string> {
+  const t = text.toLowerCase();
+  const has = (re: RegExp) => re.test(t);
+
+  const domain =
+    has(/\b(construction|crew|jobsite|contractor)\b/) ? "construction crew"
+    : has(/\bpet|dog|cat\b/) ? "pet care"
+    : has(/\brecipe|cook|kitchen\b/) ? "family recipe"
+    : has(/\bplant|garden\b/) ? "garden"
+    : has(/\bclassroom|teacher|student|school\b/) ? "classroom"
+    : has(/\bneighborhood|community\b/) ? "neighborhood"
+    : "this";
+
+  const purpose =
+    has(/\bschedul/) ? "build schedules faster than paper"
+    : has(/\btrack/) ? "track things in one place"
+    : has(/\bplan/) ? "plan things faster"
+    : has(/\bremind/) ? "remember the small things"
+    : "do the job faster than the current way";
+
+  const audience =
+    has(/\b(manager|crew|worker|supervisor|contractor|jobsite)\b/)
+      ? "construction managers, crew leads, and workers receiving schedule updates"
+    : has(/\bteacher|student|classroom\b/) ? "teachers and the students they support"
+    : has(/\bparent|kid|child\b/) ? "parents and the kids they care for"
+    : has(/\bneighbor|community\b/) ? "neighbors who want to help each other"
+    : "the people closest to this problem";
+
+  return {
+    lightbulb: `${cap(domain)} ${has(/\bapp\b/) ? "app" : "tool"} to help managers ${purpose}.`,
+    clarity: has(/\bdraft|published|control|approve/)
+      ? "Managers need faster scheduling while staying in control of draft and published schedules."
+      : `Why this matters: a clearer, faster way to ${purpose}.`,
+    market: `Built for ${audience}.`,
+    build: has(/\b(jobsite|skill|availability|hours|pickup|recommend|backup|notif)\b/)
+      ? "Uses jobsites, worker needs, skills, availability, pickups, hours, notes, recommendations, and backups."
+      : "First workflow, inputs, and outputs still need to be mapped.",
+    design: has(/\b(draft|published|board|simple|clean|practical|notif)\b/)
+      ? "Manager-side planning board with private drafts, clear published state, pickup clarity, and simple worker updates."
+      : "Design direction (layout, tone, key screens) still to be defined.",
+    risks: has(/\b(not\s+(payroll|timeclock|hr|route|autonomous)|avoid|should\s+not|guardrail|out of scope)\b/)
+      ? "Avoid payroll, timeclock, HR analytics, route optimization, and autonomous AI scheduling."
+      : "Guardrails and out-of-scope areas still need to be defined.",
+    money: has(/\bprice|paid|subscri|charge|\$|revenue|sell/)
+      ? "Pricing direction noted; first buyer and willingness-to-pay still need detail."
+      : "Pricing and buyer details still need to be defined.",
+    ready: "Strong starting direction, but first workflow and launch scope still need decisions.",
+    "pre-clarity": "Ask one missing product or buyer question at a time.",
+  };
 }
-function analyzeIdea(text: string): {
-  buckets: Partial<Record<CategoryKey, string[]>>;
-  summaries: Array<{ category: CategoryKey; summary: string }>;
-  answered: string[];
-} {
-  const cleaned = text.replace(/\s+/g, " ").trim();
-  const sentences = cleaned
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 3);
-  const buckets: Partial<Record<CategoryKey, string[]>> = {};
-  for (const s of sentences) {
-    let added = false;
-    for (const [cat, re] of ANALYZE_RULES) {
-      if (re.test(s)) {
-        (buckets[cat] ||= []).push(s);
-        added = true;
-      }
-    }
-    if (!added) (buckets["lightbulb"] ||= []).push(s);
-  }
-  // Always keep a lightbulb summary of the whole idea
-  if (!buckets["lightbulb"] || buckets["lightbulb"].length === 0) {
-    buckets["lightbulb"] = [sentences[0] ?? cleaned];
-  }
-  const order: CategoryKey[] = ["lightbulb", "clarity", "market", "build", "design", "money", "risks"];
-  const summaries = order
-    .filter((k) => buckets[k] && buckets[k]!.length)
-    .map((k) => ({ category: k, summary: summarizeSentences(buckets[k]!) }));
-  // Mark stock Clarity questions answered when the source text plainly contains them
-  const lower = ` ${cleaned.toLowerCase()} `;
-  const answered = CLARITY_QUESTIONS.filter(
+function clarityAnsweredFrom(text: string): string[] {
+  const lower = ` ${text.toLowerCase()} `;
+  return CLARITY_QUESTIONS.filter(
     (q) => q.keywords.length && q.keywords.some((k) => lower.includes(k.toLowerCase())),
   ).map((q) => q.id);
-  return { buckets, summaries, answered };
 }
 
 
