@@ -8,8 +8,8 @@ import {
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 import logo from "@/assets/dabottree-logo.png";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Menu, BookOpen, Paperclip, Link2, Plus } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BookOpen, Paperclip, Link2, Plus, ChevronDown, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
 
 
 export const Route = createFileRoute("/dashboard")({
