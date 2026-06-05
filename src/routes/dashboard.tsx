@@ -1755,6 +1755,110 @@ function Dot({ pct }: { pct: number }) {
 // helpers
 // ============================================================
 
+// ============================================================
+// Clarity — guide presence
+// ============================================================
+
+function ClarityGuide({
+  selected,
+}: {
+  selected: LightbulbIdea | undefined;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const tip = useMemo(() => {
+    if (!selected)
+      return "Welcome to the Creator Library. Open My Library and choose a spark to begin.";
+    if (selected.stage === "lightbulb") {
+      if (selected.shelfReadiness < 20)
+        return "Every great idea starts messy. Dump your thoughts — Clarity will help shape them later.";
+      if (selected.shelfReadiness < 45)
+        return "Good energy. Attach links, files, or speak a note to build momentum.";
+      return "This idea is warming up. When it feels full, tap Organize Idea.";
+    }
+    if (selected.stage === "pre-clarity")
+      return "Time to sort your notes into a clear plan. Review each shelf.";
+    return "Keep going. Your idea is taking shape.";
+  }, [selected]);
+
+  return (
+    <div className="fixed right-6 top-[38%] z-30 hidden -translate-y-1/2 lg:block">
+      <div className="relative">
+        {/* Speech bubble — opens to the left */}
+        {open && (
+          <div
+            className="absolute right-full top-1/2 mr-3 w-56 -translate-y-1/2 rounded-lg border border-amber-950/50 p-3 shadow-2xl"
+            style={{
+              background:
+                "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
+            }}
+          >
+            <div className="font-serif text-sm font-semibold text-amber-900">
+              Clarity
+            </div>
+            <p className="mt-1 font-serif text-xs leading-relaxed text-amber-900/80">
+              {tip}
+            </p>
+            <div
+              className="absolute -right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border-t border-r border-amber-950/50"
+              style={{ background: "#f0dca5" }}
+            />
+          </div>
+        )}
+
+        {/* Avatar */}
+        <button
+          onClick={() => setOpen(!open)}
+          title="Clarity — your library guide"
+          className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80"
+          style={{
+            background:
+              "radial-gradient(circle at 35% 35%, #fff4c0 0%, #f5d27a 30%, #c88020 80%, #5a3010 100%)",
+            animation: "clarity-float 4s ease-in-out infinite",
+            boxShadow:
+              "0 0 40px 10px rgba(255,200,90,0.45), inset 0 -2px 8px rgba(0,0,0,0.3)",
+          }}
+        >
+          {/* Face */}
+          <svg
+            width="34"
+            height="34"
+            viewBox="0 0 34 34"
+            className="pointer-events-none opacity-85"
+          >
+            <ellipse cx="12" cy="14" rx="3" ry="3.5" fill="#3a1d08" />
+            <ellipse cx="22" cy="14" rx="3" ry="3.5" fill="#3a1d08" />
+            <path
+              d="M13 23 Q17 26.5 21 23"
+              stroke="#3a1d08"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <circle cx="17" cy="19" r="1.8" fill="#d97a3b" opacity="0.5" />
+          </svg>
+          {/* Inner shine ring */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-1 rounded-full"
+            style={{
+              boxShadow: "inset 0 0 14px rgba(255,240,180,0.5)",
+            }}
+          />
+        </button>
+
+        {/* Name label */}
+        <div
+          className="mt-1.5 text-center font-serif text-[10px] uppercase tracking-[0.2em] text-amber-100/80"
+          style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
+        >
+          Clarity
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
