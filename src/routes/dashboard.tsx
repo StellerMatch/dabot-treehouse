@@ -581,14 +581,17 @@ function ShelfWall({
   title,
   subtitle,
   children,
+  className,
 }: {
   side: "left" | "right";
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <aside className="relative">
+    <aside className={`relative ${className ?? ""}`}>
+
       {/* hanging lantern */}
       <div
         aria-hidden
