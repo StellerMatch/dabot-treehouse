@@ -33,6 +33,7 @@ export const Route = createFileRoute("/dashboard")({
 // ——— types ———
 type CategoryKey =
   | "core-idea"
+  | "clarity"
   | "problem"
   | "audience"
   | "features"
@@ -47,6 +48,12 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: s
     label: "Core Idea",
     hint: "What it is & its purpose",
     guidance: "Describe what this project, app, or product is and its main purpose.",
+  },
+  {
+    key: "clarity",
+    label: "Clarity",
+    hint: "Overall readout & 90% direction",
+    guidance: "Clarity's overall readout: what's understood, the current 90% direction, and what's still fuzzy.",
   },
   {
     key: "problem",
@@ -98,6 +105,7 @@ const postItCategoryPalette: Record<
   { bg: string; edge: string; tape: string; chip: string; label: string }
 > = {
   "core-idea": { bg: "linear-gradient(180deg,#fef3b5 0%,#f4dd86 100%)", edge: "#b08a2a", tape: "rgba(120,80,30,0.55)", chip: "#fff6c2", label: "Core Idea" },
+  clarity:     { bg: "linear-gradient(180deg,#fbe7c2 0%,#e8c98a 100%)", edge: "#a0741f", tape: "rgba(110,70,20,0.55)", chip: "#fbecca", label: "Clarity" },
   problem:     { bg: "linear-gradient(180deg,#e6f0d4 0%,#cfe0a8 100%)", edge: "#6f8a3a", tape: "rgba(60,80,30,0.55)",  chip: "#eaf3d6", label: "Problem" },
   audience:    { bg: "linear-gradient(180deg,#fcd9c2 0%,#f3b793 100%)", edge: "#b56738", tape: "rgba(120,60,30,0.55)", chip: "#fde0cc", label: "Audience" },
   features:    { bg: "linear-gradient(180deg,#e0d6f0 0%,#c0adde 100%)", edge: "#6a4f9a", tape: "rgba(70,40,110,0.55)", chip: "#e6dcf2", label: "Features" },
@@ -110,6 +118,7 @@ const postItCategoryPalette: Record<
 
 const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
   "core-idea": [/\bidea\b/i, /\bapp\b/i, /\btool\b/i, /\bplatform\b/i, /\bproduct\b/i, /\bpurpose\b/i, /\bsummary\b/i],
+  clarity:     [/\bclarity\b/i, /\breadout\b/i, /\bunderstood\b/i, /\bdirection\b/i],
   problem:     [/\bproblem\b/i, /\bpain\b/i, /\bneed\b/i, /\bstruggle\b/i, /\bopportunit/i, /\bbecause\b/i, /\bfrustrat/i],
   audience:    [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bbuyer/i, /\bpeople\b/i, /\bmanager\b/i, /\bcrew\b/i, /\bworker\b/i, /\bemployee\b/i, /\bteam\b/i, /\bowner\b/i],
   features:    [/\bfeature/i, /\bfunction\b/i, /\bscreen\b/i, /\bbutton\b/i, /\bform\b/i, /\baction\b/i, /\bcapabilit/i, /\bability\b/i, /\bsupport/i, /\bnotif/i],
@@ -235,6 +244,7 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
 // Premade Clarity questions per category — used when a user clicks a category folder
 const CATEGORY_QUESTIONS: Record<CategoryKey, string> = {
   "core-idea": "In one line, what is this project and what's its main purpose?",
+  clarity: "In one line, what does Clarity already understand and where is the direction still fuzzy?",
   problem: "What pain point, need, or opportunity makes this worth building?",
   audience: "Who exactly is this for — which users, buyers, or roles?",
   features: "What tools, screens, or actions does this need to do its job?",
@@ -333,26 +343,35 @@ function generateTitle(text: string, ideaType?: string): string {
 }
 
 // ——— Idea analyzer: semantically parse a pasted Clarity prompt into the
-// nine category folders. Each folder collects sentences that belong to it
-// (a sentence can land in multiple folders). Empty folders get a
-// "Missing…" prompt instead of fabricated content.
+// nine category folders. Each clause can land in multiple folders.
+// Empty folders get a "Missing…" prompt instead of fabricated content.
 const CATEGORY_ORDER: CategoryKey[] = [
-  "core-idea", "problem", "audience", "features", "workflow", "design", "business", "concerns",
+  "core-idea", "clarity", "problem", "audience", "features",
+  "workflow", "design", "business", "concerns",
+];
+
+// Categories that participate in semantic sorting of pasted prompts.
+// "clarity" is synthesized separately (overall readout).
+const SORTABLE_CATEGORIES: CategoryKey[] = [
+  "core-idea", "problem", "audience", "features",
+  "workflow", "design", "business", "concerns",
 ];
 
 const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
-  "core-idea": /\b(app|tool|platform|system|idea|concept|product|project|wants? (?:an?|to)|build(?:s|ing)? (?:an?|the)|create|main purpose|summary|core)\b/i,
-  problem:     /\b(problem|pain|need|opportunity|solve[sd]?|struggle|frustrat|because|hours|spend|waste|inefficien|gap|missing)\b/i,
-  audience:    /\b(manager|crew|worker|employee|user|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target)\b/i,
-  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support|allow|track|notif|integrat|api|tool)\b/i,
-  workflow:    /\b(workflow|process|step|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|moves? (?:to|through))\b/i,
-  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone)\b/i,
-  business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin)\b/i,
-  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|watch|validate|fix later)\b/i,
+  "core-idea": /\b(this (?:app|tool|product|project|platform|idea|system)|is an? (?:app|tool|platform|product|system)|helps? .* (?:organize|turn|move|build|create|track|manage)|main purpose|concept is|core idea|in short|basically|essentially|the goal is)\b/i,
+  clarity:     /\b(clarity|readout|understood|direction|fuzzy|90%|so far|overall|summary)\b/i,
+  problem:     /\b(problem|pain|painful|need|opportunity|solve[sd]?|struggle|struggling|frustrat|because|wastes? (?:time|hours)|spend(?:ing)? hours|messy|hard to|difficult to|broken|missing tool|gap|inefficien|currently (?:no|nothing|hard))\b/i,
+  audience:    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target|for (?:small|new|busy|solo|independent)|aimed at|built for|designed for)\b/i,
+  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template)\b/i,
+  workflow:    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|journey|onboard|pipeline)\b/i,
+  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|tree|treehouse|earthly|earthy|sticky note|post-it|post it)\b/i,
+  business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin|saves? (?:time|money|hours)|faster|cheap|valuable|worth (?:paying|money)|commercial|positioning|package|packaged)\b/i,
+  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|watch|validate|fix later|assumption|weak spot|edge case|later phase|might break|unclear|fuzzy)\b/i,
 };
 
 const CATEGORY_MISSING: Record<CategoryKey, string> = {
   "core-idea": "Missing: a one-line summary of what this is and its main purpose.",
+  clarity:     "Missing: an overall readout of what's understood and where it's still fuzzy.",
   problem:     "Missing: the pain point, need, or opportunity this exists to address.",
   audience:    "Missing: who exactly this is for and the role they play.",
   features:    "Missing: tools, screens, actions, and capabilities this needs.",
@@ -370,18 +389,76 @@ function splitSentences(text: string): string[] {
     .filter((s) => s.length >= 6);
 }
 
+// Split a sentence further into meaning-bearing clauses, so one long sentence
+// like "This app helps creators organize messy ideas into folders so they can
+// turn them into build-ready projects faster" yields multiple clauses that
+// can each land in a different folder.
+function splitClauses(sentence: string): string[] {
+  return sentence
+    .split(/\s*(?:;|\s+(?:so that|so|because|but|and then|and also|while|whereas|in order to)\s+)\s*/i)
+    .map((c) => c.replace(/^[,;\s]+|[,;\s]+$/g, "").trim())
+    .filter((c) => c.length >= 6);
+}
+
 function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> {
   const sentences = splitSentences(text);
   const out: Record<CategoryKey, string[]> = {
-    "core-idea": [], problem: [], audience: [], features: [],
+    "core-idea": [], clarity: [], problem: [], audience: [], features: [],
     workflow: [], design: [], business: [], concerns: [],
   };
+
+  // Seed Core Idea with the first descriptive sentence (a plain concept line).
   if (sentences[0]) out["core-idea"].push(sentences[0]);
-  for (const s of sentences) {
-    for (const [k, re] of Object.entries(CAT_PATTERNS) as [CategoryKey, RegExp][]) {
-      if (re.test(s) && !out[k].includes(s)) out[k].push(s);
+
+  for (const sentence of sentences) {
+    const clauses = splitClauses(sentence);
+    const targets = clauses.length > 1 ? clauses : [sentence];
+    for (const clause of targets) {
+      let matched = false;
+      for (const cat of SORTABLE_CATEGORIES) {
+        if (CAT_PATTERNS[cat].test(clause) && !out[cat].includes(clause)) {
+          out[cat].push(clause);
+          matched = true;
+        }
+      }
+      // Unmatched short clauses are skipped — don't dump them into Core Idea.
+      void matched;
     }
   }
+
+  // De-duplicate Core Idea: drop the seed if a richer matched line already covers it.
+  if (out["core-idea"].length > 1) {
+    const [seed, ...rest] = out["core-idea"];
+    if (rest.some((r) => r.toLowerCase().includes(seed.toLowerCase().slice(0, 30)))) {
+      out["core-idea"] = rest;
+    }
+  }
+
+  // Synthesize Clarity readout: what's covered, strongest signal, what's still fuzzy.
+  const covered = SORTABLE_CATEGORIES.filter((c) => out[c].length > 0);
+  const missing = SORTABLE_CATEGORIES.filter((c) => out[c].length === 0);
+  const labelOf = (c: CategoryKey) => postItCategoryPalette[c].label;
+  const strong = covered
+    .map((c) => ({ c, n: out[c].length }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 3)
+    .map((x) => labelOf(x.c));
+  const readoutLines: string[] = [];
+  readoutLines.push(
+    `Captured a ${sentences.length}-line prompt covering ${covered.length}/${SORTABLE_CATEGORIES.length} folders.`,
+  );
+  if (strong.length) {
+    readoutLines.push(`Direction reads ~90% on: ${strong.join(", ")}.`);
+  }
+  if (missing.length) {
+    readoutLines.push(
+      `Still fuzzy on: ${missing.map(labelOf).join(", ")}. Ask Clarity next.`,
+    );
+  } else {
+    readoutLines.push("All folders have something to work with.");
+  }
+  out.clarity = readoutLines;
+
   return out;
 }
 
@@ -390,21 +467,24 @@ function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
   return CATEGORY_ORDER.map((cat, i) => {
     const items = buckets[cat];
     const body = items.length
-      ? items.map((s) => `• ${s}`).join("\n")
+      ? items.map((s) => (cat === "clarity" ? s : `• ${s}`)).join("\n")
       : CATEGORY_MISSING[cat];
     return {
       id: `post-${ts}-${cat}`,
       kind: "idea-notes",
       text: postItCategoryPalette[cat].label,
+      // Raw pasted prompt lives only in Clarity's detail view as background context.
       fullText:
-        cat === "core-idea"
-          ? `${body}\n\n— Source Notes —\n${text}`
+        cat === "clarity"
+          ? `${body}\n\n— Source Notes (raw paste) —\n${text}`
           : body,
       ts: ts - i,
       categories: [cat],
     };
   });
 }
+
+
 
 
 function lightbulbSummaryFrom(text: string): string {
