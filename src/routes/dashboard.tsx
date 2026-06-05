@@ -1889,7 +1889,7 @@ function ClarityGuide({
       className={[
         "pointer-events-none fixed z-30",
         // Always sit just above the composer on the right
-        "right-3 bottom-[148px] sm:bottom-[160px] lg:right-6 lg:bottom-[180px]",
+        "right-3 bottom-[148px] sm:bottom-[160px] lg:right-6 lg:bottom-[140px]",
       ].join(" ")}
     >
       <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
