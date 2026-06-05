@@ -1021,7 +1021,37 @@ function DeskButton({
   );
 }
 
+function CornerOrnament({
+  position,
+}: {
+  position: "tl" | "tr" | "bl" | "br";
+}) {
+  const pos: Record<string, string> = {
+    tl: "top-1 left-1",
+    tr: "top-1 right-1 rotate-90",
+    bl: "bottom-1 left-1 -rotate-90",
+    br: "bottom-1 right-1 rotate-180",
+  };
+  return (
+    <svg
+      aria-hidden
+      className={`pointer-events-none absolute ${pos[position]} h-6 w-6 opacity-60`}
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M2 2 H10 M2 2 V10 M2 2 C6 2 10 6 10 10"
+        stroke="#7a4e1a"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="1.2" fill="#7a4e1a" />
+    </svg>
+  );
+}
+
 function Dot({ pct }: { pct: number }) {
+
   const color =
     pct === 0
       ? "#c9b18a"
