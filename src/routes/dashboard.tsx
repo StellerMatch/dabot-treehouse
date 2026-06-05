@@ -238,11 +238,28 @@ function Dashboard() {
 
   const getCategoryValue = (key: CategoryKey): string => {
     if (!selected) return "";
-    if (key === "lightbulb") return selected.messy;
+    const ideaPosts = selectedExtras.posts
+      .filter((p) => p.kind === "idea-notes")
+      .map((p) => p.text)
+      .join("\n");
+    const infoPosts = selectedExtras.posts
+      .filter((p) => p.kind === "info-gathered")
+      .map((p) => p.text)
+      .join("\n");
+    const attachBlob = selectedExtras.attachments.map((a) => a.label).join("\n");
+    if (key === "lightbulb")
+      return [selected.messy, ideaPosts].filter(Boolean).join("\n");
     if (key === "pre-clarity")
-      return selectedExtras.notes["pre-clarity"] ?? formatSignals(selected);
+      return [
+        selectedExtras.notes["pre-clarity"] ?? formatSignals(selected),
+        infoPosts,
+        attachBlob,
+      ]
+        .filter(Boolean)
+        .join("\n");
     return selectedExtras.notes[key] ?? "";
   };
+
 
   const setCategoryValue = (key: CategoryKey, value: string) => {
     if (!selected) return;
