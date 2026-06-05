@@ -1487,37 +1487,37 @@ function IdeaBookplate({
         type="button"
         onClick={() => setEditOpen(true)}
         title="Edit idea details"
-        className="group relative inline-flex max-w-[min(92vw,440px)] items-center gap-2 rounded-[4px] border px-4 py-1.5 font-serif shadow-[0_8px_22px_-12px_rgba(20,8,2,0.75)] transition hover:-translate-y-[1px]"
+        className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-2.5 rounded-[4px] border px-5 py-2 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px]"
         style={{
           background:
-            "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+            "linear-gradient(180deg, #fbf6e7 0%, #efe3c4 100%)",
           borderColor: "rgba(60,30,8,0.7)",
           boxShadow:
-            "inset 0 1px 0 rgba(255,240,200,0.8), inset 0 -2px 0 rgba(120,70,20,0.35), 0 6px 16px -8px rgba(20,8,2,0.6)",
+            "inset 0 1px 0 rgba(255,250,235,0.95), inset 0 -2px 0 rgba(120,70,20,0.28), 0 8px 18px -8px rgba(20,8,2,0.6)",
         }}
       >
         {/* tiny brass screws */}
         <span
           aria-hidden
-          className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+          className="absolute left-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
         />
         <span
           aria-hidden
-          className="absolute right-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+          className="absolute right-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
         />
-        <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-700" />
+        <Lightbulb className="h-4 w-4 shrink-0 text-amber-700" />
         <span
-          className="truncate font-serif text-[15px] font-semibold leading-tight text-amber-950"
-          style={{ textShadow: "0 1px 0 rgba(255,240,200,0.6)" }}
+          className="truncate font-serif text-[18px] font-semibold leading-tight text-amber-950"
+          style={{ textShadow: "0 1px 0 rgba(255,250,235,0.7)", letterSpacing: "0.01em" }}
         >
           {display}
         </span>
-        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/65 sm:inline">
+        <span className="hidden font-serif text-[10px] uppercase tracking-[0.22em] text-amber-900/60 sm:inline">
           · {stageLabels[idea.stage]}
         </span>
-        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-70 transition group-hover:opacity-100" />
+        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100" />
       </button>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
