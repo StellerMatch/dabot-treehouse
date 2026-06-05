@@ -6,7 +6,9 @@ import {
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 const libraryBg = libraryBgAsset.url;
+const claritySquirrel = claritySquirrelAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BookOpen, Paperclip, Link2, Plus, ChevronDown, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
@@ -495,6 +497,22 @@ function Dashboard() {
           backgroundPosition: "0 0, 60px 60px",
         }}
       />
+
+      {/* Clarity the squirrel — overlays the background, follows viewport */}
+      <img
+        src={claritySquirrel}
+        alt="Clarity"
+        aria-hidden
+        className="pointer-events-none fixed -z-10 select-none drop-shadow-[0_18px_24px_rgba(20,10,2,0.55)]"
+        style={{
+          right: "clamp(0.5rem, 4vw, 5rem)",
+          bottom: "clamp(7rem, 18vh, 12rem)",
+          height: "clamp(180px, 42vh, 460px)",
+          width: "auto",
+          animation: "clarity-float 6s ease-in-out infinite",
+        }}
+      />
+
 
       {/* Header — carved wood beam with three-zone controls */}
       <header
