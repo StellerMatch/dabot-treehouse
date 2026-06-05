@@ -68,10 +68,69 @@ type IdeaExtras = {
   notes: CategoryNotes;
   attachments: Attachment[];
   posts: PostIt[];
+  answeredQuestions: string[];
+  skippedQuestions: string[];
 };
 
 function emptyExtras(): IdeaExtras {
-  return { notes: {}, attachments: [], posts: [] };
+  return {
+    notes: {},
+    attachments: [],
+    posts: [],
+    answeredQuestions: [],
+    skippedQuestions: [],
+  };
+}
+
+// ——— Clarity's clarifying questions ———
+type ClarityQuestion = {
+  id: string;
+  prompt: string;
+  keywords: string[];
+};
+const CLARITY_QUESTIONS: ClarityQuestion[] = [
+  {
+    id: "problem",
+    prompt: "What problem is this idea trying to solve?",
+    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because"],
+  },
+  {
+    id: "who",
+    prompt: "Who is this for? Picture one real person.",
+    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they"],
+  },
+  {
+    id: "why-now",
+    prompt: "Why does this matter to you right now?",
+    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care"],
+  },
+  {
+    id: "look-like",
+    prompt: "If it existed today, what would it look or feel like?",
+    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual"],
+  },
+  {
+    id: "first-step",
+    prompt: "What's one tiny first step you could take this week?",
+    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make"],
+  },
+  {
+    id: "success",
+    prompt: "How would you know it's working? What's a small win?",
+    keywords: ["success", "win", "work", "know", "measure", "sign", "happy", "users"],
+  },
+  {
+    id: "obstacle",
+    prompt: "What feels in the way? Name one obstacle.",
+    keywords: ["block", "stuck", "hard", "scared", "afraid", "obstacle", "time", "money", "skill"],
+  },
+];
+
+function detectAnswered(text: string, q: ClarityQuestion | undefined): boolean {
+  if (!q) return false;
+  const t = ` ${text.toLowerCase()} `;
+  if (t.trim().length < 12) return false;
+  return q.keywords.some((k) => t.includes(k));
 }
 
 function timeAgo(ts: number) {
@@ -180,10 +239,19 @@ function Dashboard() {
           notes: { ...current.notes, ...(patch.notes ?? {}) },
           attachments: patch.attachments ?? current.attachments,
           posts: patch.posts ?? current.posts,
+          answeredQuestions:
+            patch.answeredQuestions ?? current.answeredQuestions,
+          skippedQuestions:
+            patch.skippedQuestions ?? current.skippedQuestions,
         },
       };
     });
   };
+
+  const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
+    const answered = new Set(selectedExtras.answeredQuestions);
+    return CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
+  }, [selectedExtras.answeredQuestions]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
@@ -194,12 +262,32 @@ function Dashboard() {
       ts: Date.now(),
     };
     const nextPosts = [p, ...selectedExtras.posts];
-    updateExtras({ posts: nextPosts });
-    // bump idea readiness a little for each captured thought
+    const answeredCurrent = detectAnswered(p.text, currentQuestion);
+    updateExtras({
+      posts: nextPosts,
+      answeredQuestions:
+        answeredCurrent && currentQuestion
+          ? [...selectedExtras.answeredQuestions, currentQuestion.id]
+          : selectedExtras.answeredQuestions,
+    });
     updateSelected({
-      shelfReadiness: Math.min(100, selected.shelfReadiness + 4),
+      shelfReadiness: Math.min(
+        100,
+        selected.shelfReadiness + (answeredCurrent ? 7 : 4),
+      ),
     });
   };
+
+  const skipClarityQuestion = () => {
+    if (!selected || !currentQuestion) return;
+    updateExtras({
+      answeredQuestions: [
+        ...selectedExtras.answeredQuestions,
+        currentQuestion.id,
+      ],
+    });
+  };
+
 
 
   const addIdea = () => {
@@ -528,7 +616,13 @@ function Dashboard() {
 
 
       {/* Clarity guide presence */}
-      <ClarityGuide selected={selected} />
+      <ClarityGuide
+        selected={selected}
+        currentQuestion={currentQuestion}
+        answeredCount={selectedExtras.answeredQuestions.length}
+        totalQuestions={CLARITY_QUESTIONS.length}
+        onSkip={skipClarityQuestion}
+      />
 
       {/* floor shadow */}
       <div
@@ -1761,46 +1855,90 @@ function Dot({ pct }: { pct: number }) {
 
 function ClarityGuide({
   selected,
+  currentQuestion,
+  answeredCount,
+  totalQuestions,
+  onSkip,
 }: {
   selected: LightbulbIdea | undefined;
+  currentQuestion: ClarityQuestion | undefined;
+  answeredCount: number;
+  totalQuestions: number;
+  onSkip: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
+  const [minimized, setMinimized] = useState(false);
 
-  const tip = useMemo(() => {
+  const fallbackTip = useMemo(() => {
     if (!selected)
       return "Welcome to the Creator Library. Open My Library and choose a spark to begin.";
-    if (selected.stage === "lightbulb") {
-      if (selected.shelfReadiness < 20)
-        return "Every great idea starts messy. Dump your thoughts — Clarity will help shape them later.";
-      if (selected.shelfReadiness < 45)
-        return "Good energy. Attach links, files, or speak a note to build momentum.";
-      return "This idea is warming up. When it feels full, tap Organize Idea.";
-    }
-    if (selected.stage === "pre-clarity")
-      return "Time to sort your notes into a clear plan. Review each shelf.";
-    return "Keep going. Your idea is taking shape.";
-  }, [selected]);
+    if (!currentQuestion)
+      return "You've answered every question I had. This idea is glowing — try Next Stage.";
+    return null;
+  }, [selected, currentQuestion]);
+
+  const bubbleText = fallbackTip ?? currentQuestion!.prompt;
+  const showQuestionControls = !!selected && !!currentQuestion;
 
   return (
-    <div className="fixed right-6 top-[38%] z-30 hidden -translate-y-1/2 lg:block">
-      <div className="relative">
-        {/* Speech bubble — opens to the left */}
-        {open && (
+    <div
+      className={[
+        // Desktop: mid-right of the scene
+        "fixed z-30",
+        "lg:right-6 lg:top-[38%] lg:-translate-y-1/2",
+        // Mobile: bottom-right above composer
+        "right-3 bottom-[148px] sm:bottom-[160px]",
+      ].join(" ")}
+    >
+      <div className="relative flex flex-col items-end gap-2">
+        {/* Speech / question bubble */}
+        {open && !minimized && (
           <div
-            className="absolute right-full top-1/2 mr-3 w-56 -translate-y-1/2 rounded-lg border border-amber-950/50 p-3 shadow-2xl"
+            className="relative w-[min(78vw,18rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:absolute lg:right-full lg:top-1/2 lg:mr-3 lg:-translate-y-1/2 lg:w-64"
             style={{
               background:
                 "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
             }}
           >
-            <div className="font-serif text-sm font-semibold text-amber-900">
-              Clarity
+            <div className="flex items-center justify-between">
+              <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/70">
+                Clarity asks
+              </div>
+              {showQuestionControls && (
+                <div className="font-serif text-[10px] text-amber-900/60">
+                  {answeredCount}/{totalQuestions}
+                </div>
+              )}
             </div>
-            <p className="mt-1 font-serif text-xs leading-relaxed text-amber-900/80">
-              {tip}
+            <p className="mt-1.5 font-serif text-sm leading-snug text-amber-950">
+              {showQuestionControls ? `“${bubbleText}”` : bubbleText}
             </p>
+            <p className="mt-1.5 font-serif text-[10.5px] italic leading-snug text-amber-900/70">
+              Answer below by typing or speaking a note.
+            </p>
+            {showQuestionControls && (
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <button
+                  onClick={onSkip}
+                  className="font-serif text-[11px] italic text-amber-900/70 underline-offset-2 hover:underline"
+                >
+                  Skip question
+                </button>
+                <button
+                  onClick={() => setMinimized(true)}
+                  className="font-serif text-[11px] text-amber-900/70 hover:text-amber-950"
+                >
+                  Hide
+                </button>
+              </div>
+            )}
+            {/* Tail — desktop points right, mobile points down */}
             <div
-              className="absolute -right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border-t border-r border-amber-950/50"
+              className="absolute hidden h-3 w-3 rotate-45 border-t border-r border-amber-950/60 lg:block lg:-right-1.5 lg:top-1/2 lg:-translate-y-1/2"
+              style={{ background: "#f0dca5" }}
+            />
+            <div
+              className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-b border-r border-amber-950/60 lg:hidden"
               style={{ background: "#f0dca5" }}
             />
           </div>
@@ -1808,9 +1946,13 @@ function ClarityGuide({
 
         {/* Avatar */}
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            if (!open) setOpen(true);
+            else setMinimized((m) => !m);
+          }}
           title="Clarity — your library guide"
-          className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80"
+          aria-label="Clarity guide"
+          className="relative flex h-[60px] w-[60px] items-center justify-center rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80 lg:h-[72px] lg:w-[72px]"
           style={{
             background:
               "radial-gradient(circle at 35% 35%, #fff4c0 0%, #f5d27a 30%, #c88020 80%, #5a3010 100%)",
@@ -1819,12 +1961,11 @@ function ClarityGuide({
               "0 0 40px 10px rgba(255,200,90,0.45), inset 0 -2px 8px rgba(0,0,0,0.3)",
           }}
         >
-          {/* Face */}
           <svg
-            width="34"
-            height="34"
+            width="30"
+            height="30"
             viewBox="0 0 34 34"
-            className="pointer-events-none opacity-85"
+            className="pointer-events-none opacity-85 lg:h-[34px] lg:w-[34px]"
           >
             <ellipse cx="12" cy="14" rx="3" ry="3.5" fill="#3a1d08" />
             <ellipse cx="22" cy="14" rx="3" ry="3.5" fill="#3a1d08" />
@@ -1837,7 +1978,14 @@ function ClarityGuide({
             />
             <circle cx="17" cy="19" r="1.8" fill="#d97a3b" opacity="0.5" />
           </svg>
-          {/* Inner shine ring */}
+          {showQuestionControls && (
+            <span
+              aria-hidden
+              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-50 font-serif text-[11px] font-bold text-amber-900 shadow-md ring-2 ring-amber-950/60"
+            >
+              ?
+            </span>
+          )}
           <span
             aria-hidden
             className="pointer-events-none absolute inset-1 rounded-full"
@@ -1846,18 +1994,11 @@ function ClarityGuide({
             }}
           />
         </button>
-
-        {/* Name label */}
-        <div
-          className="mt-1.5 text-center font-serif text-[10px] uppercase tracking-[0.2em] text-amber-100/80"
-          style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
-        >
-          Clarity
-        </div>
       </div>
     </div>
   );
 }
+
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
