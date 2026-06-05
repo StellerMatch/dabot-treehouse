@@ -217,15 +217,16 @@ function Dashboard() {
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
-      {/* sun shaft + warm wash */}
+      {/* gentle sun wash — keep background visible */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-20"
         style={{
           background:
-            "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,225,160,0.55), transparent 70%), linear-gradient(180deg, rgba(60,30,8,0.15), rgba(40,18,2,0.45))",
+            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,225,160,0.35), transparent 70%), linear-gradient(180deg, rgba(60,30,8,0.05), rgba(40,18,2,0.15))",
         }}
       />
+
       {/* floating dust motes */}
       <div
         aria-hidden
