@@ -292,12 +292,8 @@ function Dashboard() {
 
       {/* Three-column tree-library interior */}
       <div className="relative grid flex-1 grid-cols-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
-        {/* ============ LEFT BOOKSHELF WALL ============ */}
-        <ShelfWall side="left" title="Idea Books" subtitle="Pull one to open it">
-          <ShelfAction
-            label="+ New Idea"
-            onClick={addIdea}
-          />
+        {/* ============ LEFT BOOKSHELF WALL — My Ideas ============ */}
+        <ShelfWall side="left" title="My Ideas" subtitle="Pull a book to open it">
           {ideaShelves.map((row, rIdx) => (
             <Shelf key={rIdx}>
               {row.map((idea, idx) => (
@@ -316,15 +312,54 @@ function Dashboard() {
                 ))}
             </Shelf>
           ))}
-          {/* empty shelf to feel like there's room to grow */}
-          {ideaShelves.length < 3 && (
-            <Shelf>
-              <BookGhost />
-              <BookGhost />
-              <BookGhost />
-            </Shelf>
-          )}
+
+          {/* Suggested Seeds sub-section */}
+          <div className="relative px-2 pt-4">
+            <div className="mb-2 text-center font-serif text-[11px] uppercase tracking-[0.25em] text-amber-100/70">
+              · Idea Sparks ·
+            </div>
+          </div>
+          <Shelf>
+            {suggestedSeeds.map((seed, i) => (
+              <BookSpine
+                key={seed.id}
+                title={seed.title}
+                meta="Spark"
+                active={false}
+                hue={i + 4}
+                onClick={() => {
+                  const id = `idea-${Date.now()}`;
+                  setIdeas((prev) => [
+                    {
+                      id,
+                      title: seed.title,
+                      messy: "",
+                      shelfReadiness: 5,
+                      updatedAt: Date.now(),
+                      stage: "lightbulb",
+                      nextAction: "Dump your messy idea",
+                    },
+                    ...prev,
+                  ]);
+                  setSelectedId(id);
+                  setActiveCategory("lightbulb");
+                }}
+              />
+            ))}
+          </Shelf>
+
+          {/* tiny + new idea marker at the very bottom */}
+          <div className="relative flex justify-center pt-2">
+            <button
+              onClick={addIdea}
+              title="Add a new idea book"
+              className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
+            >
+              <span className="text-base leading-none">+</span> New Idea
+            </button>
+          </div>
         </ShelfWall>
+
 
         {/* ============ CENTER — open journal on writing desk ============ */}
         <section className="relative px-4 py-6 lg:px-8 lg:py-8">
