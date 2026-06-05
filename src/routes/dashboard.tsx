@@ -3298,7 +3298,7 @@ function PostItCard({
             </DialogDescription>
           </DialogHeader>
           <p className="whitespace-pre-wrap break-words font-serif text-[14px] leading-relaxed text-amber-950">
-            {text}
+            {fullText ?? text}
           </p>
         </DialogContent>
       </Dialog>
