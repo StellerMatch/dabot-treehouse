@@ -514,7 +514,7 @@ function Dashboard() {
         src={claritySquirrel}
         alt="Clarity"
         aria-hidden
-        className="pointer-events-none fixed z-10 select-none right-[-30px] bottom-[150px] h-[200px] sm:right-2 sm:bottom-[220px] sm:h-[240px] lg:right-6 lg:bottom-28 lg:h-[360px]"
+        className="pointer-events-none fixed z-10 select-none right-[-60px] bottom-[140px] h-[320px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
         style={{
           width: "auto",
           filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
@@ -1243,7 +1243,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
   return (
     <span
       className={`group relative inline-flex shrink-0 items-center font-serif transition-transform ${lifted}`}
-      style={{ height: 64, width: 300 }}
+      style={{ height: 56, width: 268 }}
     >
       {/* shelf shadow */}
       <span
@@ -1328,37 +1328,33 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
         />
 
         {/* engraved content: big percent + label */}
-        <span className="relative z-10 flex w-full items-baseline justify-between gap-3 px-4 pb-1">
-          <span className="flex items-baseline gap-1.5">
-            <span
-              className="font-serif font-bold leading-none tracking-tight"
-              style={{
-                fontSize: 40,
-                color: "#ffe9a3",
-                textShadow:
-                  "0 1px 0 rgba(0,0,0,0.85), 0 0 16px rgba(255,210,120,0.85), 0 0 3px rgba(255,240,180,0.95)",
-              }}
-            >
-              {fillPct}%
-            </span>
-            <span
-              className="font-serif text-[13px] font-semibold uppercase tracking-[0.18em]"
-              style={{
-                color: "#ffe9a3",
-                textShadow: "0 1px 0 rgba(0,0,0,0.8), 0 0 6px rgba(255,200,110,0.6)",
-              }}
-            >
-              Ready
-            </span>
-          </span>
+        <span className="relative z-10 flex w-full items-center justify-between gap-3 px-4">
           <span
-            className="font-serif text-[10px] font-semibold uppercase tracking-[0.25em]"
+            className="font-serif text-[28px] font-bold leading-none tracking-tight"
             style={{
-              color: "rgba(251,230,184,0.85)",
-              textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+              color: "#ffe9a3",
+              textShadow:
+                "0 1px 0 rgba(0,0,0,0.8), 0 0 14px rgba(255,210,120,0.7), 0 0 2px rgba(255,240,180,0.9)",
             }}
           >
-            Idea Progress
+            {fillPct}%
+          </span>
+          <span className="flex flex-col items-end">
+            <span
+              className="font-serif text-[11px] font-semibold uppercase tracking-[0.25em]"
+              style={{
+                color: "#fbe6b8",
+                textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+              }}
+            >
+              Idea Progress
+            </span>
+            <span
+              className="font-serif text-[10px] italic"
+              style={{ color: "rgba(251,230,184,0.75)" }}
+            >
+              {fillPct >= 90 ? "Ready" : fillPct >= 50 ? "Growing" : fillPct > 0 ? "Started" : "Empty"}
+            </span>
           </span>
         </span>
       </span>
