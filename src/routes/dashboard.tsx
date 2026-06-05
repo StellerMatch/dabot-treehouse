@@ -3067,7 +3067,7 @@ function NoteDesk(props: {
             No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
           </div>
         )}
-        <div className="grid grid-cols-1 justify-items-center gap-4 pb-72 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6 lg:pb-56">
+        <div className="mx-auto grid w-full max-w-[420px] grid-cols-3 justify-items-center gap-2 pb-72 sm:max-w-[520px] sm:gap-3 lg:mx-0 lg:ml-2 lg:max-w-[640px] lg:gap-4 lg:pb-56 xl:ml-6">
           {selected.messy && extras.posts.length === 0 && (
             <PostItCard
               text={selected.messy}
@@ -3256,49 +3256,40 @@ function PostItCard({
   const fallback: CategoryKey = kind === "info-gathered" ? "pre-clarity" : "lightbulb";
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
-  const preview = (() => {
-    const base = text.replace(/\s+/g, " ").trim();
-    return base.length > 140 ? base.slice(0, 138).replace(/\s+\S*$/, "") + "…" : base;
-  })();
+  const folderName = isMixed ? "Mixed" : label;
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative w-full max-w-[200px] cursor-pointer rounded-sm border text-left shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)]"
+        className="relative flex aspect-square w-full max-w-[150px] cursor-pointer items-center justify-center rounded-sm border p-2 text-center shadow-[0_10px_18px_-10px_rgba(20,8,2,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_22px_-10px_rgba(20,8,2,0.75)] sm:max-w-[160px] lg:max-w-[180px]"
         style={{
           background: palette.bg,
           borderColor: palette.edge,
           transform: `rotate(${rot}deg)`,
         }}
-        title="Open full note"
+        title={`Open ${folderName}`}
+        aria-label={`Open ${folderName} folder`}
       >
         <span
           aria-hidden
           className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 -rotate-3 rounded-sm"
           style={{ background: palette.tape, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
         />
-        <div className="px-2.5 pt-3 pb-2.5">
-          <div className="mb-1 flex items-center justify-between gap-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/80">
-            <span
-              className="truncate rounded-sm border px-1 py-[1px]"
-              style={{ background: palette.chip, borderColor: palette.edge }}
-              title={isMixed ? "Covers multiple categories" : label}
-            >
-              {isMixed ? "Mixed" : label}
-            </span>
-            {pinned ? <span>· seed</span> : <span className="shrink-0">{timeAgo(ts)}</span>}
-          </div>
-          <p className="line-clamp-5 break-words font-serif text-[12px] leading-snug text-amber-950">
-            {preview}
-          </p>
-        </div>
+        <span className="break-words font-serif text-[15px] font-semibold leading-tight text-amber-950 sm:text-[16px] lg:text-[18px]">
+          {folderName}
+        </span>
+        {pinned && (
+          <span className="absolute bottom-1 right-1.5 font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
+            seed
+          </span>
+        )}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md border-amber-950/80 text-amber-950" style={{ background: palette.bg }}>
           <DialogHeader>
             <DialogTitle className="font-serif text-amber-950">
-              {isMixed ? "Mixed note" : label}
+              {folderName} folder
             </DialogTitle>
             <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
               {pinned ? "Seed note" : timeAgo(ts)}
@@ -3310,6 +3301,13 @@ function PostItCard({
           <p className="whitespace-pre-wrap break-words font-serif text-[14px] leading-relaxed text-amber-950">
             {fullText ?? text}
           </p>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="mt-2 self-start rounded-sm border border-amber-950/60 bg-amber-50/60 px-3 py-1 font-serif text-[12px] text-amber-950 hover:bg-amber-50"
+          >
+            ← Back to library
+          </button>
         </DialogContent>
       </Dialog>
     </>
