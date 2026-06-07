@@ -12,6 +12,7 @@ import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
+const claritySquirrelReady = claritySquirrelReadyAsset.url;
 const owlSage = owlSageAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
