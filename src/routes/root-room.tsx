@@ -215,7 +215,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
-            className="pointer-events-none absolute z-[5] rr-clarity-fly"
+            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
             style={{ "--rr-fly-start-x": `${activeTunnel.x}%` } as React.CSSProperties}
             draggable={false}
           />
