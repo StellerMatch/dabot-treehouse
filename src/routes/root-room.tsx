@@ -261,21 +261,22 @@ function RootRoom() {
           100% { transform: translateY(0)     scale(1)    rotate(0deg);  opacity: 1; }
         }
         @keyframes rr-smoke-rise {
-          0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-          20%  { opacity: 0.45; }
-          70%  { opacity: 0.3; }
-          100% { transform: translate(calc(-50% + 14px), -180%) scale(2.2); opacity: 0; }
+          0%   { transform: translate(-50%, 10%) scale(0.5) rotate(0deg); opacity: 0; }
+          15%  { opacity: 0.95; }
+          50%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.6) rotate(20deg); opacity: 0.8; }
+          100% { transform: translate(calc(-50% + var(--drift)), -210%) scale(2.6) rotate(40deg); opacity: 0; }
         }
         .rr-smoke {
           position: absolute;
-          bottom: 0;
-          width: 38px;
-          height: 38px;
+          bottom: -10%;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(220,210,200,0.55) 0%, rgba(180,170,160,0.3) 45%, transparent 75%);
-          filter: blur(8px);
+          background:
+            radial-gradient(circle at 35% 35%, rgba(245,240,230,0.95) 0%, rgba(210,200,185,0.75) 30%, rgba(150,140,125,0.4) 60%, transparent 80%),
+            radial-gradient(circle at 70% 60%, rgba(230,220,205,0.6) 0%, transparent 55%);
+          filter: blur(6px);
+          mix-blend-mode: screen;
           transform: translate(-50%, 0);
-          animation: rr-smoke-rise linear infinite;
+          animation: rr-smoke-rise ease-out infinite;
           will-change: transform, opacity;
         }
       `}</style>
