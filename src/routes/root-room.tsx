@@ -251,7 +251,7 @@ function RootRoom() {
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
                 style={{
                   bottom: "19%",
-                  height: "36.17vh",
+                  height: "39.787vh",
                   width: "auto",
                   opacity: showFinalPodium ? 1 : 0,
                   transition: "opacity 600ms ease",
@@ -265,7 +265,7 @@ function RootRoom() {
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
                 style={{
                   bottom: "40%",
-                  height: "14vh",
+                  height: "15.4vh",
                   width: "auto",
                   opacity: showRestingBook ? 1 : 0,
                   transition: "opacity 600ms ease",
@@ -656,7 +656,7 @@ function RootRoom() {
           height: 65.93vh;
         }
         .rr-char-shield.rr-clarity-present {
-          height: 72.21vh;
+          height: 79.431vh;
         }
         .rr-char-xl.rr-clarity-fly {
           height: 71.66vh;
@@ -672,6 +672,7 @@ function RootRoom() {
         .rr-char-clarity.rr-clarity-present {
           height: 49.66vh;
           margin-left: -1vw;
+          top: 45%;
         }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
@@ -734,7 +735,7 @@ function RootRoom() {
           100% { bottom: 115%; transform: translateX(-50%) scale(2); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
         }
         .rr-book-ascend {
-          height: 14vh; width: auto; bottom: 40%;
+          height: 15.4vh; width: auto; bottom: 40%;
           transform-origin: center center;
           animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
           will-change: bottom, transform, opacity;
