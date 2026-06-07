@@ -1,8 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
-import rootRoomPodiumAsset from "@/assets/root-room-podium-v2.png.asset.json";
-import floatingBookAsset from "@/assets/podium-book-v2.png.asset.json";
+import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
+import rootRoomPodiumBookAsset from "@/assets/root-room-podium-book.png.asset.json";
+import rootRoomFinalPodiumAsset from "@/assets/root-room-podium-v2.png.asset.json";
+import rootRoomFinalBookAsset from "@/assets/podium-book-v2.png.asset.json";
+import floatingBookAsset from "@/assets/floating-book.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import echoFlyingAsset from "@/assets/echo-flying.png.asset.json";
@@ -186,23 +189,42 @@ function RootRoom() {
           </>
         )}
 
-        {/* Podium centered on the cavern floor — crossfades to book version after foundation completes */}
+        {/* Podium centered on the cavern floor — original podium during the journey, swaps to final podium+book when root room is complete */}
         {(() => {
-          const showBook = !ascending && (activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete"));
+          const showInterimBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
+          const showFinal = rootRoomComplete && !ascending;
           return (
             <>
+              {/* Original podium (empty) */}
               <img
                 src={rootRoomPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showBook ? 0 : 1 }}
+                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showFinal || showInterimBook ? 0 : 1 }}
                 draggable={false}
               />
+              {/* Original podium with book (during steps) */}
               <img
-                src={floatingBookAsset.url}
+                src={rootRoomPodiumBookAsset.url}
+                alt=""
+                className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
+                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: !showFinal && showInterimBook ? 1 : 0 }}
+                draggable={false}
+              />
+              {/* Final podium shown only when root room is complete */}
+              <img
+                src={rootRoomFinalPodiumAsset.url}
+                alt=""
+                className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
+                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                draggable={false}
+              />
+              {/* Final book resting on the final podium, ready to float */}
+              <img
+                src={rootRoomFinalBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
-                style={{ bottom: "33%", height: "14vh", width: "auto", opacity: showBook ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "33%", height: "14vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
             </>
@@ -248,7 +270,7 @@ function RootRoom() {
       {ascending && (
         <div className="pointer-events-none fixed inset-0 z-[80]">
           <img
-            src={floatingBookAsset.url}
+            src={rootRoomFinalBookAsset.url}
             alt=""
             className="rr-book-ascend absolute left-1/2 -translate-x-1/2"
             draggable={false}
