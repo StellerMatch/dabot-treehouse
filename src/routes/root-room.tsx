@@ -279,12 +279,6 @@ function RootRoom() {
 
       {ascending && (
         <div className="pointer-events-none fixed inset-0 z-[80]">
-          <img
-            src={rootRoomFinalBookAsset.url}
-            alt=""
-            className="rr-book-ascend absolute left-1/2 -translate-x-1/2"
-            draggable={false}
-          />
           <div className="rr-ascent-glow absolute left-1/2 top-0 -translate-x-1/2" />
           <div className="rr-ascent-flash absolute inset-0" />
         </div>
