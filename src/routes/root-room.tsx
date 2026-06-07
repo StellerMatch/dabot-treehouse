@@ -577,6 +577,37 @@ function RootRoom() {
             object-position: center center;
           }
         }
+        @keyframes rr-book-ascend-kf {
+          0%   { bottom: 28%; transform: translateX(-50%) scale(0.55) rotate(-2deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          15%  { opacity: 1; }
+          70%  { bottom: 72%; transform: translateX(-50%) scale(1.05) rotate(3deg); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
+          100% { bottom: 110%; transform: translateX(-50%) scale(1.6) rotate(6deg); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
+        }
+        .rr-book-ascend {
+          height: 26vh; width: auto; bottom: 28%;
+          animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
+          will-change: bottom, transform, opacity;
+        }
+        @keyframes rr-ascent-glow-kf {
+          0%   { opacity: 0; transform: translateX(-50%) scaleY(0.4); }
+          40%  { opacity: 0.95; transform: translateX(-50%) scaleY(1); }
+          100% { opacity: 0; transform: translateX(-50%) scaleY(1.2); }
+        }
+        .rr-ascent-glow {
+          width: 18vmin; height: 100vh; transform-origin: top center;
+          background: radial-gradient(ellipse at top, rgba(255,240,200,0.95) 0%, rgba(255,210,130,0.55) 30%, rgba(255,170,60,0.18) 60%, transparent 80%);
+          filter: blur(8px);
+          mix-blend-mode: screen;
+          animation: rr-ascent-glow-kf 2s ease-out forwards;
+        }
+        @keyframes rr-ascent-flash-kf {
+          0%, 70% { opacity: 0; }
+          100%    { opacity: 1; background: rgba(255,245,215,0.95); }
+        }
+        .rr-ascent-flash {
+          background: rgba(255,245,215,0);
+          animation: rr-ascent-flash-kf 2s ease-in forwards;
+        }
       `}</style>
     </main>
   );
