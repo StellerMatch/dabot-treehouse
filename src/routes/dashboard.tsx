@@ -287,16 +287,18 @@ function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefi
 // Premade Clarity questions per category — used when a user clicks a category folder
 function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  const label = postItCategoryPalette[cat].label;
+  const prefix = `Clarity opened the ${label} book for ${name}:`;
   const questions: Record<CategoryKey, string> = {
-    "core-idea": `In one line, what is ${name}, and what's its main purpose?`,
-    clarity: `What does Clarity already understand about ${name}, and where is the direction still fuzzy?`,
-    problem: `What pain point, need, or opportunity makes ${name} worth building?`,
-    audience: `Who exactly is ${name} for — which users, buyers, or roles?`,
-    features: `What tools, screens, or actions does ${name} need to do its job?`,
-    workflow: `How does someone move through ${name} step by step?`,
-    design: `How should ${name} look, feel, and behave so it's easy to use?`,
-    business: `How does ${name} make money or become worth paying for?`,
-    concerns: `What should we watch, validate, or revisit before ${name} moves forward?`,
+    "core-idea": `${prefix} what is its main purpose in one line?`,
+    clarity: `${prefix} what is already clear, and where is the direction still fuzzy?`,
+    problem: `${prefix} what pain point makes it worth building?`,
+    audience: `${prefix} who exactly is it for — which users, buyers, or roles?`,
+    features: `${prefix} what tools, screens, or actions does it need next?`,
+    workflow: `${prefix} what should happen step by step?`,
+    design: `${prefix} how should it look, feel, and behave so it's easy to use?`,
+    business: `${prefix} how does it make money or become worth paying for?`,
+    concerns: `${prefix} what should we watch, validate, or revisit before it moves forward?`,
   };
   return questions[cat];
 }
@@ -3122,6 +3124,7 @@ function ClarityGuide({
 
   const bubbleText = fallbackTip ?? currentQuestion!.prompt;
   const showQuestionControls = !!selected && !!currentQuestion;
+  const isCategoryQuestion = currentQuestion?.id.startsWith("cat-") ?? false;
 
   // Speech bubble anchored to Clarity (the squirrel) in the background art.
   // Desktop: floats above the squirrel's head on the right side of the scene,
@@ -3159,7 +3162,7 @@ function ClarityGuide({
                   onClick={onSkip}
                   className="font-serif text-[11px] italic text-amber-900/70 underline-offset-2 hover:underline"
                 >
-                  Next Question
+                  {isCategoryQuestion ? "Back to Clarity" : "Next Question"}
                 </button>
                 <button
                   onClick={() => setMinimized(true)}
