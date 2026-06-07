@@ -215,7 +215,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
-            className="pointer-events-none absolute z-[5] rr-clarity-fly"
+            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
             style={{ "--rr-fly-start-x": `${activeTunnel.x}%` } as React.CSSProperties}
             draggable={false}
           />
@@ -226,7 +226,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampPresentingAsset.url : activeStepId === "record" ? ledgerPresentingAsset.url : activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
             alt=""
-            className="pointer-events-none absolute z-[5] rr-clarity-present"
+            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
             draggable={false}
           />
         )}
@@ -543,6 +543,12 @@ function RootRoom() {
           animation: rr-clarity-present-kf 0.5s ease-out forwards;
           filter: drop-shadow(0 0 32px rgba(255,210,140,0.9));
         }
+        .rr-char-large.rr-clarity-fly {
+          height: 57.33vh;
+        }
+        .rr-char-large.rr-clarity-present {
+          height: 62.79vh;
+        }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
           .rr-clarity-fly {
@@ -551,6 +557,12 @@ function RootRoom() {
           .rr-clarity-present {
             top: 56%;
             height: min(44.1vh, 23.1rem);
+          }
+          .rr-char-large.rr-clarity-fly {
+            height: min(60.06vh, 31.395rem);
+          }
+          .rr-char-large.rr-clarity-present {
+            height: min(57.33vh, 30.03rem);
           }
           @keyframes rr-clarity-fly-kf {
             0%   { left: 50%; top: 42%; transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
