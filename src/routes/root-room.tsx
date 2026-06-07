@@ -94,30 +94,34 @@ function RootRoom() {
         {/* Tunnel highlights */}
         {TUNNELS.map((t) => {
           const isActive = t.id === activeStepId;
+          if (!isActive) return null;
           return (
             <div
               key={t.id}
               className="pointer-events-none absolute"
               style={{
                 left: `${t.x}%`,
-                top: "38%",
-                width: "14%",
-                height: "32%",
-                transform: "translate(-50%, -50%)",
+                top: "52%",
+                width: "16%",
+                height: "55%",
+                transform: "translate(-50%, -100%)",
               }}
             >
-              <div
-                className="h-full w-full rounded-[40%] transition-opacity duration-700"
-                style={{
-                  background: `radial-gradient(ellipse at center, ${t.accent} 0%, transparent 70%)`,
-                  opacity: isActive ? 0.85 : 0,
-                  filter: "blur(8px)",
-                  animation: isActive && !reducedMotion ? "rr-pulse 2.4s ease-in-out infinite" : undefined,
-                }}
-              />
+              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => (
+                <span
+                  key={i}
+                  className="rr-smoke"
+                  style={{
+                    left: `${15 + i * 11}%`,
+                    animationDelay: `${i * 0.55}s`,
+                    animationDuration: `${5 + (i % 3) * 0.8}s`,
+                  }}
+                />
+              ))}
             </div>
           );
         })}
+
 
         {/* Packet on the podium */}
         <div
