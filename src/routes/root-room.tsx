@@ -409,7 +409,7 @@ function RootRoom() {
                 Root Room Complete
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-                Every root check is complete. The packet is ready to rise back into the library.
+                Every root check is complete. The packet is ready to rise toward the Trunk.
               </p>
             </>
           ) : (
@@ -772,7 +772,7 @@ function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscen
       className={`group relative inline-flex h-[40px] w-[188px] shrink-0 items-center font-serif transition-transform ${
         unlocked ? "hover:-translate-y-[1px]" : "cursor-not-allowed opacity-60 saturate-[0.55]"
       }`}
-      title={unlocked ? "Ready! Return to the Library" : "Complete the Root Room first"}
+      title={unlocked ? "Ready for the Trunk" : "Complete the Root Room first"}
       aria-disabled={!unlocked}
     >
       <span

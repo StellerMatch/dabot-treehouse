@@ -77,7 +77,10 @@ function TrunkPage() {
 
         {/* Soft warm glow on table when book lands */}
         {bookArrived && (
-          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 trunk-table-glow" aria-hidden />
+          <div
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 trunk-table-glow"
+            aria-hidden
+          />
         )}
       </div>
 
