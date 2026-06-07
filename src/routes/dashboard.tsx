@@ -285,9 +285,25 @@ function requiredFollowupQuestionFor(
     ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
   return {
     id: `required-${answeredCount + 1}-${cat}`,
-    prompt: `${categoryQuestionFor(cat, idea)} Follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS}.`,
+    prompt: `${requiredFollowupTextFor(cat, idea)} Follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS}.`,
     keywords: [],
   };
+}
+
+function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
+  const name = projectQuestionName(idea);
+  const questions: Record<CategoryKey, string> = {
+    "core-idea": `What is the strongest one-line purpose for ${name}?`,
+    clarity: `What still feels unclear, undecided, or worth sharpening in ${name}?`,
+    problem: `What pain point makes ${name} worth building?`,
+    audience: `Who exactly needs ${name} first?`,
+    features: `What feature or action matters most in the first useful version of ${name}?`,
+    workflow: `What should happen step by step when someone uses ${name}?`,
+    design: `How should ${name} look, feel, or behave so it is easy to use?`,
+    business: `How could ${name} make money, save money, or become worth paying for?`,
+    concerns: `What should we watch, validate, or protect before ${name} moves forward?`,
+  };
+  return questions[cat];
 }
 
 // Premade Clarity questions per category — used when a user clicks a category folder
@@ -3638,7 +3654,9 @@ function ClarityGuide({
   const bubbleText =
     fallbackTip ??
     (needsDepthPass
-      ? `This already has a strong shape. I want to ask a few focused questions so the project has more depth before it moves forward.\n\n${currentQuestion!.prompt}`
+      ? answeredCount === 0
+        ? `Beautiful work. This idea already has a strong base, and you have clearly put real thought into it. Before we move to Next Stage, I want to ask five quick questions to strengthen the few parts that still need a little more foundation.\n\n${currentQuestion!.prompt}`
+        : currentQuestion!.prompt
       : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;
   const isCategoryQuestion = currentQuestion?.id.startsWith("cat-") ?? false;
