@@ -8,6 +8,7 @@ import {
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 // Background is the original library scene (no owl baked in). The owl sage is now a separate overlay layer (owlSage) so it can be repositioned independently.
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
+import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
