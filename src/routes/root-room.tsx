@@ -543,6 +543,12 @@ function RootRoom() {
           animation: rr-clarity-present-kf 0.5s ease-out forwards;
           filter: drop-shadow(0 0 32px rgba(255,210,140,0.9));
         }
+        .rr-char-large.rr-clarity-fly {
+          height: 57.33vh;
+        }
+        .rr-char-large.rr-clarity-present {
+          height: 62.79vh;
+        }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
           .rr-clarity-fly {
