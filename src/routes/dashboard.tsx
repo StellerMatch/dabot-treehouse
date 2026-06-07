@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   seedIdeas,
@@ -692,20 +692,24 @@ function Dashboard() {
 
 
 
-  const addIdea = () => {
+  const addIdea = (ideaType?: string) => {
     const id = `idea-${Date.now()}`;
     const fresh: LightbulbIdea = {
       id,
-      title: "New lightbulb",
+      title: ideaType ? `New ${ideaType}` : "New lightbulb",
       messy: "",
       shelfReadiness: 5,
       updatedAt: Date.now(),
       stage: "lightbulb",
       nextAction: "Dump your messy idea",
+      ideaType: ideaType || undefined,
     };
+    // Ensure a fresh, blank workspace: no previous title, notes, posts, or progress.
     setIdeas((prev) => [fresh, ...prev]);
+    setExtras((prev) => ({ ...prev, [id]: emptyExtras() }));
     setSelectedId(id);
     setActiveCategory("core-idea");
+    setCategoryAsk(null);
   };
 
   const moveToPreClarity = (id: string) => {
@@ -798,7 +802,7 @@ function Dashboard() {
 
       <div className="relative flex justify-center pt-2">
         <button
-          onClick={addIdea}
+          onClick={() => addIdea()}
           title="Add a new idea book"
           className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
         >
@@ -905,7 +909,7 @@ function Dashboard() {
             selectedId={selected?.id ?? ""}
             onSelect={(id) => setSelectedId(id)}
           />
-          <NewLightbulbPopover />
+          <NewLightbulbPopover onCreate={(type) => addIdea(type)} />
 
         </div>
 
@@ -1591,19 +1595,18 @@ const NEW_IDEA_CATEGORIES: { id: string; label: string; type: string }[] = [
   { id: "story", label: "Tell a Story", type: "Story" },
 ];
 
-function NewLightbulbPopover() {
+function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }) {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const goToDoor = (type?: string) => {
+  const create = (type?: string) => {
     setOpen(false);
+    // Clear any stale homepage draft so nothing leaks into the new project.
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
-        if (type) sessionStorage.setItem("dabottree:draftIdeaType", type);
-        else sessionStorage.removeItem("dabottree:draftIdeaType");
+        sessionStorage.removeItem("dabottree:draftIdeaType");
       } catch {}
     }
-    navigate({ to: "/", search: type ? { type } : undefined as never });
+    onCreate(type);
   };
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -1629,7 +1632,7 @@ function NewLightbulbPopover() {
         }}
       >
         <button
-          onClick={() => goToDoor()}
+          onClick={() => create()}
           className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-950 shadow-md transition hover:brightness-110"
           style={{
             background:
@@ -1645,7 +1648,7 @@ function NewLightbulbPopover() {
           {NEW_IDEA_CATEGORIES.map((c) => (
             <li key={c.id}>
               <button
-                onClick={() => goToDoor(c.type)}
+                onClick={() => create(c.type)}
                 className="flex w-full items-center gap-2 rounded-sm border border-amber-900/40 bg-amber-50/40 px-2 py-1.5 text-left font-serif text-[12px] text-amber-950 transition hover:bg-amber-100/70"
               >
                 <Lightbulb className="h-3 w-3 text-amber-700" />
@@ -3162,40 +3165,34 @@ function NoteDesk(props: {
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
       <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:max-w-[640px]">
-        {extras.posts.length === 0 && !selected.messy && (
-          <div
-            className="relative mx-auto max-w-md rounded-md border border-amber-950/40 px-5 py-4 text-center font-serif italic text-amber-950 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
-            }}
-          >
-            No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
-          </div>
-        )}
         <div className="grid grid-cols-2 gap-1.5 pb-40 sm:grid-cols-4 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
-          {selected.messy && extras.posts.length === 0 && (
-            <PostItCard
-              text={selected.messy}
-              kind="idea-notes"
-              ts={selected.updatedAt}
-              hue={0}
-              pinned
-              categories={["core-idea"]}
-            />
-          )}
-          {extras.posts.map((p, i) => {
-            const catKey = p.categories?.[0];
-            const pct = catKey ? categoryStatus(getCategoryValue(catKey)).pct : 0;
+          {CATEGORY_ORDER.map((cat, i) => {
+            // Aggregate any posts the user has captured for this category so
+            // the detail view shows everything in one place.
+            const postsForCat = extras.posts.filter((p) =>
+              (p.categories ?? []).includes(cat),
+            );
+            const aggregated = postsForCat
+              .map((p) => p.fullText ?? p.text)
+              .join("\n\n");
+            const value = getCategoryValue(cat);
+            const combined = [value, aggregated].filter((s) => s && s.trim().length > 0).join("\n\n");
+            const filled = combined.trim().length > 0;
+            const pct = categoryStatus(combined).pct;
+            const label = postItCategoryPalette[cat].label;
             return (
               <PostItCard
-                key={p.id}
-                text={p.text}
-                fullText={p.fullText}
-                kind={p.kind}
-                ts={p.ts}
+                key={cat}
+                text={label}
+                fullText={
+                  filled
+                    ? combined
+                    : `${CATEGORY_MISSING[cat]}\n\nNothing captured yet for ${label}. Use the parchment tray below to add a note.`
+                }
+                kind="idea-notes"
+                ts={selected.updatedAt}
                 hue={i + 1}
-                categories={p.categories}
+                categories={[cat]}
                 pct={pct}
               />
             );
