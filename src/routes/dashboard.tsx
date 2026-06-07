@@ -341,6 +341,7 @@ function categoryStatus(value: string | undefined) {
 // ——— Title generator ———
 const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
   { match: /\b(construction|jobsite|job site|crew|contractor)\b/i, name: "Construction Crew" },
+  { match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i, name: "Photo Editing" },
   { match: /\brecipe|cook|kitchen\b/i, name: "Family Recipe" },
   { match: /\bpet|dog|cat\b/i, name: "Pet Care" },
   { match: /\bplant|garden\b/i, name: "Garden" },
@@ -794,6 +795,56 @@ function clarityAnsweredFrom(text: string): string[] {
   ).map((q) => q.id);
 }
 
+const QUESTION_CATEGORY_SIGNALS: Record<string, CategoryKey[]> = {
+  problem: ["problem"],
+  who: ["audience"],
+  "first-paid-version": ["business"],
+  "look-like": ["design"],
+};
+
+function usefulFolderBodyFromPosts(posts: PostIt[], cat: CategoryKey): string {
+  const generated = posts.find((post) => {
+    const postCat = post.categories?.[0];
+    return postCat === cat && isGeneratedCategoryFolderPost(post, cat);
+  });
+  if (!generated) return "";
+  return extractCategorySourceBody(generated, cat);
+}
+
+function answeredQuestionsFromFolders(posts: PostIt[]): string[] {
+  const answered = new Set<string>();
+
+  for (const [questionId, cats] of Object.entries(QUESTION_CATEGORY_SIGNALS)) {
+    if (cats.some((cat) => usefulFolderBodyFromPosts(posts, cat))) {
+      answered.add(questionId);
+    }
+  }
+
+  const folderText = CATEGORY_ORDER.map((cat) => usefulFolderBodyFromPosts(posts, cat))
+    .filter(Boolean)
+    .join("\n")
+    .toLowerCase();
+
+  if (/\b(version one|version 1|v1|first version|smallest useful version|mvp)\b/.test(folderText)) {
+    answered.add("version-one");
+  }
+  if (/\b(owner|approval|approve|human helper|ai|operator|reviewer|who is doing|who does)\b/.test(folderText)) {
+    answered.add("who-does-work");
+  }
+  if (/\b(trust|proof|confidence|comparison|approve|approval|quality|reliable|accurate)\b/.test(folderText)) {
+    answered.add("trust-first");
+  }
+  if (/\b(detail|style|tone|feel|feeling|privacy|speed|control|consistent|consistency|exact result)\b/.test(folderText)) {
+    answered.add("most-important-detail");
+  }
+
+  return Array.from(answered);
+}
+
+function answeredQuestionsFromClarityDigest(text: string, posts: PostIt[]): string[] {
+  return Array.from(new Set([...clarityAnsweredFrom(text), ...answeredQuestionsFromFolders(posts)]));
+}
+
 
 
 
@@ -830,10 +881,10 @@ function Dashboard() {
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
-      const answered = clarityAnsweredFrom(draft);
       const title = generateTitle(draft, draftType || undefined);
       const ts = Date.now();
       const posts: PostIt[] = buildCategoryFolderPosts(draft, ts);
+      const answered = answeredQuestionsFromClarityDigest(draft, posts);
       const newIdea: LightbulbIdea = {
         id,
         title,
@@ -910,13 +961,16 @@ function Dashboard() {
       };
     }
     const answered = new Set(selectedExtras.answeredQuestions);
+    for (const id of answeredQuestionsFromFolders(selectedExtras.posts)) {
+      answered.add(id);
+    }
     const next = CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
     const question = next ?? CLARITY_QUESTIONS[0];
     return {
       ...question,
       prompt: questionTextFor(question, selected),
     };
-  }, [selected, selectedExtras.answeredQuestions, categoryAsk]);
+  }, [selected, selectedExtras.answeredQuestions, selectedExtras.posts, categoryAsk]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
@@ -928,7 +982,7 @@ function Dashboard() {
     if (isLongClarityPrompt(cleaned)) {
       const ts = Date.now();
       const folderPosts = mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts);
-      const newAnswered = clarityAnsweredFrom(cleaned);
+      const newAnswered = answeredQuestionsFromClarityDigest(cleaned, folderPosts);
       const mergedAnswered = Array.from(
         new Set([...selectedExtras.answeredQuestions, ...newAnswered]),
       );
@@ -956,13 +1010,16 @@ function Dashboard() {
       source: "captured-note",
     };
     const nextPosts = [p, ...mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts)];
+    const newAnswered = answeredQuestionsFromClarityDigest(cleaned, nextPosts);
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
     updateExtras({
       posts: nextPosts,
       answeredQuestions:
-        answeredCurrent && currentQuestion
-          ? [...selectedExtras.answeredQuestions, currentQuestion.id]
-          : selectedExtras.answeredQuestions,
+        Array.from(new Set([
+          ...selectedExtras.answeredQuestions,
+          ...newAnswered,
+          ...(answeredCurrent && currentQuestion ? [currentQuestion.id] : []),
+        ])),
     });
     updateSelected({
       shelfReadiness: Math.min(
