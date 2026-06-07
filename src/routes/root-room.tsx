@@ -216,7 +216,11 @@ function RootRoom() {
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
             className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
-            style={{ "--rr-fly-start-x": `${activeTunnel.x}%` } as React.CSSProperties}
+            style={{
+              "--rr-fly-start-x": `${activeTunnel.x}%`,
+              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "18%" : "58%",
+              "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "8%" : "42%",
+            } as React.CSSProperties}
             draggable={false}
           />
         )}
@@ -523,7 +527,7 @@ function RootRoom() {
 
         /* Character flying from the active tunnel toward the podium. */
         @keyframes rr-clarity-fly-kf {
-          0%   { left: var(--rr-fly-start-x, 10%); top: 58%; transform: translate(-50%, -50%) scale(0.368) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          0%   { left: var(--rr-fly-start-x, 10%); top: var(--rr-fly-start-y, 58%); transform: translate(-50%, -50%) scale(0.368) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
           15%  { opacity: 1; }
           100% { left: 50%; top: 48%; transform: translate(-50%, -50%) scale(0.893) rotate(2deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
@@ -565,7 +569,7 @@ function RootRoom() {
             height: min(57.33vh, 30.03rem);
           }
           @keyframes rr-clarity-fly-kf {
-            0%   { left: 50%; top: 42%; transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+            0%   { left: 50%; top: var(--rr-fly-start-y-mobile, 42%); transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
             15%  { opacity: 1; }
             100% { left: 50%; top: 57%; transform: translate(-50%, -50%) scale(0.819) rotate(1deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
           }
