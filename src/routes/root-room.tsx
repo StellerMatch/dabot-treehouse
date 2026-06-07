@@ -224,7 +224,7 @@ function RootRoom() {
                 src={rootRoomFinalBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
-                style={{ bottom: "33%", height: "14vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "40%", height: "14vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
             </>
