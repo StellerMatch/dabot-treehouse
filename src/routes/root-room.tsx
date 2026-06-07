@@ -151,14 +151,28 @@ function RootRoom() {
           </>
         )}
 
-        {/* Podium centered on the cavern floor — swaps to book version after foundation completes */}
-        <img
-          src={(activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete")) ? rootRoomPodiumBookAsset.url : rootRoomPodiumAsset.url}
-          alt=""
-          className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none"
-          style={{ bottom: "19%", height: "31.6vh", width: "auto" }}
-          draggable={false}
-        />
+        {/* Podium centered on the cavern floor — crossfades to book version after foundation completes */}
+        {(() => {
+          const showBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
+          return (
+            <>
+              <img
+                src={rootRoomPodiumAsset.url}
+                alt=""
+                className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
+                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showBook ? 0 : 1 }}
+                draggable={false}
+              />
+              <img
+                src={rootRoomPodiumBookAsset.url}
+                alt=""
+                className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
+                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showBook ? 1 : 0 }}
+                draggable={false}
+              />
+            </>
+          );
+        })()}
 
         {/* Character flying from the active tunnel to the podium */}
         {phase === "flying" && (
@@ -309,6 +323,9 @@ function RootRoom() {
         .rr-mobile-stage,
         .rr-mobile-smoke {
           display: block;
+        }
+        .rr-podium {
+          transition: opacity 900ms ease-in-out;
         }
         .rr-room-bg {
           object-position: center center;
