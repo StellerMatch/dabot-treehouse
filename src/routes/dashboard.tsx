@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -885,7 +886,7 @@ function Dashboard() {
 
 
       {/* Header — laid-down book controls floating over the library scene */}
-      <header className="relative z-30 flex flex-wrap items-center justify-center gap-2 px-3 pt-4 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
+      <header className="relative z-30 flex flex-wrap items-center justify-center gap-1.5 px-2 pt-1.5 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
         {/* LEFT: Logo + Progress book */}
         <div className="order-1 flex items-center gap-2 sm:gap-3">
           <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
@@ -903,7 +904,7 @@ function Dashboard() {
         </div>
 
         {/* CENTER: My Library + New Idea — absolutely centered on desktop, wraps on smaller screens */}
-        <div className="order-3 flex w-full basis-full items-center justify-center gap-3 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-2 lg:w-auto lg:basis-auto lg:-translate-x-1/2 lg:-translate-y-1/2">
+        <div className="order-3 flex w-full basis-full items-center justify-center gap-2 sm:gap-3 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-2 lg:w-auto lg:basis-auto lg:-translate-x-1/2 lg:-translate-y-1/2">
           <LibraryPopover
             ideas={ideas}
             selectedId={selected?.id ?? ""}
@@ -928,7 +929,7 @@ function Dashboard() {
 
       {/* Active idea bookplate — compact carved label, centered */}
       {selected && (
-        <div className="relative z-20 mx-auto mt-3 flex w-full justify-center px-3">
+        <div className="relative z-20 mx-auto mt-1 flex w-full justify-center px-2 sm:mt-3 sm:px-3">
           <IdeaBookplate
             idea={selected}
             onUpdate={(patch) => updateSelected(patch)}
@@ -937,7 +938,7 @@ function Dashboard() {
       )}
 
       {/* Center stage — full width, the library room breathes */}
-      <div className="relative flex flex-1 flex-col px-3 pb-4 pt-3 lg:px-6">
+      <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
         {!selected ? (
           <div className="relative mx-auto mt-12 max-w-md rounded-md border border-amber-950/50 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
             Open My Library and pick an idea to begin.
@@ -1688,7 +1689,8 @@ function OrganizeButton({
   };
 
   const variant: LaidBookVariant = unlocked ? "gold" : "leather";
-  const size = unlocked ? "lg" : "md";
+  const isMobile = useIsMobile();
+  const size = isMobile ? "sm" : unlocked ? "lg" : "md";
 
   return (
     <div className="relative">
@@ -1737,8 +1739,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
   const lifted = open ? "translate-y-[1px] rotate-[-0.4deg]" : "hover:-translate-y-[1px]";
   return (
     <span
-      className={`group relative inline-flex shrink-0 items-center font-serif transition-transform ${lifted}`}
-      style={{ height: 56, width: 268 }}
+      className={`group relative inline-flex h-9 w-[170px] shrink-0 items-center font-serif transition-transform sm:h-14 sm:w-[268px] ${lifted}`}
     >
       {/* shelf shadow */}
       <span
@@ -1823,9 +1824,9 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
         />
 
         {/* engraved content: big percent + label */}
-        <span className="relative z-10 flex w-full items-center justify-between gap-3 px-4">
+        <span className="relative z-10 flex w-full items-center justify-between gap-2 px-2.5 sm:gap-3 sm:px-4">
           <span
-            className="font-serif text-[28px] font-bold leading-none tracking-tight"
+            className="font-serif text-[18px] font-bold leading-none tracking-tight sm:text-[28px]"
             style={{
               color: "#ffe9a3",
               textShadow:
@@ -1836,7 +1837,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
           </span>
           <span className="flex flex-col items-end">
             <span
-              className="font-serif text-[11px] font-semibold uppercase tracking-[0.25em]"
+              className="font-serif text-[8.5px] font-semibold uppercase tracking-[0.2em] sm:text-[11px] sm:tracking-[0.25em]"
               style={{
                 color: "#fbe6b8",
                 textShadow: "0 1px 0 rgba(0,0,0,0.7)",
@@ -1845,7 +1846,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
               Idea Progress
             </span>
             <span
-              className="font-serif text-[10px] italic"
+              className="font-serif text-[8px] italic sm:text-[10px]"
               style={{ color: "rgba(251,230,184,0.75)" }}
             >
               {fillPct >= 90 ? "Ready" : fillPct >= 50 ? "Growing" : fillPct > 0 ? "Started" : "Empty"}
@@ -1873,7 +1874,7 @@ function IdeaBookplate({
         type="button"
         onClick={() => setEditOpen(true)}
         title="Edit idea details"
-        className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-2.5 rounded-[4px] border px-5 py-2 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px]"
+        className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-1.5 rounded-[4px] border px-3 py-1 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px] sm:gap-2.5 sm:px-5 sm:py-2"
         style={{
           background:
             "linear-gradient(180deg, #fbf6e7 0%, #efe3c4 100%)",
@@ -1893,9 +1894,9 @@ function IdeaBookplate({
           className="absolute right-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
         />
-        <Lightbulb className="h-4 w-4 shrink-0 text-amber-700" />
+        <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-700 sm:h-4 sm:w-4" />
         <span
-          className="truncate font-serif text-[20px] font-bold leading-tight text-amber-950"
+          className="truncate font-serif text-[14px] font-bold leading-tight text-amber-950 sm:text-[20px]"
           style={{ textShadow: "0 1px 0 rgba(255,250,235,0.85)", letterSpacing: "0.015em" }}
         >
           {display}
@@ -1906,7 +1907,7 @@ function IdeaBookplate({
         >
           {idea.ideaType?.trim() || "Idea Type"}
         </span>
-        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100" />
+        <Pencil className="h-3 w-3 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100 sm:h-3.5 sm:w-3.5" />
       </button>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
