@@ -5,11 +5,13 @@ import {
   stageLabels,
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/dabottree-library-bg-v2.png.asset.json";
-// To revert to the previous background, change the import above back to "@/assets/dabottree-library-bg.png.asset.json".
+import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+// Background is the original library scene (no owl baked in). The owl sage is now a separate overlay layer (owlSage) so it can be repositioned independently.
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
+import owlSageAsset from "@/assets/owl-sage.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
+const owlSage = owlSageAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -870,6 +872,20 @@ function Dashboard() {
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
+      />
+      {/* Owl sage — overlay layer, positioned to match where he stood in the baked-in version */}
+      <img
+        aria-hidden
+        src={owlSage}
+        alt=""
+        className="pointer-events-none fixed -z-20 select-none object-contain"
+        style={{
+          left: "26.5vw",
+          top: "19vh",
+          height: "46vh",
+          width: "auto",
+          filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.45))",
+        }}
       />
       <div
         aria-hidden
