@@ -144,6 +144,17 @@ function Index() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={() => {
+                  setIdea(
+                    "A subscription box for busy parents that delivers a curated weekly activity kit for kids ages 4-8. Each box has a hands-on craft, a short story, and a simple science experiment with all the materials included. Goal: give parents a no-prep, screen-free hour with their kid every weekend.",
+                  );
+                }}
+                className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-1.5 text-xs text-amber-100 backdrop-blur-md transition hover:border-amber-200/60 hover:bg-amber-100/20"
+              >
+                Demo
+              </button>
+              <button
+                type="button"
                 className="rounded-full border border-amber-200/20 bg-white/[0.04] px-3 py-1.5 text-xs text-white/75 backdrop-blur-md transition hover:border-amber-200/40 hover:bg-white/[0.08] hover:text-white"
               >
                 Add files or notes
