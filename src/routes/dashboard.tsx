@@ -3651,10 +3651,8 @@ function DraggableOwl({ src }: { src: string }) {
       aria-hidden
       src={src}
       alt=""
-      className="fixed select-none object-contain cursor-move"
+      className="fixed select-none object-contain cursor-move left-[20vw] top-[28vh] md:left-[2vw] md:top-[42vh] lg:left-[20vw] lg:top-[28vh]"
       style={{
-        left: "20vw",
-        top: "28vh",
         height: "32vh",
         width: "auto",
         zIndex: 5,
