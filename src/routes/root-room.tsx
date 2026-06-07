@@ -589,10 +589,12 @@ function RootRoom() {
             height: min(71.66vh, 37.54rem);
           }
           .rr-char-clarity.rr-clarity-fly {
-            height: min(55.44vh, 28.98rem);
+            height: min(46.2vh, 24.15rem);
+            margin-left: 0;
           }
           .rr-char-clarity.rr-clarity-present {
-            height: min(52.92vh, 27.72rem);
+            height: min(44.1vh, 23.1rem);
+            margin-left: 0;
           }
           @keyframes rr-clarity-fly-kf {
             0%   { left: 50%; top: var(--rr-fly-start-y-mobile, 42%); transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
