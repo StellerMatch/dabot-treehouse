@@ -1581,8 +1581,8 @@ function Dashboard() {
             aria-hidden
             className={
               nextStepUnlocked
-                ? "pointer-events-none fixed z-20 select-none right-[-35px] bottom-[150px] h-[299px] sm:right-2 sm:bottom-[220px] sm:h-[368px] lg:right-8 lg:bottom-32 lg:h-[736px]"
-                : "pointer-events-none fixed z-20 select-none right-[-30px] bottom-[150px] h-[260px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
+                ? "pointer-events-none fixed z-20 select-none right-[-35px] bottom-[150px] h-[299px] sm:right-2 sm:bottom-[220px] sm:h-[368px] lg:right-32 lg:bottom-16 lg:h-[957px]"
+                : "pointer-events-none fixed z-20 select-none right-[-30px] bottom-[150px] h-[260px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-32 lg:bottom-16 lg:h-[832px]"
             }
             style={{
               width: "auto",
