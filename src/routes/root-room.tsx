@@ -136,6 +136,15 @@ function RootRoom() {
           </>
         )}
 
+        {/* Podium centered on the cavern floor */}
+        <img
+          src={rootRoomPodiumAsset.url}
+          alt=""
+          className="pointer-events-none absolute left-1/2 z-[3] -translate-x-1/2 select-none"
+          style={{ bottom: "18%", height: "28vh", width: "auto" }}
+          draggable={false}
+        />
+
         {/* Clarity flying from Foundation tunnel to podium */}
         {phase === "clarity" && (
           <img
