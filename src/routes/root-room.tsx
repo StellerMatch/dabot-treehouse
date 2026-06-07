@@ -56,17 +56,37 @@ const TUNNEL_BY_ID = Object.fromEntries(TUNNELS.map((tunnel) => [tunnel.id, tunn
   Tunnel
 >;
 
-const STEP_MESSAGES: Record<StepId, string> = {
-  foundation:
-    "Foundation is checking whether the idea has a clean starting shape. This step looks for the core purpose, the basic audience, and the first useful direction before the packet moves deeper into the roots.",
-  possibilities:
-    "Possibilities is exploring the directions this idea could grow. The roots are sketching out the shapes it might take so the best path forward becomes clear.",
-  safety:
-    "Safety is checking for sharp edges before the idea travels further. Concerns, risks, and gaps are quietly being smoothed so nothing trips up the journey ahead.",
-  record:
-    "Record is gently writing the story of what the roots have learned so far. Every choice and refinement is being kept so this idea always remembers where it came from.",
-  "da-stamp":
-    "Da Stamp is the final blessing of the roots. When this glows, the packet has earned its mark and is ready to rise back into the light.",
+const STEP_COPY: Record<StepId, { character: string; panelTitle: string; message: string }> = {
+  foundation: {
+    character: "CLARITY",
+    panelTitle: "Clean Packet Foundation",
+    message:
+      "is checking whether the idea has a clean starting shape: core purpose, basic audience, and the first useful direction before the packet moves deeper into the roots.",
+  },
+  possibilities: {
+    character: "ECHO",
+    panelTitle: "Perspective Pass",
+    message:
+      "is widening the view around the idea, looking for useful directions, missing angles, and the possibilities that could shape the next layer.",
+  },
+  safety: {
+    character: "SHIELD",
+    panelTitle: "Boundary Check",
+    message:
+      "is checking for sharp edges before the idea travels further, smoothing concerns, risks, and gaps so nothing trips up the journey ahead.",
+  },
+  record: {
+    character: "LEDGER",
+    panelTitle: "Baseline Record",
+    message:
+      "is writing down what the roots have learned so far, keeping the choices and refinements clear so the idea remembers where it came from.",
+  },
+  "da-stamp": {
+    character: "CHIEF",
+    panelTitle: "Readiness Stamp",
+    message:
+      "is giving the final Root Room readiness mark. When this glows, the packet has earned its stamp and is ready to rise toward the Trunk.",
+  },
 };
 
 const ROOT_ROOM_NEXT_PALETTE = {
@@ -138,6 +158,7 @@ function RootRoom() {
 
   const activeStepId = PROCESS_ORDER[activeStepIndex] ?? "foundation";
   const activeTunnel = useMemo(() => TUNNEL_BY_ID[activeStepId], [activeStepId]);
+  const activeStepCopy = STEP_COPY[activeStepId];
 
   const showTunnelGlow = phase !== "intro" && phase !== "finished";
   const showActiveStepText = phase !== "intro" && phase !== "finished";
@@ -191,7 +212,8 @@ function RootRoom() {
 
         {/* Podium centered on the cavern floor — original podium during the journey, swaps to final podium+book when root room is complete */}
         {(() => {
-          const showInterimBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
+          const showInterimBook =
+            activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
           const showFinalPodium = rootRoomComplete;
           const showRestingBook = rootRoomComplete && !ascending;
           return (
@@ -201,7 +223,12 @@ function RootRoom() {
                 src={rootRoomPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinalPodium || showInterimBook ? 0 : 1 }}
+                style={{
+                  bottom: "19%",
+                  height: "36.17vh",
+                  width: "auto",
+                  opacity: showFinalPodium || showInterimBook ? 0 : 1,
+                }}
                 draggable={false}
               />
               {/* Original podium with book (during steps) */}
@@ -209,7 +236,12 @@ function RootRoom() {
                 src={rootRoomPodiumBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: !showFinalPodium && showInterimBook ? 1 : 0 }}
+                style={{
+                  bottom: "19%",
+                  height: "36.17vh",
+                  width: "auto",
+                  opacity: !showFinalPodium && showInterimBook ? 1 : 0,
+                }}
                 draggable={false}
               />
               {/* Final podium shown only when root room is complete (stays during ascent) */}
@@ -217,7 +249,13 @@ function RootRoom() {
                 src={rootRoomFinalPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinalPodium ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{
+                  bottom: "19%",
+                  height: "36.17vh",
+                  width: "auto",
+                  opacity: showFinalPodium ? 1 : 0,
+                  transition: "opacity 600ms ease",
+                }}
                 draggable={false}
               />
               {/* Final book resting on the final podium, ready to float */}
@@ -225,7 +263,13 @@ function RootRoom() {
                 src={rootRoomFinalBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
-                style={{ bottom: "40%", height: "14vh", width: "auto", opacity: showRestingBook ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{
+                  bottom: "40%",
+                  height: "14vh",
+                  width: "auto",
+                  opacity: showRestingBook ? 1 : 0,
+                  transition: "opacity 600ms ease",
+                }}
                 draggable={false}
               />
               {/* Ascending book — same container, same coordinates as resting book */}
@@ -244,14 +288,36 @@ function RootRoom() {
         {/* Character flying from the active tunnel to the podium */}
         {phase === "flying" && (
           <img
-            src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
+            src={
+              activeStepId === "da-stamp"
+                ? stampFlyingAsset.url
+                : activeStepId === "record"
+                  ? ledgerFlyingAsset.url
+                  : activeStepId === "safety"
+                    ? shieldFlyingAsset.url
+                    : activeStepId === "possibilities"
+                      ? echoFlyingAsset.url
+                      : clarityFlyingAsset.url
+            }
             alt=""
             className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""} ${activeStepId === "safety" ? "rr-char-shield" : ""}`}
-            style={{
-              "--rr-fly-start-x": `${activeTunnel.x}%`,
-              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "53%",
-              "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "25%" : "42%",
-            } as React.CSSProperties}
+            style={
+              {
+                "--rr-fly-start-x": `${activeTunnel.x}%`,
+                "--rr-fly-start-y":
+                  activeStepId === "safety" ||
+                  activeStepId === "record" ||
+                  activeStepId === "da-stamp"
+                    ? "38%"
+                    : "53%",
+                "--rr-fly-start-y-mobile":
+                  activeStepId === "safety" ||
+                  activeStepId === "record" ||
+                  activeStepId === "da-stamp"
+                    ? "25%"
+                    : "42%",
+              } as React.CSSProperties
+            }
             draggable={false}
           />
         )}
@@ -259,7 +325,17 @@ function RootRoom() {
         {/* Character working at the podium — hidden during foundation's complete phase so Clarity disappears as the book appears */}
         {(phase === "working" || (phase === "complete" && activeStepId !== "foundation")) && (
           <img
-            src={activeStepId === "da-stamp" ? stampPresentingAsset.url : activeStepId === "record" ? ledgerPresentingAsset.url : activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
+            src={
+              activeStepId === "da-stamp"
+                ? stampPresentingAsset.url
+                : activeStepId === "record"
+                  ? ledgerPresentingAsset.url
+                  : activeStepId === "safety"
+                    ? shieldPresentingAsset.url
+                    : activeStepId === "possibilities"
+                      ? echoPresentingAsset.url
+                      : clarityPresentingAsset.url
+            }
             alt=""
             className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""} ${activeStepId === "safety" ? "rr-char-shield" : ""}`}
             draggable={false}
@@ -310,17 +386,14 @@ function RootRoom() {
 
           {showActiveStepText ? (
             <>
-              <div className="relative flex items-center justify-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-amber-200" />
-                <span className="text-[11px] uppercase tracking-[0.34em] text-amber-100/90">
-                  Active Step
-                </span>
-              </div>
-              <h2 className="relative mt-1 text-center text-[22px] font-bold tracking-wide text-amber-50">
-                {activeTunnel.label}
+              <h2 className="relative text-center text-[22px] font-bold tracking-wide text-amber-50">
+                {activeStepCopy.panelTitle}
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-                {STEP_MESSAGES[activeStepId]}
+                <span className="font-bold tracking-[0.12em] text-amber-100">
+                  {activeStepCopy.character}
+                </span>{" "}
+                {activeStepCopy.message}
               </p>
               <StepActivity phase={phase} />
             </>
