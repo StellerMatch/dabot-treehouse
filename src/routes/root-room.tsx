@@ -101,26 +101,34 @@ function RootRoom() {
               className="pointer-events-none absolute"
               style={{
                 left: `${t.x}%`,
-                top: "52%",
-                width: "16%",
-                height: "55%",
+                top: "55%",
+                width: "26%",
+                height: "70%",
                 transform: "translate(-50%, -100%)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="rr-smoke"
-                  style={{
-                    left: `${15 + i * 11}%`,
-                    animationDelay: `${i * 0.55}s`,
-                    animationDuration: `${5 + (i % 3) * 0.8}s`,
-                  }}
-                />
-              ))}
+              {!reducedMotion && Array.from({ length: 14 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (20 + (i * 7) % 40);
+                const size = 70 + (i * 13) % 70;
+                return (
+                  <span
+                    key={i}
+                    className="rr-smoke"
+                    style={{
+                      left: `${10 + (i * 17) % 80}%`,
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      animationDelay: `${(i * 0.45) % 4}s`,
+                      animationDuration: `${6 + (i % 5) * 1.1}s`,
+                      ['--drift' as never]: `${drift}px`,
+                    }}
+                  />
+                );
+              })}
             </div>
           );
         })}
+
 
 
         {/* Packet on the podium */}
