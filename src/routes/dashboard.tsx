@@ -216,7 +216,7 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   },
   {
     id: "problem",
-    prompt: "What problem is this idea trying to solve?",
+    prompt: "What problem should this project solve first?",
     keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because", "hours", "faster than", "spend"],
   },
   {
@@ -366,6 +366,9 @@ function titleCase(s: string) {
 function generateTitle(text: string, ideaType?: string): string {
   const t = text.trim();
   if (!t) return "Untitled Idea";
+  if (/\bwedding\b/i.test(t) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(t)) {
+    return "Wedding Photo Approval App";
+  }
   const domain = TITLE_DOMAINS.find((d) => d.match.test(t))?.name;
   const suffix =
     TITLE_SUFFIXES.find((p) => p.match.test(t))?.name ??
@@ -952,7 +955,7 @@ function Dashboard() {
     });
   };
 
-  const currentQuestion = useMemo<ClarityQuestion>(() => {
+  const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
     if (categoryAsk) {
       return {
         id: `cat-${categoryAsk}`,
@@ -965,10 +968,10 @@ function Dashboard() {
       answered.add(id);
     }
     const next = CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
-    const question = next ?? CLARITY_QUESTIONS[0];
+    if (!next) return undefined;
     return {
-      ...question,
-      prompt: questionTextFor(question, selected),
+      ...next,
+      prompt: questionTextFor(next, selected),
     };
   }, [selected, selectedExtras.answeredQuestions, selectedExtras.posts, categoryAsk]);
 
