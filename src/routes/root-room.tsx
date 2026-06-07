@@ -226,7 +226,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampPresentingAsset.url : activeStepId === "record" ? ledgerPresentingAsset.url : activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
             alt=""
-            className="pointer-events-none absolute z-[5] rr-clarity-present"
+            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
             draggable={false}
           />
         )}
