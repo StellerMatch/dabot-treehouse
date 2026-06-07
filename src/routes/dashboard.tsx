@@ -1632,7 +1632,7 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
         }}
       >
         <button
-          onClick={() => goToDoor()}
+          onClick={() => create()}
           className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-950 shadow-md transition hover:brightness-110"
           style={{
             background:
@@ -1648,7 +1648,7 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
           {NEW_IDEA_CATEGORIES.map((c) => (
             <li key={c.id}>
               <button
-                onClick={() => goToDoor(c.type)}
+                onClick={() => create(c.type)}
                 className="flex w-full items-center gap-2 rounded-sm border border-amber-900/40 bg-amber-50/40 px-2 py-1.5 text-left font-serif text-[12px] text-amber-950 transition hover:bg-amber-100/70"
               >
                 <Lightbulb className="h-3 w-3 text-amber-700" />
