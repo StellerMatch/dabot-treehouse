@@ -1102,6 +1102,7 @@ function Dashboard() {
     useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [descending, setDescending] = useState(false);
 
   // Pull draft from front-page intake
   useEffect(() => {
@@ -1588,7 +1589,10 @@ function Dashboard() {
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
-            onClick={() => selected && moveToPreClarity(selected.id)}
+            onClick={() => {
+              if (!selected) return;
+              setDescending(true);
+            }}
           />
         </div>
       </header>
