@@ -3503,8 +3503,11 @@ function PostItCard({
                   <span
                     key={i}
                     style={{
-                      color: i < stars ? "#7a4a10" : "transparent",
+                      color: i < stars ? "#ffc629" : "transparent",
                       WebkitTextStroke: i < stars ? "0" : "1px rgba(90,55,20,0.55)",
+                      textShadow: i < stars
+                        ? "0 0 4px rgba(255,198,41,0.65), 0 1px 0 rgba(120,70,15,0.45)"
+                        : "0 1px 0 rgba(255,240,200,0.5)",
                     }}
                   >
                     ★
