@@ -3360,6 +3360,7 @@ function PostItCard({
   pinned,
   categories,
   pct = 0,
+  wide = false,
 }: {
   text: string;
   fullText?: string;
@@ -3369,6 +3370,7 @@ function PostItCard({
   pinned?: boolean;
   categories?: CategoryKey[];
   pct?: number;
+  wide?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const fallback: CategoryKey = "core-idea";
@@ -3388,7 +3390,11 @@ function PostItCard({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
+        className={
+          wide
+            ? "relative aspect-[5/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-[6/1] lg:max-w-none lg:text-left lg:[transform:rotate(var(--note-rot))]"
+            : "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
+        }
         style={{
           background: paperBg,
           borderColor: "rgba(70,40,15,0.55)",
