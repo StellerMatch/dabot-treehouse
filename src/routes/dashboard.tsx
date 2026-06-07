@@ -1738,8 +1738,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
   const lifted = open ? "translate-y-[1px] rotate-[-0.4deg]" : "hover:-translate-y-[1px]";
   return (
     <span
-      className={`group relative inline-flex shrink-0 items-center font-serif transition-transform ${lifted}`}
-      style={{ height: 56, width: 268 }}
+      className={`group relative inline-flex h-9 w-[170px] shrink-0 items-center font-serif transition-transform sm:h-14 sm:w-[268px] ${lifted}`}
     >
       {/* shelf shadow */}
       <span
@@ -1824,9 +1823,9 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
         />
 
         {/* engraved content: big percent + label */}
-        <span className="relative z-10 flex w-full items-center justify-between gap-3 px-4">
+        <span className="relative z-10 flex w-full items-center justify-between gap-2 px-2.5 sm:gap-3 sm:px-4">
           <span
-            className="font-serif text-[28px] font-bold leading-none tracking-tight"
+            className="font-serif text-[18px] font-bold leading-none tracking-tight sm:text-[28px]"
             style={{
               color: "#ffe9a3",
               textShadow:
@@ -1837,7 +1836,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
           </span>
           <span className="flex flex-col items-end">
             <span
-              className="font-serif text-[11px] font-semibold uppercase tracking-[0.25em]"
+              className="font-serif text-[8.5px] font-semibold uppercase tracking-[0.2em] sm:text-[11px] sm:tracking-[0.25em]"
               style={{
                 color: "#fbe6b8",
                 textShadow: "0 1px 0 rgba(0,0,0,0.7)",
@@ -1846,7 +1845,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
               Idea Progress
             </span>
             <span
-              className="font-serif text-[10px] italic"
+              className="font-serif text-[8px] italic sm:text-[10px]"
               style={{ color: "rgba(251,230,184,0.75)" }}
             >
               {fillPct >= 90 ? "Ready" : fillPct >= 50 ? "Growing" : fillPct > 0 ? "Started" : "Empty"}
