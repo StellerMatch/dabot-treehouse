@@ -3216,16 +3216,18 @@ function NoteDesk(props: {
             const ratingAggregated = realPosts
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
-            // For star strength, ignore the seed `messy` blurb on core-idea —
-            // it's the original capture, not developed category content.
-            const ratingValue = extras.notes[cat] ?? "";
+            // For star strength on most categories, only count developed notes.
+            // Core idea is special: the user's initial messy dump counts toward
+            // its strength so the first star lights up as soon as there's a seed.
+            const rawValue = getCategoryValue(cat);
+            const ratingValue =
+              cat === "core-idea" ? rawValue : extras.notes[cat] ?? "";
             const ratingCombined = [ratingValue, ratingAggregated]
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
             const pct = categoryStatus(ratingCombined).pct;
             // Display still shows everything the user has captured so the
             // detail view is complete, even though stars are stricter.
-            const rawValue = getCategoryValue(cat);
             const displayAggregated = postsForCat
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
@@ -3233,6 +3235,7 @@ function NoteDesk(props: {
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
             const filled = displayCombined.trim().length > 0;
+
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
             return (
