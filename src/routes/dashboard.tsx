@@ -802,7 +802,7 @@ function Dashboard() {
 
       <div className="relative flex justify-center pt-2">
         <button
-          onClick={addIdea}
+          onClick={() => addIdea()}
           title="Add a new idea book"
           className="flex items-center gap-1.5 rounded-sm border border-amber-200/40 bg-amber-950/40 px-3 py-1 font-serif text-[11px] text-amber-100 shadow-sm hover:bg-amber-900/60"
         >
