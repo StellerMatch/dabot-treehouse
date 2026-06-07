@@ -215,7 +215,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
             style={{
               "--rr-fly-start-x": `${activeTunnel.x}%`,
               "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "58%",
