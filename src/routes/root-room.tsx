@@ -94,30 +94,34 @@ function RootRoom() {
         {/* Tunnel highlights */}
         {TUNNELS.map((t) => {
           const isActive = t.id === activeStepId;
+          if (!isActive) return null;
           return (
             <div
               key={t.id}
               className="pointer-events-none absolute"
               style={{
                 left: `${t.x}%`,
-                top: "38%",
-                width: "14%",
-                height: "32%",
-                transform: "translate(-50%, -50%)",
+                top: "52%",
+                width: "16%",
+                height: "55%",
+                transform: "translate(-50%, -100%)",
               }}
             >
-              <div
-                className="h-full w-full rounded-[40%] transition-opacity duration-700"
-                style={{
-                  background: `radial-gradient(ellipse at center, ${t.accent} 0%, transparent 70%)`,
-                  opacity: isActive ? 0.85 : 0,
-                  filter: "blur(8px)",
-                  animation: isActive && !reducedMotion ? "rr-pulse 2.4s ease-in-out infinite" : undefined,
-                }}
-              />
+              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => (
+                <span
+                  key={i}
+                  className="rr-smoke"
+                  style={{
+                    left: `${15 + i * 11}%`,
+                    animationDelay: `${i * 0.55}s`,
+                    animationDuration: `${5 + (i % 3) * 0.8}s`,
+                  }}
+                />
+              ))}
             </div>
           );
         })}
+
 
         {/* Packet on the podium */}
         <div
@@ -247,6 +251,24 @@ function RootRoom() {
           60%  { transform: translateY(10%)   scale(0.95) rotate(2deg);  opacity: 1; }
           80%  { transform: translateY(-4%)   scale(1.02) rotate(-1deg); }
           100% { transform: translateY(0)     scale(1)    rotate(0deg);  opacity: 1; }
+        }
+        @keyframes rr-smoke-rise {
+          0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+          20%  { opacity: 0.45; }
+          70%  { opacity: 0.3; }
+          100% { transform: translate(calc(-50% + 14px), -180%) scale(2.2); opacity: 0; }
+        }
+        .rr-smoke {
+          position: absolute;
+          bottom: 0;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(220,210,200,0.55) 0%, rgba(180,170,160,0.3) 45%, transparent 75%);
+          filter: blur(8px);
+          transform: translate(-50%, 0);
+          animation: rr-smoke-rise linear infinite;
+          will-change: transform, opacity;
         }
       `}</style>
     </main>
