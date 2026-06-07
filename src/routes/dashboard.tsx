@@ -2990,7 +2990,7 @@ function ClarityGuide({
       <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
         {open && !minimized ? (
           <div
-            className="relative w-[min(76vw,18rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:w-72"
+            className="relative w-[min(92vw,26rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:w-[24rem]"
             style={{
               background:
                 "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
@@ -3005,9 +3005,7 @@ function ClarityGuide({
             <p className="mt-1.5 font-serif text-sm leading-snug text-amber-950">
               {showQuestionControls ? `“${bubbleText}”` : bubbleText}
             </p>
-            <p className="mt-1.5 font-serif text-[10.5px] italic leading-snug text-amber-900/70">
-              Answer below by typing or speaking a note.
-            </p>
+
             {showQuestionControls && (
               <div className="mt-2 flex items-center justify-between gap-2">
                 <button
@@ -3325,6 +3323,9 @@ function NoteDesk(props: {
                 >
                   Info Gathered
                 </button>
+                <span className="ml-2 hidden font-serif text-[10px] italic normal-case tracking-normal text-amber-900/70 sm:inline">
+                  Answer by typing or speaking a note.
+                </span>
                 <span className="ml-auto italic normal-case tracking-normal">
                   {voiceState === "listening"
                     ? "Listening…"
@@ -3332,6 +3333,7 @@ function NoteDesk(props: {
                       ? "Transcribing…"
                       : `${extras.posts.length} ${extras.posts.length === 1 ? "note" : "notes"}`}
                 </span>
+
               </div>
               <div className="relative flex items-end gap-2 px-3 py-2">
                 <textarea
