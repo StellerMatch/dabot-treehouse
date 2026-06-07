@@ -3183,12 +3183,36 @@ function NoteDesk(props: {
             const postsForCat = extras.posts.filter((p) =>
               (p.categories ?? []).includes(cat),
             );
-            const aggregated = postsForCat
+            const missingPlaceholder = CATEGORY_MISSING[cat];
+            // Only count real captured content toward this category's stars —
+            // exclude auto-generated "Missing: ..." placeholder posts that get
+            // created when a category has no items from a prompt parse.
+            const realPosts = postsForCat.filter((p) => {
+              const body = (p.fullText ?? p.text ?? "").trim();
+              if (!body) return false;
+              if (body === missingPlaceholder) return false;
+              if (body.startsWith(missingPlaceholder)) return false;
+              return true;
+            });
+            const aggregated = realPosts
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
-            const value = getCategoryValue(cat);
+            const rawValue = getCategoryValue(cat);
+            const value =
+              rawValue && rawValue.trim() && rawValue.trim() !== missingPlaceholder
+                ? rawValue
+                : "";
             const combined = [value, aggregated].filter((s) => s && s.trim().length > 0).join("\n\n");
-            const filled = combined.trim().length > 0;
+            // Display still shows everything the user has captured (including
+            // the original posts), but the star strength is derived only from
+            // real content for this specific category.
+            const displayAggregated = postsForCat
+              .map((p) => p.fullText ?? p.text)
+              .join("\n\n");
+            const displayCombined = [rawValue, displayAggregated]
+              .filter((s) => s && s.trim().length > 0)
+              .join("\n\n");
+            const filled = displayCombined.trim().length > 0;
             const pct = categoryStatus(combined).pct;
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
@@ -3198,7 +3222,7 @@ function NoteDesk(props: {
                   text={label}
                   fullText={
                     filled
-                      ? combined
+                      ? displayCombined
                       : `${CATEGORY_MISSING[cat]}\n\nNothing captured yet for ${label}. Use the parchment tray below to add a note.`
                   }
                   kind="idea-notes"
