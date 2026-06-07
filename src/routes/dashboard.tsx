@@ -3653,8 +3653,8 @@ function DraggableOwl({ src }: { src: string }) {
       alt=""
       className="fixed select-none object-contain cursor-move"
       style={{
-        left: "22vw",
-        top: "14vh",
+        left: "20vw",
+        top: "19vh",
         height: "32vh",
         width: "auto",
         zIndex: 25,
