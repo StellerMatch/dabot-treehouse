@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import rootRoomBgAsset from "@/assets/root-room-bg.png.asset.json";
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/root-room")({
   head: () => ({
@@ -47,10 +47,21 @@ const PROCESS_ORDER: StepId[] = [
   "da-stamp",
 ];
 
+const STEP_MESSAGES: Record<StepId, string> = {
+  foundation:
+    "Foundation is preparing the clean starting packet. This step checks that the idea has enough shape to move deeper into the roots. Once the foundation is clear, the next guide can continue the process.",
+  possibilities:
+    "Possibilities is exploring the directions this idea could grow. The roots are sketching out the shapes it might take so the best path forward becomes clear.",
+  safety:
+    "Safety is checking for sharp edges before the idea travels further. Concerns, risks, and gaps are quietly being smoothed so nothing trips up the journey ahead.",
+  record:
+    "Record is gently writing the story of what the roots have learned so far. Every choice and refinement is being kept so this idea always remembers where it came from.",
+  "da-stamp":
+    "Da Stamp is the final blessing of the roots. When this glows, the packet has earned its mark and is ready to rise back into the light.",
+};
+
 function RootRoom() {
-  const navigate = useNavigate();
-  const [activeIndex, setActiveIndex] = useState(0); // index into PROCESS_ORDER
-  const [packetLanded, setPacketLanded] = useState(false);
+  const [activeIndex] = useState(0); // index into PROCESS_ORDER — advances only via guided flow
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -59,17 +70,12 @@ function RootRoom() {
     setReducedMotion(mq.matches);
   }, []);
 
-  // Let the packet "land" on the podium after entry
-  useEffect(() => {
-    const t = window.setTimeout(() => setPacketLanded(true), reducedMotion ? 100 : 900);
-    return () => window.clearTimeout(t);
-  }, [reducedMotion]);
-
   const activeStepId = PROCESS_ORDER[activeIndex];
   const activeTunnel = useMemo(
     () => TUNNELS.find((t) => t.id === activeStepId)!,
     [activeStepId],
   );
+  const activeMessage = STEP_MESSAGES[activeStepId];
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
@@ -130,50 +136,9 @@ function RootRoom() {
         })}
 
 
-
-        {/* Packet on the podium */}
-        <div
-          className="pointer-events-none absolute"
-          style={{
-            left: "50%",
-            top: "72%",
-            transform: "translate(-50%, -50%)",
-            width: "5.5%",
-            aspectRatio: "3 / 4",
-          }}
-        >
-          <div
-            className={
-              "relative h-full w-full rounded-[4px] " +
-              (reducedMotion ? "" : "animate-[rr-packet-land_900ms_ease-out_forwards]")
-            }
-            style={{
-              background: "linear-gradient(135deg,#f5e0a8 0%,#d9b86a 60%,#a8842e 100%)",
-              border: "1px solid rgba(60,30,5,0.85)",
-              boxShadow: "0 10px 28px rgba(0,0,0,0.6), 0 0 30px rgba(255,200,120,0.65)",
-            }}
-          >
-            <div
-              className="absolute inset-0 rounded-[3px]"
-              style={{
-                background: "radial-gradient(circle at 50% 40%, rgba(255,250,220,0.55) 0%, transparent 65%)",
-              }}
-            />
-          </div>
-          {/* Glow underneath */}
-          {!reducedMotion && (
-            <div
-              className="absolute -inset-4 -z-10 rounded-full"
-              style={{
-                background: "radial-gradient(circle, rgba(255,210,130,0.7) 0%, transparent 70%)",
-                animation: "rr-pulse 2.4s ease-in-out infinite",
-              }}
-            />
-          )}
-        </div>
       </div>
 
-      {/* UI chrome — outside camera layer so it doesn't pan */}
+      {/* UI chrome */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
         <Link
           to="/dashboard"
@@ -186,64 +151,42 @@ function RootRoom() {
         </div>
       </header>
 
-      {/* Active step pill + advance */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-3 px-4 pb-6 sm:pb-10">
+      {/* Parchment status panel near the podium */}
+      <div
+        className="pointer-events-none absolute left-1/2 z-10 w-[min(440px,86vw)] -translate-x-1/2 px-4"
+        style={{ bottom: "6%" }}
+      >
         <div
-          className="pointer-events-auto flex items-center gap-2 rounded-full border border-amber-200/40 bg-black/45 px-4 py-2 text-amber-50 backdrop-blur-md"
-          style={{ boxShadow: "0 0 30px -8px rgba(255,180,80,0.55)" }}
+          className="pointer-events-auto relative overflow-hidden rounded-[14px] px-5 py-4 text-amber-50"
+          style={{
+            background:
+              "radial-gradient(ellipse at top, rgba(80,45,15,0.78) 0%, rgba(45,22,6,0.82) 70%, rgba(30,14,4,0.88) 100%)",
+            border: "1px solid rgba(210,160,80,0.45)",
+            boxShadow:
+              "0 12px 40px -10px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,210,140,0.18), 0 0 30px -10px rgba(255,180,80,0.45)",
+            backdropFilter: "blur(6px)",
+          }}
         >
-          <Sparkles className="h-4 w-4 text-amber-300" />
-          <span className="text-[11px] uppercase tracking-[0.3em] text-amber-100/80">
-            Step {activeIndex + 1} of {PROCESS_ORDER.length}
-          </span>
-          <span className="text-sm font-medium">{activeTunnel.label}</span>
-        </div>
-
-        <div className="pointer-events-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
-            disabled={activeIndex === 0}
-            className="rounded-full border border-amber-200/30 bg-white/[0.06] px-3 py-1.5 text-xs text-white/80 backdrop-blur-md transition hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            ← Previous
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setActiveIndex((i) => Math.min(PROCESS_ORDER.length - 1, i + 1))
-            }
-            disabled={activeIndex === PROCESS_ORDER.length - 1}
-            className="inline-flex items-center gap-1 rounded-full border border-amber-200/60 bg-gradient-to-b from-amber-200/90 to-amber-400/80 px-4 py-1.5 text-xs font-semibold text-neutral-900 shadow-[0_0_24px_-4px_rgba(255,180,80,0.75)] transition hover:from-amber-100 hover:to-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next tunnel <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        {/* Tiny order legend */}
-        <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1.5 text-[10px] text-amber-100/70">
-          {PROCESS_ORDER.map((id, i) => {
-            const t = TUNNELS.find((x) => x.id === id)!;
-            const done = i < activeIndex;
-            const active = i === activeIndex;
-            return (
-              <span
-                key={id}
-                className={
-                  "rounded-full border px-2 py-0.5 " +
-                  (active
-                    ? "border-amber-200/80 bg-amber-200/20 text-amber-50"
-                    : done
-                      ? "border-amber-200/30 bg-white/[0.04] text-amber-100/60 line-through"
-                      : "border-amber-200/20 bg-white/[0.02] text-amber-100/50")
-                }
-              >
-                {i + 1}. {t.label}
-              </span>
-            );
-          })}
+          {/* subtle inner parchment grain */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-30"
+            style={{
+              background:
+                "radial-gradient(circle at 20% 10%, rgba(255,220,160,0.18), transparent 55%), radial-gradient(circle at 80% 90%, rgba(255,180,90,0.12), transparent 60%)",
+            }}
+          />
+          <div className="relative flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+            <span className="text-[10px] uppercase tracking-[0.32em] text-amber-200/80">
+              {activeTunnel.label}
+            </span>
+          </div>
+          <p className="relative mt-2 text-[13px] leading-relaxed text-amber-50/90">
+            {activeMessage}
+          </p>
         </div>
       </div>
+
 
       <style>{`
         @keyframes rr-fade {
