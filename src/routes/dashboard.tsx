@@ -5,11 +5,13 @@ import {
   stageLabels,
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/dabottree-library-bg-v2.png.asset.json";
-// To revert to the previous background, change the import above back to "@/assets/dabottree-library-bg.png.asset.json".
+import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+// Background is the original library scene (no owl baked in). The owl sage is now a separate overlay layer (owlSage) so it can be repositioned independently.
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
+import owlSageAsset from "@/assets/owl-sage.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
+const owlSage = owlSageAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
