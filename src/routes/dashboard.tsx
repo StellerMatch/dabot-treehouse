@@ -3168,8 +3168,8 @@ function NoteDesk(props: {
   return (
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
-      <div className="relative mx-auto mt-1 w-full max-w-[420px]">
-        <div className="grid grid-cols-2 gap-1.5 pb-2 md:grid-cols-2 md:gap-1.5">
+      <div className="relative mx-auto mt-1 w-full max-w-[440px]">
+        <div className="grid grid-cols-2 gap-3 pb-2 md:grid-cols-2 md:gap-3">
           {([
             "clarity", "problem",
             "audience", "features",
@@ -3214,11 +3214,12 @@ function NoteDesk(props: {
       </div>
 
       {/* Quick capture — parchment slip on a carved wood tray */}
-      <div className="relative z-20 mt-2">
+      <div className="relative z-20 mt-auto">
         <div
           className="mx-auto w-full max-w-[760px] px-2 pb-3"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
+
           {/* wood tray under the parchment */}
           <div className="relative">
             <ClarityGuide
