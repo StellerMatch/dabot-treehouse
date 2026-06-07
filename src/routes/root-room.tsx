@@ -730,12 +730,12 @@ function RootRoom() {
           }
         }
         @keyframes rr-book-ascend-kf {
-          0%   { bottom: 40%; transform: translateX(-50%) scale(1); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          0%   { bottom: 38%; transform: translateX(-50%) scale(1); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
           70%  { bottom: 72%; transform: translateX(-50%) scale(1.4); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
           100% { bottom: 115%; transform: translateX(-50%) scale(2); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
         }
         .rr-book-ascend {
-          height: 15.4vh; width: auto; bottom: 40%;
+          height: 15.4vh; width: auto; bottom: 38%;
           transform-origin: center center;
           animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
           will-change: bottom, transform, opacity;
