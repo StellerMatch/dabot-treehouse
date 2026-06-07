@@ -215,11 +215,11 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
             style={{
               "--rr-fly-start-x": `${activeTunnel.x}%`,
-              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "18%" : "58%",
-              "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "8%" : "42%",
+              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "58%",
+              "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "25%" : "42%",
             } as React.CSSProperties}
             draggable={false}
           />
@@ -230,7 +230,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampPresentingAsset.url : activeStepId === "record" ? ledgerPresentingAsset.url : activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : ""} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
             draggable={false}
           />
         )}
@@ -553,6 +553,12 @@ function RootRoom() {
         .rr-char-large.rr-clarity-present {
           height: 62.79vh;
         }
+        .rr-char-xl.rr-clarity-fly {
+          height: 71.66vh;
+        }
+        .rr-char-xl.rr-clarity-present {
+          height: 78.49vh;
+        }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
           .rr-clarity-fly {
@@ -567,6 +573,12 @@ function RootRoom() {
           }
           .rr-char-large.rr-clarity-present {
             height: min(57.33vh, 30.03rem);
+          }
+          .rr-char-xl.rr-clarity-fly {
+            height: min(75.08vh, 39.24rem);
+          }
+          .rr-char-xl.rr-clarity-present {
+            height: min(71.66vh, 37.54rem);
           }
           @keyframes rr-clarity-fly-kf {
             0%   { left: 50%; top: var(--rr-fly-start-y-mobile, 42%); transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
