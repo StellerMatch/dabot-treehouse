@@ -170,6 +170,7 @@ type IdeaExtras = {
   posts: PostIt[];
   answeredQuestions: string[];
   skippedQuestions: string[];
+  clarityFollowupCount: number;
 };
 
 function emptyExtras(): IdeaExtras {
@@ -179,10 +180,14 @@ function emptyExtras(): IdeaExtras {
     posts: [],
     answeredQuestions: [],
     skippedQuestions: [],
+    clarityFollowupCount: 0,
   };
 }
 
 // ——— Clarity's clarifying questions ———
+const MIN_CLARITY_FOLLOWUPS = 5;
+const MIN_FOLLOWUP_SEQUENCE: CategoryKey[] = ["problem", "audience", "business", "concerns", "features"];
+
 type ClarityQuestion = {
   id: string;
   prompt: string;
@@ -261,6 +266,26 @@ function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefi
     default:
       return question.prompt.replace(/\bthis idea\b/gi, name);
   }
+}
+
+function requiredFollowupQuestionFor(
+  answeredCount: number,
+  idea: LightbulbIdea | undefined,
+  skippedQuestions: string[] = [],
+): ClarityQuestion | undefined {
+  if (answeredCount >= MIN_CLARITY_FOLLOWUPS) return undefined;
+  const skipped = new Set(skippedQuestions);
+  const startingStep = Math.min(answeredCount, MIN_FOLLOWUP_SEQUENCE.length - 1);
+  const cat =
+    MIN_FOLLOWUP_SEQUENCE
+      .slice(startingStep)
+      .find((candidate) => !skipped.has(`required-${answeredCount + 1}-${candidate}`))
+    ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
+  return {
+    id: `required-${answeredCount + 1}-${cat}`,
+    prompt: `${categoryQuestionFor(cat, idea)} This is required follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS} before Next Step unlocks.`,
+    keywords: [],
+  };
 }
 
 // Premade Clarity questions per category — used when a user clicks a category folder
@@ -1098,6 +1123,7 @@ function Dashboard() {
           posts,
           answeredQuestions: answered,
           skippedQuestions: [],
+          clarityFollowupCount: 0,
         },
       }));
       try {
@@ -1139,6 +1165,8 @@ function Dashboard() {
             patch.answeredQuestions ?? current.answeredQuestions,
           skippedQuestions:
             patch.skippedQuestions ?? current.skippedQuestions,
+          clarityFollowupCount:
+            patch.clarityFollowupCount ?? current.clarityFollowupCount ?? 0,
         },
       };
     });
@@ -1180,6 +1208,12 @@ function Dashboard() {
         keywords: [],
       };
     }
+    const requiredFollowup = requiredFollowupQuestionFor(
+      selectedExtras.clarityFollowupCount ?? 0,
+      selected,
+      selectedExtras.skippedQuestions,
+    );
+    if (requiredFollowup) return requiredFollowup;
     const weakest = weakestCategoryQuestionFor(selected, selectedExtras);
     if (weakest) {
       return {
@@ -1252,6 +1286,10 @@ function Dashboard() {
           ...newAnswered,
           ...(answeredCurrent && currentQuestion ? [currentQuestion.id] : []),
         ])),
+      clarityFollowupCount: Math.min(
+        MIN_CLARITY_FOLLOWUPS,
+        (selectedExtras.clarityFollowupCount ?? 0) + (currentQuestion ? 1 : 0),
+      ),
     });
     updateSelected({
       shelfReadiness: Math.min(
@@ -1268,7 +1306,7 @@ function Dashboard() {
       setCategoryAsk(null);
       return;
     }
-    if (currentQuestion.id.startsWith("weak-")) {
+    if (currentQuestion.id.startsWith("weak-") || currentQuestion.id.startsWith("required-")) {
       if (selectedExtras.skippedQuestions.includes(currentQuestion.id)) return;
       updateExtras({
         skippedQuestions: [
@@ -1517,6 +1555,7 @@ function Dashboard() {
           <OrganizeButton
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
+            followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             onClick={() => selected && moveToPreClarity(selected.id)}
           />
         </div>
@@ -2276,13 +2315,16 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
 function OrganizeButton({
   overall,
   stage,
+  followupsAnswered,
   onClick,
 }: {
   overall: number;
   stage: LightbulbIdea["stage"];
+  followupsAnswered: number;
   onClick: () => void;
 }) {
-  const unlocked = overall >= 90;
+  const remainingFollowups = Math.max(0, MIN_CLARITY_FOLLOWUPS - followupsAnswered);
+  const unlocked = overall >= 90 && remainingFollowups === 0;
   const stageAdvanced = stage !== "lightbulb";
   const label = "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
@@ -2318,7 +2360,9 @@ function OrganizeButton({
               ? "Already organized"
               : unlocked
                 ? `Ready! Move forward (${overall}%)`
-                : `Asleep — unlocks at 90% (currently ${overall}%)`
+                : remainingFollowups > 0
+                  ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
+                  : `Asleep — unlocks at 90% (currently ${overall}%)`
           }
           trailing={
             unlocked ? (
@@ -2335,7 +2379,16 @@ function OrganizeButton({
               "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
           }}
         >
-          Gather a little more first. Ideas unlock at <strong>90% ready</strong>.
+          {remainingFollowups > 0 ? (
+            <>
+              Answer <strong>{remainingFollowups}</strong> more Clarity follow-up
+              {remainingFollowups === 1 ? "" : "s"} first.
+            </>
+          ) : (
+            <>
+              Gather a little more first. Ideas unlock at <strong>90% ready</strong>.
+            </>
+          )}
         </div>
       )}
     </div>
