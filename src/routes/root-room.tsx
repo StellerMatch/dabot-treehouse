@@ -1,9 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
-import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
-import rootRoomPodiumBookAsset from "@/assets/root-room-podium-book.png.asset.json";
-import floatingBookAsset from "@/assets/floating-book.png.asset.json";
+import rootRoomPodiumAsset from "@/assets/root-room-podium-v2.png.asset.json";
+import floatingBookAsset from "@/assets/podium-book-v2.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import echoFlyingAsset from "@/assets/echo-flying.png.asset.json";
@@ -189,7 +188,7 @@ function RootRoom() {
 
         {/* Podium centered on the cavern floor — crossfades to book version after foundation completes */}
         {(() => {
-          const showBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
+          const showBook = !ascending && (activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete"));
           return (
             <>
               <img
@@ -200,10 +199,10 @@ function RootRoom() {
                 draggable={false}
               />
               <img
-                src={rootRoomPodiumBookAsset.url}
+                src={floatingBookAsset.url}
                 alt=""
-                className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showBook ? 1 : 0 }}
+                className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
+                style={{ bottom: "33%", height: "14vh", width: "auto", opacity: showBook ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
             </>
@@ -631,13 +630,12 @@ function RootRoom() {
           }
         }
         @keyframes rr-book-ascend-kf {
-          0%   { bottom: 28%; transform: translateX(-50%) scale(0.55) rotate(-2deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
-          15%  { opacity: 1; }
-          70%  { bottom: 72%; transform: translateX(-50%) scale(1.05) rotate(3deg); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
-          100% { bottom: 110%; transform: translateX(-50%) scale(1.6) rotate(6deg); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
+          0%   { bottom: 33%; transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          70%  { bottom: 72%; transform: translateX(-50%) scale(1.5) rotate(3deg); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
+          100% { bottom: 115%; transform: translateX(-50%) scale(2.2) rotate(6deg); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
         }
         .rr-book-ascend {
-          height: 26vh; width: auto; bottom: 28%;
+          height: 14vh; width: auto; bottom: 33%;
           animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
           will-change: bottom, transform, opacity;
         }
