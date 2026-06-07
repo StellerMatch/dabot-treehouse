@@ -527,7 +527,7 @@ function RootRoom() {
 
         /* Character flying from the active tunnel toward the podium. */
         @keyframes rr-clarity-fly-kf {
-          0%   { left: var(--rr-fly-start-x, 10%); top: 58%; transform: translate(-50%, -50%) scale(0.368) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          0%   { left: var(--rr-fly-start-x, 10%); top: var(--rr-fly-start-y, 58%); transform: translate(-50%, -50%) scale(0.368) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
           15%  { opacity: 1; }
           100% { left: 50%; top: 48%; transform: translate(-50%, -50%) scale(0.893) rotate(2deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
