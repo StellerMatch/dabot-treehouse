@@ -571,7 +571,7 @@ function RootRoom() {
           margin-left: -3vw;
         }
         .rr-char-clarity.rr-clarity-present {
-          height: 83.46vh;
+          height: 58.42vh;
           margin-left: -3vw;
         }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
@@ -600,7 +600,7 @@ function RootRoom() {
             margin-left: 0;
           }
           .rr-char-clarity.rr-clarity-present {
-            height: min(44.1vh, 23.1rem);
+            height: min(30.87vh, 16.17rem);
             margin-left: 0;
           }
           @keyframes rr-clarity-fly-kf {
