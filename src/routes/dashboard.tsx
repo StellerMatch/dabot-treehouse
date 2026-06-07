@@ -435,18 +435,26 @@ const CATEGORY_HEADING_ALIASES: Record<string, CategoryKey> = {
   "core idea": "core-idea",
   "idea": "core-idea",
   "concept": "core-idea",
+  "raw idea": "core-idea",
+  "what makes it interesting": "core-idea",
+  "existing assets context": "core-idea",
   "clarity": "clarity",
   "summary": "clarity",
+  "mode lightbulb receipt": "clarity",
   "problem": "problem",
+  "problem or desire": "problem",
+  "why it matters": "problem",
   "pain": "problem",
   "need": "problem",
   "audience": "audience",
   "who": "audience",
+  "who it is for": "audience",
   "users": "audience",
   "customer": "audience",
   "customers": "audience",
   "features": "features",
   "feature": "features",
+  "first simple version": "features",
   "functions": "features",
   "capabilities": "features",
   "workflow": "workflow",
@@ -460,9 +468,12 @@ const CATEGORY_HEADING_ALIASES: Record<string, CategoryKey> = {
   "business": "business",
   "money": "business",
   "pricing": "business",
+  "value or money path": "business",
   "concerns": "concerns",
   "concern": "concerns",
   "risks": "concerns",
+  "missing pieces": "concerns",
+  "not decided yet items": "concerns",
   "watchouts": "concerns",
   "watch outs": "concerns",
 };
@@ -508,11 +519,30 @@ function normalizeCategoryHeading(raw: string): CategoryKey | null {
   return CATEGORY_HEADING_ALIASES[normalized] ?? null;
 }
 
-function splitLabeledCategoryLine(line: string): { cat: CategoryKey; body: string } | null {
-  const match = line.match(/^\s*(?:[-•*]\s*)?([A-Za-z][A-Za-z /_-]{1,24})\s*[:\-–—]\s*(.+)$/);
+function stripReceiptHeadingStatus(raw: string): string {
+  return raw
+    .replace(/^\s*\d+\.\s*/, "")
+    .replace(/\s+(?:filled|weak guess|not filled|empty|missing)\s*$/i, "")
+    .trim();
+}
+
+function splitReceiptHeadingLine(line: string): { cat: CategoryKey; body?: string } | null {
+  const match = line.match(
+    /^\s*(?:[-•*]\s*)?(?:\d+\.\s*)?([A-Za-z][A-Za-z /_-]{1,42})\s*(?:[:\-–—]\s*(.*))?$/,
+  );
   if (!match) return null;
-  const cat = normalizeCategoryHeading(match[1]);
-  const body = match[2]?.trim();
+  const heading = stripReceiptHeadingStatus(match[1]);
+  const cat = normalizeCategoryHeading(heading);
+  if (!cat) return null;
+  const body = stripReceiptHeadingStatus(match[2] ?? "");
+  return { cat, body: body.length >= 3 ? body : undefined };
+}
+
+function splitLabeledCategoryLine(line: string): { cat: CategoryKey; body: string } | null {
+  const match = line.match(/^\s*(?:[-•*]\s*)?(?:\d+\.\s*)?([A-Za-z][A-Za-z /_-]{1,42})\s*[:\-–—]\s*(.+)$/);
+  if (!match) return null;
+  const cat = normalizeCategoryHeading(stripReceiptHeadingStatus(match[1]));
+  const body = stripReceiptHeadingStatus(match[2] ?? "");
   if (!cat || !body || body.length < 3) return null;
   return { cat, body };
 }
@@ -536,9 +566,29 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
     workflow: [], design: [], business: [], concerns: [],
   };
 
-  for (const line of text.replace(/\r\n/g, "\n").split("\n")) {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  let activeReceiptCat: CategoryKey | null = null;
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      activeReceiptCat = null;
+      continue;
+    }
     const labeled = splitLabeledCategoryLine(line);
-    if (labeled) pushUnique(out, labeled.cat, labeled.body);
+    if (labeled) {
+      pushUnique(out, labeled.cat, labeled.body);
+      activeReceiptCat = labeled.cat;
+      continue;
+    }
+    const receiptHeading = splitReceiptHeadingLine(line);
+    if (receiptHeading) {
+      activeReceiptCat = receiptHeading.cat;
+      if (receiptHeading.body) pushUnique(out, receiptHeading.cat, receiptHeading.body);
+      continue;
+    }
+    if (activeReceiptCat) {
+      pushUnique(out, activeReceiptCat, line);
+    }
   }
 
   // Seed Core Idea with the first descriptive sentence (a plain concept line).
@@ -599,13 +649,16 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
   return out;
 }
 
+function bodyForCategoryItems(cat: CategoryKey, items: string[]): string {
+  return items.length
+    ? items.map((s) => (cat === "clarity" ? s : `• ${s}`)).join("\n")
+    : CATEGORY_MISSING[cat];
+}
+
 function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
   const buckets = parsePromptIntoCategories(text);
   return CATEGORY_ORDER.map((cat, i) => {
-    const items = buckets[cat];
-    const body = items.length
-      ? items.map((s) => (cat === "clarity" ? s : `• ${s}`)).join("\n")
-      : CATEGORY_MISSING[cat];
+    const body = bodyForCategoryItems(cat, buckets[cat]);
     return {
       id: `post-${ts}-${cat}`,
       kind: "idea-notes",
@@ -622,6 +675,70 @@ function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
   });
 }
 
+function extractCategorySourceBody(post: PostIt, cat: CategoryKey): string {
+  const raw = (post.fullText ?? post.text ?? "").trim();
+  if (!raw) return "";
+  const sourceIndex = raw.indexOf("\n\n-- Source Notes");
+  const sourceIndexEm = raw.indexOf("\n\n— Source Notes");
+  const cutIndex = [sourceIndex, sourceIndexEm].filter((i) => i >= 0).sort((a, b) => a - b)[0];
+  const body = cutIndex >= 0 ? raw.slice(0, cutIndex).trim() : raw;
+  const missing = CATEGORY_MISSING[cat];
+  if (body === missing || body.startsWith(missing)) return "";
+  return body;
+}
+
+function appendUniqueLines(existing: string, addition: string): string {
+  const existingLines = existing
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const seen = new Set(existingLines.map((line) => line.toLowerCase()));
+  const nextLines = [...existingLines];
+  for (const line of addition.split("\n").map((item) => item.trim()).filter(Boolean)) {
+    if (!seen.has(line.toLowerCase())) {
+      nextLines.push(line);
+      seen.add(line.toLowerCase());
+    }
+  }
+  return nextLines.join("\n");
+}
+
+function mergeCategoryFolderPosts(existing: PostIt[], text: string, ts: number): PostIt[] {
+  const buckets = parsePromptIntoCategories(text);
+  const generatedByCat = new Map<CategoryKey, PostIt>();
+  const others: PostIt[] = [];
+  for (const post of existing) {
+    const cat = post.categories?.[0];
+    if (cat && isGeneratedCategoryFolderPost(post, cat)) {
+      generatedByCat.set(cat, post);
+    } else {
+      others.push(post);
+    }
+  }
+
+  const generated = CATEGORY_ORDER.map((cat, i) => {
+    const prior = generatedByCat.get(cat);
+    const priorBody = prior ? extractCategorySourceBody(prior, cat) : "";
+    const nextBody = bodyForCategoryItems(cat, buckets[cat]);
+    const usefulNext = nextBody === CATEGORY_MISSING[cat] ? "" : nextBody;
+    const mergedBody = appendUniqueLines(priorBody, usefulNext) || CATEGORY_MISSING[cat];
+    return {
+      id: prior?.id ?? `post-${ts}-${cat}`,
+      kind: "idea-notes" as const,
+      text: postItCategoryPalette[cat].label,
+      fullText:
+        cat === "clarity"
+          ? `${mergedBody}\n\n— Source Notes (latest addition) —\n${text}`
+          : mergedBody,
+      ts: prior?.ts ?? ts - i,
+      categories: [cat],
+      source: "generated-folder" as const,
+    };
+  });
+
+  return [...generated, ...others].sort((a, b) => b.ts - a.ts);
+}
+
 function isGeneratedCategoryFolderPost(post: PostIt, cat: CategoryKey) {
   return post.source === "generated-folder"
     || (post.kind === "idea-notes"
@@ -631,6 +748,17 @@ function isGeneratedCategoryFolderPost(post: PostIt, cat: CategoryKey) {
 }
 
 
+function mainSummaryFrom(text: string, fallbackTitle?: string): string {
+  const buckets = parsePromptIntoCategories(text);
+  const pieces = [
+    buckets["core-idea"][0],
+    buckets.audience[0] ? `Built for ${buckets.audience[0].replace(/\.$/, "")}.` : "",
+    buckets.problem[0] ? `It matters because ${buckets.problem[0].replace(/\.$/, "")}.` : "",
+  ].filter(Boolean);
+  const base = pieces.join(" ");
+  const summary = base || splitSentences(text).slice(0, 2).join(" ") || fallbackTitle || "";
+  return summary.length > 420 ? summary.slice(0, 418).replace(/\s+\S*$/, "") + "..." : summary;
+}
 
 
 function lightbulbSummaryFrom(text: string): string {
@@ -700,6 +828,7 @@ function Dashboard() {
         stage: "lightbulb",
         nextAction: "Answer the next clarity question",
         ideaType: draftType || undefined,
+        description: mainSummaryFrom(draft, title),
       };
       setIdeas((prev) => [newIdea, ...prev]);
       setSelectedId(id);
@@ -779,11 +908,11 @@ function Dashboard() {
     const cleaned = text.trim();
 
     // If the user pastes a full Clarity prompt / idea packet, parse the
-    // whole thing and (re)build the nine category folders from it instead
-    // of saving one generic note.
+    // whole thing through the same background Clarity digestion layer and
+    // merge it into the category folders instead of saving one generic note.
     if (isLongClarityPrompt(cleaned)) {
       const ts = Date.now();
-      const folderPosts = buildCategoryFolderPosts(cleaned, ts);
+      const folderPosts = mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts);
       const newAnswered = clarityAnsweredFrom(cleaned);
       const mergedAnswered = Array.from(
         new Set([...selectedExtras.answeredQuestions, ...newAnswered]),
@@ -795,21 +924,23 @@ function Dashboard() {
       updateSelected({
         title: generateTitle(cleaned, selected.ideaType),
         messy: lightbulbSummaryFrom(cleaned),
+        description: mainSummaryFrom(cleaned, selected.title),
         shelfReadiness: Math.max(selected.shelfReadiness, 45),
       });
       if (categoryAsk) setCategoryAsk(null);
       return;
     }
 
+    const ts = Date.now();
     const p: PostIt = {
-      id: `post-${Date.now()}`,
+      id: `post-${ts}`,
       kind,
       text: cleaned,
-      ts: Date.now(),
+      ts,
       categories: detectCategories(cleaned, kind),
       source: "captured-note",
     };
-    const nextPosts = [p, ...selectedExtras.posts];
+    const nextPosts = [p, ...mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts)];
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
     updateExtras({
       posts: nextPosts,
@@ -900,9 +1031,10 @@ function Dashboard() {
     const missingPlaceholder = CATEGORY_MISSING[key];
     const realPosts = selectedExtras.posts.filter((p) => {
       if (!(p.categories ?? []).includes(key)) return false;
-      const body = (p.fullText ?? p.text ?? "").trim();
+      const body = isGeneratedCategoryFolderPost(p, key)
+        ? extractCategorySourceBody(p, key)
+        : (p.fullText ?? p.text ?? "").trim();
       if (!body) return false;
-      if (isGeneratedCategoryFolderPost(p, key)) return false;
       if (body === missingPlaceholder) return false;
       if (body.startsWith(missingPlaceholder)) return false;
       return true;
@@ -3352,13 +3484,13 @@ function NoteDesk(props: {
               (p.categories ?? []).includes(cat),
             );
             const missingPlaceholder = CATEGORY_MISSING[cat];
-            // Only count deliberate category development toward stars.
-            // Generated folder summaries can display in the card, but they do
-            // not make a category "complete" until the user expands it.
+            // Count useful Clarity-digested folder summaries and captured notes
+            // toward stars, while missing placeholders stay empty.
             const realPosts = postsForCat.filter((p) => {
-              const body = (p.fullText ?? p.text ?? "").trim();
+              const body = isGeneratedCategoryFolderPost(p, cat)
+                ? extractCategorySourceBody(p, cat)
+                : (p.fullText ?? p.text ?? "").trim();
               if (!body) return false;
-              if (isGeneratedCategoryFolderPost(p, cat)) return false;
               if (body === missingPlaceholder) return false;
               if (body.startsWith(missingPlaceholder)) return false;
               return true;
