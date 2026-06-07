@@ -832,6 +832,20 @@ function ideaMetadataFromText(text: string, ideaTypeFallback?: string): Pick<Lig
   };
 }
 
+function isWeakGeneratedTitle(title: string): boolean {
+  return /^(might create|program\s*\/\s*site|new (?:app|tool|idea|project)|untitled idea)\b/i.test(title.trim());
+}
+
+function ideaContextText(idea: LightbulbIdea, posts: PostIt[]): string {
+  return [
+    idea.messy,
+    idea.description,
+    ...posts.map((post) => post.fullText ?? post.text),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 
 function lightbulbSummaryFrom(text: string): string {
   const first = splitSentences(text)[0] ?? text.trim();
@@ -1010,6 +1024,34 @@ function Dashboard() {
       };
     });
   };
+
+  useEffect(() => {
+    if (!selected) return;
+    const context = ideaContextText(selected, selectedExtras.posts);
+    if (!context.trim()) return;
+    const metadata = ideaMetadataFromText(context, selected.ideaType);
+    const patch: Partial<LightbulbIdea> = {};
+    if (!selected.audience && metadata.audience) patch.audience = metadata.audience;
+    if (!selected.industry && metadata.industry) patch.industry = metadata.industry;
+    if (!selected.ideaType && metadata.ideaType) patch.ideaType = metadata.ideaType;
+    if (!selected.description && metadata.description) patch.description = metadata.description;
+
+    const betterTitle = generateTitle(context, metadata.ideaType ?? selected.ideaType);
+    if (isWeakGeneratedTitle(selected.title) && betterTitle && betterTitle !== selected.title) {
+      patch.title = betterTitle;
+    }
+
+    if (Object.keys(patch).length) updateSelected(patch);
+  }, [
+    selected?.id,
+    selected?.title,
+    selected?.messy,
+    selected?.audience,
+    selected?.industry,
+    selected?.ideaType,
+    selected?.description,
+    selectedExtras.posts,
+  ]);
 
   const currentQuestion = useMemo<ClarityQuestion | undefined>(() => {
     if (categoryAsk) {
@@ -1649,8 +1691,11 @@ function MiniLaidBook({
 }) {
   const palette = categoryKey ? postItCategoryPalette[categoryKey] : undefined;
   const bookBg = palette
-    ? `linear-gradient(180deg, ${palette.edge} 0%, color-mix(in srgb, ${palette.edge} 55%, #1a0a02) 100%)`
+    ? palette.bg
     : "linear-gradient(180deg, #5a3110 0%, #361a06 100%)";
+  const labelBg = palette
+    ? `linear-gradient(180deg, ${palette.chip} 0%, rgba(245,230,190,0.88) 100%)`
+    : "linear-gradient(180deg, #f3dca3 0%, #d8b06a 100%)";
   const btn = (
     <button
       onClick={onClick}
@@ -1663,8 +1708,9 @@ function MiniLaidBook({
       }
       style={{
         background: bookBg,
+        borderColor: palette?.edge,
         boxShadow:
-          "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.5)",
+          "inset 0 1px 0 rgba(255,240,205,0.45), inset 0 -2px 0 rgba(60,32,8,0.35), 0 2px 4px rgba(0,0,0,0.45)",
       }}
     >
       {/* page edges */}
@@ -1722,12 +1768,19 @@ function MiniLaidBook({
       <span
         className="relative z-10 flex w-full items-center justify-between gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
         style={{
-          color: "#fbe6b8",
-          textShadow: "0 1px 0 rgba(0,0,0,0.7)",
+          color: "#3a230d",
+          textShadow: "0 1px 0 rgba(255,245,220,0.75)",
         }}
       >
-        <span className="truncate">{label}</span>
-        <span className="shrink-0 text-[9px] italic opacity-75">{pct}%</span>
+        <span
+          className="min-w-0 truncate rounded-sm border border-amber-950/30 px-1.5 py-0.5"
+          style={{ background: labelBg }}
+        >
+          {label}
+        </span>
+        <span className="shrink-0 rounded-sm bg-amber-50/60 px-1 text-[9px] italic text-amber-950/80">
+          {pct}%
+        </span>
       </span>
     </button>
   );
