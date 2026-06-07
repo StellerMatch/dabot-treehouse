@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
 import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
+import rootRoomPodiumBookAsset from "@/assets/root-room-podium-book.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import { ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
@@ -150,9 +151,9 @@ function RootRoom() {
           </>
         )}
 
-        {/* Podium centered on the cavern floor */}
+        {/* Podium centered on the cavern floor — swaps to book version after foundation completes */}
         <img
-          src={rootRoomPodiumAsset.url}
+          src={(activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete")) ? rootRoomPodiumBookAsset.url : rootRoomPodiumAsset.url}
           alt=""
           className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none"
           style={{ bottom: "19%", height: "31.6vh", width: "auto" }}
@@ -170,8 +171,8 @@ function RootRoom() {
           />
         )}
 
-        {/* Character working at the podium */}
-        {(phase === "working" || phase === "complete") && (
+        {/* Character working at the podium — hidden during foundation's complete phase so Clarity disappears as the book appears */}
+        {(phase === "working" || (phase === "complete" && activeStepId !== "foundation")) && (
           <img
             src={clarityPresentingAsset.url}
             alt=""
