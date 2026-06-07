@@ -47,10 +47,21 @@ const PROCESS_ORDER: StepId[] = [
   "da-stamp",
 ];
 
+const STEP_MESSAGES: Record<StepId, string> = {
+  foundation:
+    "Foundation is preparing the clean starting packet. This step checks that the idea has enough shape to move deeper into the roots. Once the foundation is clear, the next guide can continue the process.",
+  possibilities:
+    "Possibilities is exploring the directions this idea could grow. The roots are sketching out the shapes it might take so the best path forward becomes clear.",
+  safety:
+    "Safety is checking for sharp edges before the idea travels further. Concerns, risks, and gaps are quietly being smoothed so nothing trips up the journey ahead.",
+  record:
+    "Record is gently writing the story of what the roots have learned so far. Every choice and refinement is being kept so this idea always remembers where it came from.",
+  "da-stamp":
+    "Da Stamp is the final blessing of the roots. When this glows, the packet has earned its mark and is ready to rise back into the light.",
+};
+
 function RootRoom() {
-  const navigate = useNavigate();
-  const [activeIndex, setActiveIndex] = useState(0); // index into PROCESS_ORDER
-  const [packetLanded, setPacketLanded] = useState(false);
+  const [activeIndex] = useState(0); // index into PROCESS_ORDER — advances only via guided flow
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -59,17 +70,12 @@ function RootRoom() {
     setReducedMotion(mq.matches);
   }, []);
 
-  // Let the packet "land" on the podium after entry
-  useEffect(() => {
-    const t = window.setTimeout(() => setPacketLanded(true), reducedMotion ? 100 : 900);
-    return () => window.clearTimeout(t);
-  }, [reducedMotion]);
-
   const activeStepId = PROCESS_ORDER[activeIndex];
   const activeTunnel = useMemo(
     () => TUNNELS.find((t) => t.id === activeStepId)!,
     [activeStepId],
   );
+  const activeMessage = STEP_MESSAGES[activeStepId];
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
