@@ -582,7 +582,7 @@ function RootRoom() {
   );
 }
 
-function RootRoomNextButton({ unlocked }: { unlocked: boolean }) {
+function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscend?: () => void }) {
   const palette = unlocked ? ROOT_ROOM_NEXT_PALETTE.gold : ROOT_ROOM_NEXT_PALETTE.leather;
   const content = (
     <span
