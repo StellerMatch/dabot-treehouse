@@ -34,6 +34,8 @@ export const stageLabels: Record<IdeaStage, string> = {
   "operating-path": "Operating Path",
 };
 
+const STABLE_SEED_NOW = Date.UTC(2026, 5, 7, 12, 0, 0);
+
 export const seedIdeas: LightbulbIdea[] = [
   {
     id: "idea-1",
@@ -41,7 +43,7 @@ export const seedIdeas: LightbulbIdea[] = [
     messy:
       "everyone on my block has the same drill collecting dust… could we share? maybe a simple tool, shared shelf, or shed?",
     shelfReadiness: 28,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 6,
+    updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 6,
     stage: "lightbulb",
     nextAction: "Add more notes & start building",
   },
@@ -51,7 +53,7 @@ export const seedIdeas: LightbulbIdea[] = [
     messy:
       "I ramble into my phone. want something that listens all week and hands me a clean monday plan.",
     shelfReadiness: 54,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 26,
+    updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 26,
     stage: "pre-clarity",
     nextAction: "Gather info, then move to Clarity",
 
@@ -68,7 +70,7 @@ export const seedIdeas: LightbulbIdea[] = [
     messy:
       "want a place to keep grandma's recipes with photos and audio of her telling the stories.",
     shelfReadiness: 15,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 50,
+    updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 50,
     stage: "lightbulb",
     nextAction: "Add more notes & start building",
   },
@@ -78,7 +80,7 @@ export const seedIdeas: LightbulbIdea[] = [
     messy:
       "teachers need a tiny kit / playlist / cards for kids who get overwhelmed mid-lesson.",
     shelfReadiness: 22,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 72,
+    updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 72,
     stage: "lightbulb",
     nextAction: "Add more notes & start building",
   },
