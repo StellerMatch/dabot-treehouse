@@ -692,20 +692,24 @@ function Dashboard() {
 
 
 
-  const addIdea = () => {
+  const addIdea = (ideaType?: string) => {
     const id = `idea-${Date.now()}`;
     const fresh: LightbulbIdea = {
       id,
-      title: "New lightbulb",
+      title: ideaType ? `New ${ideaType}` : "New lightbulb",
       messy: "",
       shelfReadiness: 5,
       updatedAt: Date.now(),
       stage: "lightbulb",
       nextAction: "Dump your messy idea",
+      ideaType: ideaType || undefined,
     };
+    // Ensure a fresh, blank workspace: no previous title, notes, posts, or progress.
     setIdeas((prev) => [fresh, ...prev]);
+    setExtras((prev) => ({ ...prev, [id]: emptyExtras() }));
     setSelectedId(id);
     setActiveCategory("core-idea");
+    setCategoryAsk(null);
   };
 
   const moveToPreClarity = (id: string) => {
