@@ -3168,8 +3168,8 @@ function NoteDesk(props: {
   return (
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
-      <div className="relative mx-auto mt-1 w-full max-w-[460px] flex-1">
-        <div className="grid grid-cols-1 gap-2 pb-40 md:grid-cols-2 md:gap-2 md:pb-46 lg:pb-56">
+      <div className="relative mx-auto mt-1 w-full max-w-[420px]">
+        <div className="grid grid-cols-2 gap-1.5 pb-2 md:grid-cols-2 md:gap-1.5">
           {([
             "clarity", "problem",
             "audience", "features",
@@ -3192,7 +3192,7 @@ function NoteDesk(props: {
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
             return (
-              <div key={cat} className={isCoreIdea ? "md:col-span-2" : undefined}>
+              <div key={cat} className={isCoreIdea ? "col-span-2" : undefined}>
                 <PostItCard
                   text={label}
                   fullText={
@@ -3214,7 +3214,7 @@ function NoteDesk(props: {
       </div>
 
       {/* Quick capture — parchment slip on a carved wood tray */}
-      <div className="sticky bottom-0 left-0 right-0 z-20 mt-2">
+      <div className="relative z-20 mt-2">
         <div
           className="mx-auto w-full max-w-[760px] px-2 pb-3"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
@@ -3397,8 +3397,8 @@ function PostItCard({
         onClick={() => setOpen(true)}
         className={
           wide
-            ? "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:aspect-[4.7/1] md:text-left md:[transform:rotate(var(--note-rot))]"
-            : "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
+            ? "relative aspect-[10/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
+            : "relative aspect-[4/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
         }
         style={{
           background: paperBg,
@@ -3411,7 +3411,7 @@ function PostItCard({
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 lg:-rotate-3"
+          className="pointer-events-none absolute -top-1.5 left-1/2 h-2 w-8 -translate-x-1/2 lg:-rotate-3"
           style={{
             background: `linear-gradient(180deg, ${palette.tape}, color-mix(in oklab, ${palette.tape} 70%, #5a3a14))`,
             boxShadow: "0 1px 3px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.15)",
@@ -3429,24 +3429,19 @@ function PostItCard({
             borderRadius: "inherit",
           }}
         />
-        <div className="relative flex h-full items-center justify-center px-2 py-2 sm:px-2.5 lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
-          <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
+        <div className="relative flex h-full items-center justify-center gap-1.5 px-1.5 py-1">
+          <span
+            className="rounded-sm border px-1.5 py-[1px] font-serif text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-950"
+            style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
+            title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
+          >
             {isMixed ? "Mixed" : label}
-          </div>
-          <div className="hidden lg:flex lg:h-full lg:flex-col lg:items-center lg:justify-center">
-            <span
-              className="rounded-sm border px-2 py-[2px] font-serif text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950"
-              style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
-              title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
-            >
-              {isMixed ? "Mixed" : label}
+          </span>
+          {!pinned && (
+            <span className="font-serif text-[8px] uppercase tracking-widest text-amber-900/70">
+              {pct}%
             </span>
-            {!pinned && (
-              <span className="mt-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
-                {pct}% filled
-              </span>
-            )}
-          </div>
+          )}
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
