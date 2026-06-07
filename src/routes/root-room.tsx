@@ -560,12 +560,12 @@ function RootRoom() {
           height: 78.49vh;
         }
         .rr-char-clarity.rr-clarity-fly {
-          height: 63.50vh;
-          margin-left: -2vw;
+          height: 76.20vh;
+          margin-left: -3vw;
         }
         .rr-char-clarity.rr-clarity-present {
-          height: 69.55vh;
-          margin-left: -2vw;
+          height: 83.46vh;
+          margin-left: -3vw;
         }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
