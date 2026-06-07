@@ -101,26 +101,34 @@ function RootRoom() {
               className="pointer-events-none absolute"
               style={{
                 left: `${t.x}%`,
-                top: "52%",
-                width: "16%",
-                height: "55%",
+                top: "55%",
+                width: "26%",
+                height: "70%",
                 transform: "translate(-50%, -100%)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="rr-smoke"
-                  style={{
-                    left: `${15 + i * 11}%`,
-                    animationDelay: `${i * 0.55}s`,
-                    animationDuration: `${5 + (i % 3) * 0.8}s`,
-                  }}
-                />
-              ))}
+              {!reducedMotion && Array.from({ length: 14 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (20 + (i * 7) % 40);
+                const size = 70 + (i * 13) % 70;
+                return (
+                  <span
+                    key={i}
+                    className="rr-smoke"
+                    style={{
+                      left: `${10 + (i * 17) % 80}%`,
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      animationDelay: `${(i * 0.45) % 4}s`,
+                      animationDuration: `${6 + (i % 5) * 1.1}s`,
+                      ['--drift' as never]: `${drift}px`,
+                    }}
+                  />
+                );
+              })}
             </div>
           );
         })}
+
 
 
         {/* Packet on the podium */}
@@ -253,21 +261,22 @@ function RootRoom() {
           100% { transform: translateY(0)     scale(1)    rotate(0deg);  opacity: 1; }
         }
         @keyframes rr-smoke-rise {
-          0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-          20%  { opacity: 0.45; }
-          70%  { opacity: 0.3; }
-          100% { transform: translate(calc(-50% + 14px), -180%) scale(2.2); opacity: 0; }
+          0%   { transform: translate(-50%, 10%) scale(0.5) rotate(0deg); opacity: 0; }
+          15%  { opacity: 0.95; }
+          50%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.6) rotate(20deg); opacity: 0.8; }
+          100% { transform: translate(calc(-50% + var(--drift)), -210%) scale(2.6) rotate(40deg); opacity: 0; }
         }
         .rr-smoke {
           position: absolute;
-          bottom: 0;
-          width: 38px;
-          height: 38px;
+          bottom: -10%;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(220,210,200,0.55) 0%, rgba(180,170,160,0.3) 45%, transparent 75%);
-          filter: blur(8px);
+          background:
+            radial-gradient(circle at 35% 35%, rgba(245,240,230,0.95) 0%, rgba(210,200,185,0.75) 30%, rgba(150,140,125,0.4) 60%, transparent 80%),
+            radial-gradient(circle at 70% 60%, rgba(230,220,205,0.6) 0%, transparent 55%);
+          filter: blur(6px);
+          mix-blend-mode: screen;
           transform: translate(-50%, 0);
-          animation: rr-smoke-rise linear infinite;
+          animation: rr-smoke-rise ease-out infinite;
           will-change: transform, opacity;
         }
       `}</style>
