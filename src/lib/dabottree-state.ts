@@ -46,6 +46,11 @@ export const seedIdeas: LightbulbIdea[] = [
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 6,
     stage: "lightbulb",
     nextAction: "Add more notes & start building",
+    audience: "Local community members",
+    industry: "Community tool sharing",
+    ideaType: "Tool library",
+    description:
+      "A neighborhood tool library for sharing underused tools among people on the same block.",
   },
   {
     id: "idea-2",
@@ -85,4 +90,3 @@ export const seedIdeas: LightbulbIdea[] = [
     nextAction: "Add more notes & start building",
   },
 ];
-

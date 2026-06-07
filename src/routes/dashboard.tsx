@@ -793,10 +793,16 @@ function firstBucketLine(items: string[]): string | undefined {
 
 function inferIdeaType(text: string, fallback?: string): string | undefined {
   const existing = fallback?.trim();
-  if (existing && existing !== "Undecided") return existing;
+  if (existing && !isPlaceholderIdeaType(existing)) return existing;
   if (/\btv\s*show|television show|series\b/i.test(text)) return "TV show";
   if (/\b(program\s*\/\s*site|site\s*\/\s*program|website|web app|app|application)\b/i.test(text)) {
     return /\b(program\s*\/\s*site|site\s*\/\s*program|website|site)\b/i.test(text) ? "App / site" : "App";
+  }
+  if (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text)) {
+    return "Tool library";
+  }
+  if (/\bneighborhood|community|block\b/i.test(text) && /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)) {
+    return "Community resource";
   }
   if (/\bservice\b/i.test(text)) return "Service";
   if (/\bcourse\b/i.test(text)) return "Course";
@@ -805,7 +811,17 @@ function inferIdeaType(text: string, fallback?: string): string | undefined {
   return undefined;
 }
 
+function isPlaceholderIdeaType(value: string | undefined): boolean {
+  return /^(idea type|undecided|unknown|new idea|project type)$/i.test((value ?? "").trim());
+}
+
 function inferIndustry(text: string): string | undefined {
+  if (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text)) {
+    return "Community tool sharing";
+  }
+  if (/\bneighborhood|community|block\b/i.test(text) && /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)) {
+    return "Community resources";
+  }
   if (/\bwedding\b/i.test(text) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)) {
     return "Wedding photography";
   }
@@ -822,6 +838,8 @@ function ideaMetadataFromText(text: string, ideaTypeFallback?: string): Pick<Lig
   const buckets = parsePromptIntoCategories(text);
   const audience =
     firstBucketLine(buckets.audience)
+    ?? (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text) ? "Neighbors who share or borrow tools" : undefined)
+    ?? (/\bneighborhood|community|block\b/i.test(text) ? "Local community members" : undefined)
     ?? (/\bwedding photographers?\b/i.test(text) ? "Wedding photographers" : undefined)
     ?? (/\bphotographers?\b/i.test(text) ? "Photographers" : undefined);
   return {
@@ -1033,7 +1051,7 @@ function Dashboard() {
     const patch: Partial<LightbulbIdea> = {};
     if (!selected.audience && metadata.audience) patch.audience = metadata.audience;
     if (!selected.industry && metadata.industry) patch.industry = metadata.industry;
-    if (!selected.ideaType && metadata.ideaType) patch.ideaType = metadata.ideaType;
+    if ((!selected.ideaType || isPlaceholderIdeaType(selected.ideaType)) && metadata.ideaType) patch.ideaType = metadata.ideaType;
     if (!selected.description && metadata.description) patch.description = metadata.description;
 
     const betterTitle = generateTitle(context, metadata.ideaType ?? selected.ideaType);
