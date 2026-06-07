@@ -667,6 +667,7 @@ function Dashboard() {
       text: cleaned,
       ts: Date.now(),
       categories: detectCategories(cleaned, kind),
+      source: "captured-note",
     };
     const nextPosts = [p, ...selectedExtras.posts];
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
@@ -3194,13 +3195,13 @@ function NoteDesk(props: {
               (p.categories ?? []).includes(cat),
             );
             const missingPlaceholder = CATEGORY_MISSING[cat];
-            // Only count real captured content toward this category's stars —
-            // exclude auto-generated "Missing: ..." placeholder posts and the
-            // seed `messy` text on a new idea. Stars start fully empty and
-            // only fill as the user adds genuine content to THIS category.
+            // Only count deliberate category development toward stars.
+            // Generated folder summaries can display in the card, but they do
+            // not make a category "complete" until the user expands it.
             const realPosts = postsForCat.filter((p) => {
               const body = (p.fullText ?? p.text ?? "").trim();
               if (!body) return false;
+              if (isGeneratedCategoryFolderPost(p, cat)) return false;
               if (body === missingPlaceholder) return false;
               if (body.startsWith(missingPlaceholder)) return false;
               return true;
@@ -3210,8 +3211,7 @@ function NoteDesk(props: {
               .join("\n\n");
             // For star strength, ignore the seed `messy` blurb on core-idea —
             // it's the original capture, not developed category content.
-            const ratingValue =
-              cat === "core-idea" ? "" : (extras.notes[cat] ?? "");
+            const ratingValue = extras.notes[cat] ?? "";
             const ratingCombined = [ratingValue, ratingAggregated]
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
