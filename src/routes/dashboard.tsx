@@ -3214,7 +3214,7 @@ function NoteDesk(props: {
       </div>
 
       {/* Quick capture — parchment slip on a carved wood tray */}
-      <div className="sticky bottom-0 left-0 right-0 z-20 mt-2">
+      <div className="relative z-20 mt-2">
         <div
           className="mx-auto w-full max-w-[760px] px-2 pb-3"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
