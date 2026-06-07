@@ -216,7 +216,11 @@ function RootRoom() {
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
             className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""}`}
-            style={{ "--rr-fly-start-x": `${activeTunnel.x}%` } as React.CSSProperties}
+            style={{
+              "--rr-fly-start-x": `${activeTunnel.x}%`,
+              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "18%" : "58%",
+              "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "8%" : "42%",
+            } as React.CSSProperties}
             draggable={false}
           />
         )}
