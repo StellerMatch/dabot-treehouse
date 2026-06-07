@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
 import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
 import rootRoomPodiumBookAsset from "@/assets/root-room-podium-book.png.asset.json";
+import floatingBookAsset from "@/assets/floating-book.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import echoFlyingAsset from "@/assets/echo-flying.png.asset.json";
@@ -88,12 +89,23 @@ function RootRoom() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [ascending, setAscending] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
   }, []);
+
+  useEffect(() => {
+    if (!ascending) return;
+    const dur = reducedMotion ? 500 : 2000;
+    const t = window.setTimeout(() => navigate({ to: "/trunk" }), dur);
+    return () => window.clearTimeout(t);
+  }, [ascending, navigate, reducedMotion]);
+
+  const handleAscend = () => setAscending(true);
 
   // Sequence after Start
   useEffect(() => {
@@ -227,8 +239,21 @@ function RootRoom() {
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Library
         </Link>
-        <RootRoomNextButton unlocked={rootRoomComplete} />
+        <RootRoomNextButton unlocked={rootRoomComplete} onAscend={handleAscend} />
       </header>
+
+      {ascending && (
+        <div className="pointer-events-none fixed inset-0 z-[80]">
+          <img
+            src={floatingBookAsset.url}
+            alt=""
+            className="rr-book-ascend absolute left-1/2 -translate-x-1/2"
+            draggable={false}
+          />
+          <div className="rr-ascent-glow absolute left-1/2 top-0 -translate-x-1/2" />
+          <div className="rr-ascent-flash absolute inset-0" />
+        </div>
+      )}
 
       {/* Parchment status panel */}
       <div
@@ -552,12 +577,43 @@ function RootRoom() {
             object-position: center center;
           }
         }
+        @keyframes rr-book-ascend-kf {
+          0%   { bottom: 28%; transform: translateX(-50%) scale(0.55) rotate(-2deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          15%  { opacity: 1; }
+          70%  { bottom: 72%; transform: translateX(-50%) scale(1.05) rotate(3deg); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
+          100% { bottom: 110%; transform: translateX(-50%) scale(1.6) rotate(6deg); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
+        }
+        .rr-book-ascend {
+          height: 26vh; width: auto; bottom: 28%;
+          animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
+          will-change: bottom, transform, opacity;
+        }
+        @keyframes rr-ascent-glow-kf {
+          0%   { opacity: 0; transform: translateX(-50%) scaleY(0.4); }
+          40%  { opacity: 0.95; transform: translateX(-50%) scaleY(1); }
+          100% { opacity: 0; transform: translateX(-50%) scaleY(1.2); }
+        }
+        .rr-ascent-glow {
+          width: 18vmin; height: 100vh; transform-origin: top center;
+          background: radial-gradient(ellipse at top, rgba(255,240,200,0.95) 0%, rgba(255,210,130,0.55) 30%, rgba(255,170,60,0.18) 60%, transparent 80%);
+          filter: blur(8px);
+          mix-blend-mode: screen;
+          animation: rr-ascent-glow-kf 2s ease-out forwards;
+        }
+        @keyframes rr-ascent-flash-kf {
+          0%, 70% { opacity: 0; }
+          100%    { opacity: 1; background: rgba(255,245,215,0.95); }
+        }
+        .rr-ascent-flash {
+          background: rgba(255,245,215,0);
+          animation: rr-ascent-flash-kf 2s ease-in forwards;
+        }
       `}</style>
     </main>
   );
 }
 
-function RootRoomNextButton({ unlocked }: { unlocked: boolean }) {
+function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscend?: () => void }) {
   const palette = unlocked ? ROOT_ROOM_NEXT_PALETTE.gold : ROOT_ROOM_NEXT_PALETTE.leather;
   const content = (
     <span
@@ -657,9 +713,9 @@ function RootRoomNextButton({ unlocked }: { unlocked: boolean }) {
 
   if (unlocked) {
     return (
-      <Link to="/dashboard" className="pointer-events-auto">
+      <button type="button" className="pointer-events-auto" onClick={onAscend}>
         {content}
-      </Link>
+      </button>
     );
   }
 
