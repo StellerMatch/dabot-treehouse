@@ -735,7 +735,7 @@ function RootRoom() {
           100% { bottom: 115%; transform: translateX(-50%) scale(2); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
         }
         .rr-book-ascend {
-          height: 14vh; width: auto; bottom: 40%;
+          height: 15.4vh; width: auto; bottom: 40%;
           transform-origin: center center;
           animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
           will-change: bottom, transform, opacity;
