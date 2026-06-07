@@ -71,22 +71,10 @@ function RootRoom() {
     [activeStepId],
   );
 
-  // Camera pan/zoom toward the active tunnel once the packet has landed
-  const camTransform = packetLanded && !reducedMotion
-    ? `scale(1.12) translateX(${(50 - activeTunnel.x) * 0.35}%)`
-    : "scale(1) translateX(0)";
-
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
-      {/* Camera layer (background + overlays pan/zoom together) */}
-      <div
-        className="absolute inset-0 transition-transform duration-[1400ms] ease-out"
-        style={{
-          transform: camTransform,
-          transformOrigin: `${activeTunnel.x}% 55%`,
-          willChange: "transform",
-        }}
-      >
+      {/* Static full-screen scene (no camera pan/zoom) */}
+      <div className="absolute inset-0">
         {/* Background */}
         <img
           src={rootRoomBgAsset.url}
