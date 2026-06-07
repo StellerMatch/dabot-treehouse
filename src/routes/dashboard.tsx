@@ -1506,18 +1506,27 @@ function Dashboard() {
         }}
       />
 
-      {/* Clarity the squirrel — transparent PNG overlay, follows viewport */}
-      <img
-        src={claritySquirrel}
-        alt="Clarity"
-        aria-hidden
-        className="pointer-events-none fixed z-20 select-none right-[-30px] bottom-[150px] h-[260px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
-        style={{
-          width: "auto",
-          filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
-          animation: "clarity-float 6s ease-in-out infinite",
-        }}
-      />
+      {/* Clarity the squirrel — transparent PNG overlay, follows viewport.
+          Swaps to the "ready" pose when the Next Step button unlocks. */}
+      {(() => {
+        const nextStepUnlocked =
+          overallPct >= 90 &&
+          (selectedExtras.clarityFollowupCount ?? 0) >= MIN_CLARITY_FOLLOWUPS;
+        return (
+          <img
+            src={nextStepUnlocked ? claritySquirrelReady : claritySquirrel}
+            alt="Clarity"
+            aria-hidden
+            className="pointer-events-none fixed z-20 select-none right-[-30px] bottom-[150px] h-[260px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
+            style={{
+              width: "auto",
+              filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
+              animation: "clarity-float 6s ease-in-out infinite",
+            }}
+          />
+        );
+      })()}
+
 
 
 
