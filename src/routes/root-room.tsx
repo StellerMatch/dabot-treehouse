@@ -265,7 +265,7 @@ function RootRoom() {
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
                 style={{
                   bottom: "40%",
-                  height: "14vh",
+                  height: "15.4vh",
                   width: "auto",
                   opacity: showRestingBook ? 1 : 0,
                   transition: "opacity 600ms ease",
