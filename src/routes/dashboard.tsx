@@ -719,24 +719,19 @@ function Dashboard() {
 
 
   const addIdea = (ideaType?: string) => {
-    const id = `idea-${Date.now()}`;
-    const fresh: LightbulbIdea = {
-      id,
-      title: ideaType ? `New ${ideaType}` : "New lightbulb",
-      messy: "",
-      shelfReadiness: 5,
-      updatedAt: Date.now(),
-      stage: "lightbulb",
-      nextAction: "Dump your messy idea",
-      ideaType: ideaType || undefined,
-    };
-    // Ensure a fresh, blank workspace: no previous title, notes, posts, or progress.
-    setIdeas((prev) => [fresh, ...prev]);
-    setExtras((prev) => ({ ...prev, [id]: emptyExtras() }));
-    setSelectedId(id);
-    setActiveCategory("core-idea");
-    setCategoryAsk(null);
+    // New ideas always start on the front tree page so the user can
+    // dump their messy idea into the prompt box first.
+    try {
+      sessionStorage.removeItem("dabottree:draftIdea");
+      if (ideaType) {
+        sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
+      } else {
+        sessionStorage.removeItem("dabottree:draftIdeaType");
+      }
+    } catch {}
+    navigate({ to: "/" });
   };
+
 
   const moveToPreClarity = (id: string) => {
     setIdeas((prev) =>
