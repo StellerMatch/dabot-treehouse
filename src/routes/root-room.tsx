@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import rootRoomBgAsset from "@/assets/root-room-bg.png.asset.json";
+import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
+import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import { ArrowLeft, Sparkles } from "lucide-react";
@@ -134,6 +135,15 @@ function RootRoom() {
             <SmokeColumn className="rr-mobile-smoke" x={50} reducedMotion={reducedMotion} />
           </>
         )}
+
+        {/* Podium centered on the cavern floor */}
+        <img
+          src={rootRoomPodiumAsset.url}
+          alt=""
+          className="pointer-events-none absolute left-1/2 z-[3] -translate-x-1/2 select-none"
+          style={{ bottom: "18%", height: "28vh", width: "auto" }}
+          draggable={false}
+        />
 
         {/* Clarity flying from Foundation tunnel to podium */}
         {phase === "clarity" && (
