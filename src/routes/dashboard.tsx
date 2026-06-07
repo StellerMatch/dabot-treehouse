@@ -3192,7 +3192,7 @@ function NoteDesk(props: {
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
             return (
-              <div key={cat} className={isCoreIdea ? "md:col-span-2" : undefined}>
+              <div key={cat} className={isCoreIdea ? "col-span-2" : undefined}>
                 <PostItCard
                   text={label}
                   fullText={
