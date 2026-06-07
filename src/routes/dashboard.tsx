@@ -1593,6 +1593,7 @@ function Dashboard() {
             totalQuestions={CLARITY_QUESTIONS.length}
             onSkipClarityQuestion={skipClarityQuestion}
             getCategoryValue={getCategoryValue}
+            overallPct={overallPct}
           />
         )}
       </div>
