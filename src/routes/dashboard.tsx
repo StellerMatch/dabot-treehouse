@@ -394,6 +394,23 @@ const CATEGORY_ORDER: CategoryKey[] = [
   "workflow", "design", "business", "concerns",
 ];
 
+const QUESTION_PRIORITY: CategoryKey[] = [
+  "problem",
+  "audience",
+  "business",
+  "concerns",
+  "core-idea",
+  "features",
+  "workflow",
+  "design",
+  "clarity",
+];
+
+const QUESTION_PRIORITY_RANK = QUESTION_PRIORITY.reduce(
+  (acc, cat, index) => ({ ...acc, [cat]: index }),
+  {} as Record<CategoryKey, number>,
+);
+
 // Categories that participate in semantic sorting of pasted prompts.
 // "clarity" is synthesized separately (overall readout).
 const SORTABLE_CATEGORIES: CategoryKey[] = [
@@ -807,7 +824,11 @@ function weakestCategoryQuestionFor(
     }))
     .filter((item) => item.pct < 80)
     .sort((a, b) => {
-      if (a.pct !== b.pct) return a.pct - b.pct;
+      const priorityDiff = QUESTION_PRIORITY_RANK[a.category] - QUESTION_PRIORITY_RANK[b.category];
+      const pctDiff = a.pct - b.pct;
+      if (Math.abs(pctDiff) <= 25 && priorityDiff !== 0) return priorityDiff;
+      if (pctDiff !== 0) return pctDiff;
+      if (priorityDiff !== 0) return priorityDiff;
       return CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
     });
   const weakest = candidates[0];
