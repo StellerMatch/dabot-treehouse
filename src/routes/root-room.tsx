@@ -188,7 +188,7 @@ function RootRoom() {
 
         {/* Podium centered on the cavern floor — crossfades to book version after foundation completes */}
         {(() => {
-          const showBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
+          const showBook = !ascending && (activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete"));
           return (
             <>
               <img
