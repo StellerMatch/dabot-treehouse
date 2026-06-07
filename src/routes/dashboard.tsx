@@ -159,6 +159,7 @@ type PostIt = {
   fullText?: string;
   ts: number;
   categories?: CategoryKey[];
+  source?: "generated-folder" | "captured-note";
 };
 type IdeaExtras = {
   notes: CategoryNotes;
@@ -481,8 +482,17 @@ function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
           : body,
       ts: ts - i,
       categories: [cat],
+      source: "generated-folder",
     };
   });
+}
+
+function isGeneratedCategoryFolderPost(post: PostIt, cat: CategoryKey) {
+  return post.source === "generated-folder"
+    || (post.kind === "idea-notes"
+      && post.text === postItCategoryPalette[cat].label
+      && (post.categories ?? []).length === 1
+      && post.categories?.[0] === cat);
 }
 
 
