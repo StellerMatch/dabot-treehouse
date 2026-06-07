@@ -283,15 +283,14 @@ function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined):
 }
 
 const IDEA_TYPE_OPTIONS = [
-  "Tool",
-  "Service",
-  "Show",
-  "Game",
-  "Product",
-  "Community",
-  "Business",
-  "Story",
   "App",
+  "Website",
+  "App / website",
+  "TV show",
+  "Book",
+  "Course",
+  "Game",
+  "Service",
   "Undecided",
 ] as const;
 
@@ -2155,12 +2154,13 @@ function LibraryPopover({
 
 const NEW_IDEA_CATEGORIES: { id: string; label: string; type: string }[] = [
   { id: "app", label: "Create an App", type: "App" },
-  { id: "tool", label: "Create a Tool", type: "Tool" },
+  { id: "website", label: "Create a Website", type: "Website" },
+  { id: "app-website", label: "Create an App / Website", type: "App / website" },
+  { id: "tv-show", label: "Create a TV Show", type: "TV show" },
+  { id: "book", label: "Write a Book", type: "Book" },
+  { id: "course", label: "Create a Course", type: "Course" },
+  { id: "game", label: "Create a Game", type: "Game" },
   { id: "service", label: "Create a Service", type: "Service" },
-  { id: "product", label: "Create a Product", type: "Product" },
-  { id: "community", label: "Start a Community", type: "Community" },
-  { id: "business", label: "Start a Business", type: "Business" },
-  { id: "story", label: "Tell a Story", type: "Story" },
 ];
 
 function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }) {
@@ -2210,7 +2210,7 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
           <Plus className="h-3.5 w-3.5" /> Blank Idea
         </button>
         <div className="mb-1 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-950/70">
-          · Categories ·
+          · Project Types ·
         </div>
         <ul className="space-y-1">
           {NEW_IDEA_CATEGORIES.map((c) => (
