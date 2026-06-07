@@ -889,7 +889,7 @@ function Dashboard() {
       <header className="relative z-30 flex flex-wrap items-center justify-center gap-1.5 px-2 pt-1.5 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
         {/* LEFT: Logo + Progress book */}
         <div className="order-1 flex items-center gap-2 sm:gap-3">
-          <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
+          <Link to="/" className="hidden shrink-0 items-center gap-1.5 sm:flex" title="Home">
             <img src={logo} alt="DaBotTree" className="h-8 w-8 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] sm:h-9 sm:w-9" />
           </Link>
           <ProgressPopover
