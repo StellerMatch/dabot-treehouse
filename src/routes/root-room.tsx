@@ -107,19 +107,19 @@ function RootRoom() {
                 transform: "translate(-50%, -100%)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 14 }).map((_, i) => {
-                const drift = (i % 2 === 0 ? 1 : -1) * (20 + (i * 7) % 40);
-                const size = 70 + (i * 13) % 70;
+              {!reducedMotion && Array.from({ length: 8 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (15 + (i * 7) % 30);
+                const size = 50 + (i * 11) % 45;
                 return (
                   <span
                     key={i}
                     className="rr-smoke"
                     style={{
-                      left: `${10 + (i * 17) % 80}%`,
+                      left: `${15 + (i * 19) % 70}%`,
                       width: `${size}px`,
                       height: `${size}px`,
-                      animationDelay: `${(i * 0.45) % 4}s`,
-                      animationDuration: `${6 + (i % 5) * 1.1}s`,
+                      animationDelay: `${(i * 0.6) % 4}s`,
+                      animationDuration: `${6 + (i % 4) * 1.2}s`,
                       ['--drift' as never]: `${drift}px`,
                     }}
                   />
@@ -271,9 +271,9 @@ function RootRoom() {
           bottom: -10%;
           border-radius: 50%;
           background:
-            radial-gradient(circle at 35% 35%, rgba(245,240,230,0.95) 0%, rgba(210,200,185,0.75) 30%, rgba(150,140,125,0.4) 60%, transparent 80%),
-            radial-gradient(circle at 70% 60%, rgba(230,220,205,0.6) 0%, transparent 55%);
-          filter: blur(6px);
+            radial-gradient(circle at 35% 35%, rgba(240,235,225,0.7) 0%, rgba(200,190,175,0.5) 35%, rgba(150,140,125,0.25) 65%, transparent 82%),
+            radial-gradient(circle at 70% 60%, rgba(225,215,200,0.4) 0%, transparent 55%);
+          filter: blur(7px);
           mix-blend-mode: screen;
           transform: translate(-50%, 0);
           animation: rr-smoke-rise ease-out infinite;
