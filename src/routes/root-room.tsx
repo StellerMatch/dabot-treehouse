@@ -304,32 +304,6 @@ function RootRoom() {
           transform: translate(-50%, -50%) scale(1.16);
           animation: rr-tunnel-breathe 3.4s ease-in-out infinite;
         }
-        .rr-tunnel-label {
-          position: absolute;
-          left: 50%;
-          top: 3%;
-          transform: translateX(-50%);
-          width: max-content;
-          max-width: 10rem;
-          border: 1px solid rgba(238, 194, 113, 0.48);
-          border-radius: 999px;
-          background: rgba(25, 12, 4, 0.56);
-          padding: 0.28rem 0.62rem;
-          color: rgba(255, 238, 202, 0.9);
-          font-size: clamp(0.58rem, 0.86vw, 0.78rem);
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          text-align: center;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.85);
-          backdrop-filter: blur(5px);
-        }
-        .rr-desktop-tunnel-marker[data-active="true"] .rr-tunnel-label,
-        .rr-mobile-label {
-          color: #fff3c8;
-          border-color: rgba(255, 218, 139, 0.75);
-          box-shadow: 0 0 22px rgba(255, 190, 89, 0.28);
-        }
         .rr-mobile-tunnel-focus {
           position: absolute;
           left: 50%;
@@ -355,26 +329,6 @@ function RootRoom() {
         .rr-mobile-tunnel-focus[data-active="true"] .rr-mobile-portal {
           opacity: 0.95;
           animation: rr-tunnel-breathe 3.4s ease-in-out infinite;
-        }
-        .rr-mobile-label {
-          position: absolute;
-          left: 50%;
-          top: 4%;
-          transform: translateX(-50%);
-          width: max-content;
-          max-width: 82vw;
-          border: 1px solid rgba(238, 194, 113, 0.58);
-          border-radius: 999px;
-          background: rgba(25, 12, 4, 0.66);
-          padding: 0.45rem 0.9rem;
-          color: rgba(255, 238, 202, 0.94);
-          font-size: clamp(0.78rem, 3.4vw, 1rem);
-          font-weight: 800;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          text-align: center;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.85);
-          backdrop-filter: blur(7px);
         }
         .rr-desktop-smoke,
         .rr-mobile-smoke {
@@ -462,7 +416,6 @@ function TunnelMarker({ tunnel, active }: { tunnel: Tunnel; active: boolean }) {
       }
     >
       <div className="rr-tunnel-aura" />
-      <div className="rr-tunnel-label">{tunnel.label}</div>
     </div>
   );
 }
@@ -475,7 +428,6 @@ function MobileActiveTunnel({ tunnel, active }: { tunnel: Tunnel; active: boolea
       style={{ "--tunnel-accent": tunnel.accent } as React.CSSProperties}
     >
       <div className="rr-mobile-portal" />
-      <div className="rr-mobile-label">{tunnel.label}</div>
     </div>
   );
 }
