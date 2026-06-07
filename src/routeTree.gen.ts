@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrunkRouteImport } from './routes/trunk'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as RootRoomRouteImport } from './routes/root-room'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TrunkRoute = TrunkRouteImport.update({
+  id: '/trunk',
+  path: '/trunk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/trunk': typeof TrunkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/trunk': typeof TrunkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/trunk': typeof TrunkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/root-room' | '/signin'
+  fullPaths: '/' | '/dashboard' | '/root-room' | '/signin' | '/trunk'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/root-room' | '/signin'
-  id: '__root__' | '/' | '/dashboard' | '/root-room' | '/signin'
+  to: '/' | '/dashboard' | '/root-room' | '/signin' | '/trunk'
+  id: '__root__' | '/' | '/dashboard' | '/root-room' | '/signin' | '/trunk'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   RootRoomRoute: typeof RootRoomRoute
   SigninRoute: typeof SigninRoute
+  TrunkRoute: typeof TrunkRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trunk': {
+      id: '/trunk'
+      path: '/trunk'
+      fullPath: '/trunk'
+      preLoaderRoute: typeof TrunkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signin': {
       id: '/signin'
       path: '/signin'
@@ -107,7 +124,18 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   RootRoomRoute: RootRoomRoute,
   SigninRoute: SigninRoute,
+  TrunkRoute: TrunkRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
