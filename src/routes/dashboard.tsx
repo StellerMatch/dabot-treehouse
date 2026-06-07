@@ -4334,7 +4334,7 @@ function DraggableOwl({ src }: { src: string }) {
       aria-hidden
       src={src}
       alt=""
-      className="fixed select-none object-contain cursor-move left-[-10vw] bottom-[70px] top-auto h-[37vh] z-[15] md:left-[5vw] md:top-[42vh] md:bottom-auto md:h-[32vh] md:z-[5] lg:left-[24vw] lg:top-[28vh]"
+      className="fixed select-none object-contain cursor-move left-[-10vw] bottom-[88px] top-auto h-[37vh] z-[15] md:left-[4.25vw] md:top-[42vh] md:bottom-auto md:h-[32vh] md:z-[5] lg:left-[23vw] lg:top-[28vh]"
       style={{
         width: "auto",
         filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.45))",
