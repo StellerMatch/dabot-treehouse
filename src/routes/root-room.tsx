@@ -371,7 +371,8 @@ function RootRoom() {
           animation: rr-clarity-present-kf 0.5s ease-out forwards;
           filter: drop-shadow(0 0 32px rgba(255,210,140,0.9));
         }
-        @media (max-width: 899px) {
+        /* Tablet and phone layout: every character enters through the centered middle tunnel. */
+        @media (max-width: 1199px) {
           .rr-clarity-fly {
             height: min(46.2vh, 24.15rem);
           }
@@ -385,7 +386,7 @@ function RootRoom() {
             100% { left: 50%; top: 57%; transform: translate(-50%, -50%) scale(0.819) rotate(1deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
           }
         }
-        @media (min-width: 900px) {
+        @media (min-width: 1200px) {
           .rr-desktop-tunnels,
           .rr-desktop-smoke {
             display: block;
