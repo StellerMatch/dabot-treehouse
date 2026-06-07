@@ -284,6 +284,19 @@ function timeAgo(ts: number) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+function StableTimeAgo({ ts }: { ts: number }) {
+  const [label, setLabel] = useState("just now");
+
+  useEffect(() => {
+    const update = () => setLabel(timeAgo(ts));
+    update();
+    const interval = window.setInterval(update, 30_000);
+    return () => window.clearInterval(interval);
+  }, [ts]);
+
+  return <span>{label}</span>;
+}
+
 function pctFromCount(count: number, weights: number[] = [25, 45, 65, 80, 92, 100]) {
   if (count <= 0) return 0;
   return weights[Math.min(count - 1, weights.length - 1)];
@@ -2773,7 +2786,7 @@ function Journal(props: {
           )}
 
           <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
-            Updated <span suppressHydrationWarning>{timeAgo(selected.updatedAt)}</span> · Next: {selected.nextAction}
+            Updated <StableTimeAgo ts={selected.updatedAt} /> · Next: {selected.nextAction}
           </div>
         </div>
       </div>
@@ -3512,12 +3525,13 @@ function PostItCard({
                 {[0, 1, 2, 3].map((i) => (
                   <span
                     key={i}
+                    aria-hidden
                     style={{
-                      color: i < stars ? "#ffd84d" : "transparent",
-                      WebkitTextStroke: i < stars ? "0" : "1px rgba(90,55,20,0.55)",
+                      color: i < stars ? "#ffd84d" : "#7b5a2a",
+                      WebkitTextStroke: i < stars ? "0" : "0",
                       textShadow: i < stars
                         ? "0 0 5px rgba(255,216,77,0.75), 0 1px 0 rgba(120,70,15,0.45)"
-                        : "0 1px 0 rgba(255,240,200,0.5)",
+                        : "0 1px 0 rgba(245,223,184,0.35), 0 -1px 0 rgba(73,43,16,0.22)",
                     }}
                   >
                     ★
@@ -3535,7 +3549,7 @@ function PostItCard({
               {isMixed ? "Mixed note" : label}
             </DialogTitle>
             <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
-              {pinned ? "Seed note" : <span suppressHydrationWarning>{timeAgo(ts)}</span>}
+              {pinned ? "Seed note" : <StableTimeAgo ts={ts} />}
               {categories && categories.length > 0 && (
                 <> · {categories.map((c) => postItCategoryPalette[c].label).join(", ")}</>
               )}
