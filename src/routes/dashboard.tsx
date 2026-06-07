@@ -3398,18 +3398,31 @@ function PostItCard({
         onClick={() => setOpen(true)}
         className={
           wide
-            ? "relative aspect-[10/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
-            : "relative aspect-[4/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
+            ? "relative aspect-[8/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
+            : "relative aspect-[2.6/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
         }
         style={{
           background: paperBg,
           borderColor: "rgba(70,40,15,0.55)",
           boxShadow: earthShadow,
-          borderRadius: "3px 6px 4px 7px",
+          borderRadius: "4px 9px 5px 10px",
           ["--note-rot" as string]: `${rot}deg`,
         }}
         title="Open full note"
       >
+        {/* tiny wood tab behind the top edge — treehouse trim */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-1 left-1/2 h-1.5 w-10 -translate-x-1/2"
+          style={{
+            background:
+              "linear-gradient(180deg, #8a5a22 0%, #5a3410 60%, #2d1808 100%)",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,210,150,0.25)",
+            borderRadius: "2px 2px 1px 1px",
+          }}
+        />
+        {/* washi tape over the wood tab */}
         <span
           aria-hidden
           className="pointer-events-none absolute -top-1.5 left-1/2 h-2 w-8 -translate-x-1/2 lg:-rotate-3"
@@ -3417,9 +3430,20 @@ function PostItCard({
             background: `linear-gradient(180deg, ${palette.tape}, color-mix(in oklab, ${palette.tape} 70%, #5a3a14))`,
             boxShadow: "0 1px 3px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.15)",
             borderRadius: "1px 3px 2px 4px",
-            opacity: 0.85,
+            opacity: 0.9,
           }}
         />
+        {/* tiny pin dot (lower-right) */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle at 30% 30%, #f5d27a 0%, #a86614 55%, #4a2808 100%)",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.5)",
+          }}
+        />
+        {/* paper grain flecks */}
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -3430,7 +3454,7 @@ function PostItCard({
             borderRadius: "inherit",
           }}
         />
-        <div className="relative flex h-full items-center justify-center gap-1.5 px-1.5 py-1">
+        <div className="relative flex h-full flex-col items-center justify-center gap-0.5 px-1.5 py-1.5">
           <span
             className="rounded-sm border px-1.5 py-[1px] font-serif text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-950"
             style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
@@ -3442,14 +3466,18 @@ function PostItCard({
             const stars = pct >= 100 ? 4 : pct >= 80 ? 3 : pct >= 55 ? 2 : pct >= 25 ? 1 : 0;
             return (
               <span
-                className="inline-flex items-center gap-[1px] text-[9px] leading-none"
+                className="inline-flex items-center gap-[2px] text-[11px] leading-none"
                 aria-label={`Strength ${stars} of 4`}
                 title={`Strength ${stars} of 4`}
+                style={{ textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}
               >
                 {[0, 1, 2, 3].map((i) => (
                   <span
                     key={i}
-                    style={{ color: i < stars ? "#7a4a10" : "rgba(120,80,30,0.28)" }}
+                    style={{
+                      color: i < stars ? "#7a4a10" : "transparent",
+                      WebkitTextStroke: i < stars ? "0" : "1px rgba(90,55,20,0.55)",
+                    }}
                   >
                     ★
                   </span>
@@ -3457,7 +3485,6 @@ function PostItCard({
               </span>
             );
           })()}
-
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
