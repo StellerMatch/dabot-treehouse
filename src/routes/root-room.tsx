@@ -596,11 +596,11 @@ function RootRoom() {
             height: min(71.66vh, 37.54rem);
           }
           .rr-char-clarity.rr-clarity-fly {
-            height: min(46.2vh, 24.15rem);
+            height: min(39.27vh, 20.53rem);
             margin-left: 0;
           }
           .rr-char-clarity.rr-clarity-present {
-            height: min(30.87vh, 16.17rem);
+            height: min(26.24vh, 13.74rem);
             margin-left: 0;
           }
           @keyframes rr-clarity-fly-kf {
