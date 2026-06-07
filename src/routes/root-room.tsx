@@ -29,20 +29,19 @@ type Tunnel = {
 };
 
 const TUNNELS: Tunnel[] = [
-  { id: "foundation",    label: "Foundation",    x: 10, accent: "rgba(255,200,110,0.9)" },
-  { id: "safety",        label: "Safety",        x: 30, accent: "rgba(140,210,255,0.9)" },
-  { id: "da-stamp",      label: "Da Stamp",      x: 50, accent: "rgba(255,170,90,0.9)"  },
-  { id: "record",        label: "Record",        x: 70, accent: "rgba(180,255,170,0.9)" },
+  { id: "foundation", label: "Foundation", x: 10, accent: "rgba(255,200,110,0.9)" },
+  { id: "safety", label: "Safety", x: 30, accent: "rgba(140,210,255,0.9)" },
+  { id: "da-stamp", label: "Da Stamp", x: 50, accent: "rgba(255,170,90,0.9)" },
+  { id: "record", label: "Record", x: 70, accent: "rgba(180,255,170,0.9)" },
   { id: "possibilities", label: "Possibilities", x: 90, accent: "rgba(220,180,255,0.9)" },
 ];
 
-const PROCESS_ORDER: StepId[] = [
-  "foundation",
-  "possibilities",
-  "safety",
-  "record",
-  "da-stamp",
-];
+const PROCESS_ORDER: StepId[] = ["foundation", "possibilities", "safety", "record", "da-stamp"];
+
+const TUNNEL_BY_ID = Object.fromEntries(TUNNELS.map((tunnel) => [tunnel.id, tunnel])) as Record<
+  StepId,
+  Tunnel
+>;
 
 const STEP_MESSAGES: Record<StepId, string> = {
   foundation:
@@ -63,6 +62,7 @@ type Phase = "intro" | "smoke" | "clarity" | "dropoff";
 function RootRoom() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [activeStepIndex] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -83,11 +83,8 @@ function RootRoom() {
     }
   }, [phase]);
 
-  const activeStepId: StepId = "foundation";
-  const activeTunnel = useMemo(
-    () => TUNNELS.find((t) => t.id === activeStepId)!,
-    [],
-  );
+  const activeStepId = PROCESS_ORDER[activeStepIndex] ?? "foundation";
+  const activeTunnel = useMemo(() => TUNNEL_BY_ID[activeStepId], [activeStepId]);
 
   const showFoundationGlow = phase !== "intro";
   const showFoundationText = phase === "clarity" || phase === "dropoff";
@@ -98,48 +95,44 @@ function RootRoom() {
         <img
           src={rootRoomBgAsset.url}
           alt="The Root Room — a circular underground chamber with five tree-root tunnels."
-          className="absolute inset-0 h-full w-full object-cover"
+          className="rr-room-bg absolute inset-0 h-full w-full object-cover"
           draggable={false}
         />
 
         {!reducedMotion && (
           <div
             className="pointer-events-none absolute inset-0 animate-[rr-fade_900ms_ease-out_forwards]"
-            style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%)" }}
+            style={{
+              background:
+                "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%)",
+            }}
           />
         )}
 
-        {/* Foundation tunnel smoke (only after Start) */}
+        <div className="rr-desktop-tunnels pointer-events-none absolute inset-0">
+          {TUNNELS.map((tunnel) => (
+            <TunnelMarker
+              key={tunnel.id}
+              tunnel={tunnel}
+              active={phase !== "intro" && tunnel.id === activeStepId}
+            />
+          ))}
+        </div>
+
+        <div className="rr-mobile-stage pointer-events-none absolute inset-0">
+          <MobileActiveTunnel tunnel={activeTunnel} active={phase !== "intro"} />
+        </div>
+
+        {/* Active tunnel smoke (only after Start) */}
         {showFoundationGlow && (
-          <div
-            className="pointer-events-none absolute"
-            style={{
-              left: `${activeTunnel.x}%`,
-              top: "42%",
-              width: "10%",
-              height: "45%",
-              transform: "translate(-50%, 0)",
-            }}
-          >
-            {!reducedMotion && Array.from({ length: 10 }).map((_, i) => {
-              const drift = (i % 2 === 0 ? 1 : -1) * (12 + (i * 5) % 20);
-              const size = 42 + (i * 11) % 32;
-              return (
-                <span
-                  key={i}
-                  className="rr-smoke"
-                  style={{
-                    left: `${30 + (i * 13) % 40}%`,
-                    width: `${size}px`,
-                    height: `${size}px`,
-                    animationDelay: `${(i * 0.55) % 4}s`,
-                    animationDuration: `${6.5 + (i % 4) * 1.1}s`,
-                    ['--drift' as never]: `${drift}px`,
-                  }}
-                />
-              );
-            })}
-          </div>
+          <>
+            <SmokeColumn
+              className="rr-desktop-smoke"
+              x={activeTunnel.x}
+              reducedMotion={reducedMotion}
+            />
+            <SmokeColumn className="rr-mobile-smoke" x={50} reducedMotion={reducedMotion} />
+          </>
         )}
 
         {/* Clarity flying from Foundation tunnel to podium */}
@@ -208,10 +201,10 @@ function RootRoom() {
                 </span>
               </div>
               <h2 className="relative mt-1 text-center text-[22px] font-bold tracking-wide text-amber-50">
-                Foundation
+                {activeTunnel.label}
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-                {STEP_MESSAGES.foundation}
+                {STEP_MESSAGES[activeStepId]}
               </p>
             </>
           ) : (
@@ -220,7 +213,8 @@ function RootRoom() {
                 Root Room
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-                This is where the clean packet enters DaBotTree's roots. Each guide will review one part of the idea before the packet is ready to move forward.
+                This is where the clean packet enters DaBotTree's roots. Each guide will review one
+                part of the idea before the packet is ready to move forward.
               </p>
               {phase === "intro" && (
                 <div className="relative mt-4 flex justify-center">
@@ -263,6 +257,134 @@ function RootRoom() {
           will-change: transform, opacity;
         }
 
+        .rr-desktop-tunnels,
+        .rr-desktop-smoke {
+          display: none;
+        }
+        .rr-mobile-stage,
+        .rr-mobile-smoke {
+          display: block;
+        }
+        .rr-room-bg {
+          object-position: center center;
+        }
+        .rr-desktop-tunnel-marker {
+          position: absolute;
+          top: 26%;
+          width: clamp(72px, 8.4vw, 132px);
+          height: 38%;
+          transform: translateX(-50%);
+        }
+        .rr-tunnel-aura {
+          position: absolute;
+          left: 50%;
+          top: 42%;
+          width: 88%;
+          aspect-ratio: 1 / 1.2;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          background:
+            radial-gradient(ellipse at center, var(--tunnel-accent) 0%, rgba(255,220,140,0.38) 32%, transparent 72%);
+          filter: blur(16px);
+          opacity: 0.16;
+          transition: opacity 450ms ease, transform 450ms ease;
+        }
+        .rr-desktop-tunnel-marker[data-active="true"] .rr-tunnel-aura {
+          opacity: 0.9;
+          transform: translate(-50%, -50%) scale(1.16);
+          animation: rr-tunnel-breathe 3.4s ease-in-out infinite;
+        }
+        .rr-tunnel-label {
+          position: absolute;
+          left: 50%;
+          top: 3%;
+          transform: translateX(-50%);
+          width: max-content;
+          max-width: 10rem;
+          border: 1px solid rgba(238, 194, 113, 0.48);
+          border-radius: 999px;
+          background: rgba(25, 12, 4, 0.56);
+          padding: 0.28rem 0.62rem;
+          color: rgba(255, 238, 202, 0.9);
+          font-size: clamp(0.58rem, 0.86vw, 0.78rem);
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-align: center;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+          backdrop-filter: blur(5px);
+        }
+        .rr-desktop-tunnel-marker[data-active="true"] .rr-tunnel-label,
+        .rr-mobile-label {
+          color: #fff3c8;
+          border-color: rgba(255, 218, 139, 0.75);
+          box-shadow: 0 0 22px rgba(255, 190, 89, 0.28);
+        }
+        .rr-mobile-tunnel-focus {
+          position: absolute;
+          left: 50%;
+          top: 30%;
+          width: min(68vw, 18rem);
+          height: 38vh;
+          transform: translateX(-50%);
+        }
+        .rr-mobile-portal {
+          position: absolute;
+          left: 50%;
+          top: 43%;
+          width: min(54vw, 15rem);
+          aspect-ratio: 1 / 1.18;
+          border-radius: 50% 50% 42% 42%;
+          transform: translate(-50%, -50%);
+          background:
+            radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.08) 38%, transparent 70%),
+            radial-gradient(ellipse at center, var(--tunnel-accent) 0%, rgba(255, 205, 119, 0.28) 36%, transparent 74%);
+          filter: blur(0.5px);
+          opacity: 0.5;
+        }
+        .rr-mobile-tunnel-focus[data-active="true"] .rr-mobile-portal {
+          opacity: 0.95;
+          animation: rr-tunnel-breathe 3.4s ease-in-out infinite;
+        }
+        .rr-mobile-label {
+          position: absolute;
+          left: 50%;
+          top: 4%;
+          transform: translateX(-50%);
+          width: max-content;
+          max-width: 82vw;
+          border: 1px solid rgba(238, 194, 113, 0.58);
+          border-radius: 999px;
+          background: rgba(25, 12, 4, 0.66);
+          padding: 0.45rem 0.9rem;
+          color: rgba(255, 238, 202, 0.94);
+          font-size: clamp(0.78rem, 3.4vw, 1rem);
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-align: center;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+          backdrop-filter: blur(7px);
+        }
+        .rr-desktop-smoke,
+        .rr-mobile-smoke {
+          pointer-events: none;
+          position: absolute;
+          top: 42%;
+          width: 10%;
+          height: 45%;
+          transform: translate(-50%, 0);
+        }
+        .rr-mobile-smoke {
+          top: 37%;
+          width: 34%;
+          height: 42%;
+        }
+        @keyframes rr-tunnel-breathe {
+          0%, 100% { filter: blur(16px); transform: translate(-50%, -50%) scale(1); }
+          50% { filter: blur(20px); transform: translate(-50%, -50%) scale(1.12); }
+        }
+
         /* Clarity flying from Foundation tunnel (~10% left, ~55% top) toward podium (~50% left, ~70% top) */
         @keyframes rr-clarity-fly-kf {
           0%   { left: 10%; top: 58%; transform: translate(-50%, -50%) scale(0.35) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
@@ -285,7 +407,101 @@ function RootRoom() {
           animation: rr-clarity-present-kf 0.5s ease-out forwards;
           filter: drop-shadow(0 0 32px rgba(255,210,140,0.9));
         }
+        @media (max-width: 899px) {
+          .rr-clarity-fly {
+            height: min(44vh, 23rem);
+          }
+          .rr-clarity-present {
+            top: 60%;
+            height: min(42vh, 22rem);
+          }
+          @keyframes rr-clarity-fly-kf {
+            0%   { left: 50%; top: 42%; transform: translate(-50%, -50%) scale(0.34) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+            15%  { opacity: 1; }
+            100% { left: 50%; top: 61%; transform: translate(-50%, -50%) scale(0.78) rotate(1deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
+          }
+        }
+        @media (min-width: 900px) {
+          .rr-desktop-tunnels,
+          .rr-desktop-smoke {
+            display: block;
+          }
+          .rr-mobile-stage,
+          .rr-mobile-smoke {
+            display: none;
+          }
+          .rr-room-bg {
+            object-position: center center;
+          }
+        }
       `}</style>
     </main>
+  );
+}
+
+function TunnelMarker({ tunnel, active }: { tunnel: Tunnel; active: boolean }) {
+  return (
+    <div
+      className="rr-desktop-tunnel-marker"
+      data-active={active}
+      style={
+        {
+          left: `${tunnel.x}%`,
+          "--tunnel-accent": tunnel.accent,
+        } as React.CSSProperties
+      }
+    >
+      <div className="rr-tunnel-aura" />
+      <div className="rr-tunnel-label">{tunnel.label}</div>
+    </div>
+  );
+}
+
+function MobileActiveTunnel({ tunnel, active }: { tunnel: Tunnel; active: boolean }) {
+  return (
+    <div
+      className="rr-mobile-tunnel-focus"
+      data-active={active}
+      style={{ "--tunnel-accent": tunnel.accent } as React.CSSProperties}
+    >
+      <div className="rr-mobile-portal" />
+      <div className="rr-mobile-label">{tunnel.label}</div>
+    </div>
+  );
+}
+
+function SmokeColumn({
+  className,
+  x,
+  reducedMotion,
+}: {
+  className: string;
+  x: number;
+  reducedMotion: boolean;
+}) {
+  return (
+    <div className={className} style={{ left: `${x}%` }}>
+      {!reducedMotion &&
+        Array.from({ length: 10 }).map((_, i) => {
+          const drift = (i % 2 === 0 ? 1 : -1) * (12 + ((i * 5) % 20));
+          const size = 42 + ((i * 11) % 32);
+          return (
+            <span
+              key={i}
+              className="rr-smoke"
+              style={
+                {
+                  left: `${30 + ((i * 13) % 40)}%`,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  animationDelay: `${(i * 0.55) % 4}s`,
+                  animationDuration: `${6.5 + (i % 4) * 1.1}s`,
+                  "--drift": `${drift}px`,
+                } as React.CSSProperties
+              }
+            />
+          );
+        })}
+    </div>
   );
 }
