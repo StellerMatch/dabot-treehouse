@@ -3185,8 +3185,9 @@ function NoteDesk(props: {
             );
             const missingPlaceholder = CATEGORY_MISSING[cat];
             // Only count real captured content toward this category's stars —
-            // exclude auto-generated "Missing: ..." placeholder posts that get
-            // created when a category has no items from a prompt parse.
+            // exclude auto-generated "Missing: ..." placeholder posts and the
+            // seed `messy` text on a new idea. Stars start fully empty and
+            // only fill as the user adds genuine content to THIS category.
             const realPosts = postsForCat.filter((p) => {
               const body = (p.fullText ?? p.text ?? "").trim();
               if (!body) return false;
@@ -3194,18 +3195,20 @@ function NoteDesk(props: {
               if (body.startsWith(missingPlaceholder)) return false;
               return true;
             });
-            const aggregated = realPosts
+            const ratingAggregated = realPosts
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
+            // For star strength, ignore the seed `messy` blurb on core-idea —
+            // it's the original capture, not developed category content.
+            const ratingValue =
+              cat === "core-idea" ? "" : (extras.notes[cat] ?? "");
+            const ratingCombined = [ratingValue, ratingAggregated]
+              .filter((s) => s && s.trim().length > 0)
+              .join("\n\n");
+            const pct = categoryStatus(ratingCombined).pct;
+            // Display still shows everything the user has captured so the
+            // detail view is complete, even though stars are stricter.
             const rawValue = getCategoryValue(cat);
-            const value =
-              rawValue && rawValue.trim() && rawValue.trim() !== missingPlaceholder
-                ? rawValue
-                : "";
-            const combined = [value, aggregated].filter((s) => s && s.trim().length > 0).join("\n\n");
-            // Display still shows everything the user has captured (including
-            // the original posts), but the star strength is derived only from
-            // real content for this specific category.
             const displayAggregated = postsForCat
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
@@ -3213,7 +3216,6 @@ function NoteDesk(props: {
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
             const filled = displayCombined.trim().length > 0;
-            const pct = categoryStatus(combined).pct;
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
             return (
@@ -3501,8 +3503,11 @@ function PostItCard({
                   <span
                     key={i}
                     style={{
-                      color: i < stars ? "#7a4a10" : "transparent",
+                      color: i < stars ? "#ffc629" : "transparent",
                       WebkitTextStroke: i < stars ? "0" : "1px rgba(90,55,20,0.55)",
+                      textShadow: i < stars
+                        ? "0 0 4px rgba(255,198,41,0.65), 0 1px 0 rgba(120,70,15,0.45)"
+                        : "0 1px 0 rgba(255,240,200,0.5)",
                     }}
                   >
                     ★
