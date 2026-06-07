@@ -886,7 +886,7 @@ function Dashboard() {
 
 
       {/* Header — laid-down book controls floating over the library scene */}
-      <header className="relative z-30 flex flex-wrap items-center justify-center gap-2 px-3 pt-4 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
+      <header className="relative z-30 flex flex-wrap items-center justify-center gap-1.5 px-2 pt-1.5 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
         {/* LEFT: Logo + Progress book */}
         <div className="order-1 flex items-center gap-2 sm:gap-3">
           <Link to="/" className="flex shrink-0 items-center gap-1.5" title="Home">
