@@ -284,6 +284,19 @@ function timeAgo(ts: number) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+function StableTimeAgo({ ts }: { ts: number }) {
+  const [label, setLabel] = useState("just now");
+
+  useEffect(() => {
+    const update = () => setLabel(timeAgo(ts));
+    update();
+    const interval = window.setInterval(update, 30_000);
+    return () => window.clearInterval(interval);
+  }, [ts]);
+
+  return <span>{label}</span>;
+}
+
 function pctFromCount(count: number, weights: number[] = [25, 45, 65, 80, 92, 100]) {
   if (count <= 0) return 0;
   return weights[Math.min(count - 1, weights.length - 1)];
