@@ -857,11 +857,34 @@ function cleanMetadataLine(value: string | undefined): string | undefined {
     .replace(/^[-•·\s]+/, "")
     .replace(/\s+/g, " ")
     .trim();
+  if (isGeneratedReadoutLine(cleaned)) return undefined;
   return cleaned || undefined;
 }
 
 function firstBucketLine(items: string[]): string | undefined {
-  return cleanMetadataLine(items.find((item) => item && !item.toLowerCase().startsWith("missing:")));
+  for (const item of items) {
+    if (!item || item.toLowerCase().startsWith("missing:")) continue;
+    const cleaned = cleanMetadataLine(item);
+    if (cleaned) return cleaned;
+  }
+  return undefined;
+}
+
+function isGeneratedReadoutLine(value: string | undefined): boolean {
+  const cleaned = (value ?? "").trim();
+  return /^(captured a .* prompt covering|direction reads|still fuzzy on:|all folders have something to work with|ask clarity next)\b/i.test(cleaned);
+}
+
+function inferAudience(text: string): string | undefined {
+  if (/\bwedding\b/i.test(text) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)) {
+    return "Wedding photographers";
+  }
+  if (/\bphotographers?\b/i.test(text)) return "Photographers";
+  if (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text)) {
+    return "Neighbors who share or borrow tools";
+  }
+  if (/\bneighborhood|community|block\b/i.test(text)) return "Local community members";
+  return undefined;
 }
 
 function inferIdeaType(text: string, fallback?: string): string | undefined {
@@ -917,11 +940,8 @@ function inferIndustry(text: string): string | undefined {
 function ideaMetadataFromText(text: string, ideaTypeFallback?: string): Pick<LightbulbIdea, "audience" | "industry" | "ideaType" | "description"> {
   const buckets = parsePromptIntoCategories(text);
   const audience =
-    firstBucketLine(buckets.audience)
-    ?? (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text) ? "Neighbors who share or borrow tools" : undefined)
-    ?? (/\bneighborhood|community|block\b/i.test(text) ? "Local community members" : undefined)
-    ?? (/\bwedding photographers?\b/i.test(text) ? "Wedding photographers" : undefined)
-    ?? (/\bphotographers?\b/i.test(text) ? "Photographers" : undefined);
+    inferAudience(text)
+    ?? firstBucketLine(buckets.audience);
   return {
     audience,
     industry: inferIndustry(text),
@@ -936,6 +956,7 @@ function isWeakGeneratedTitle(title: string): boolean {
 
 function ideaContextText(idea: LightbulbIdea, posts: PostIt[]): string {
   return [
+    idea.title,
     idea.messy,
     idea.description,
     ...posts.map((post) => post.fullText ?? post.text),
@@ -1129,7 +1150,7 @@ function Dashboard() {
     if (!context.trim()) return;
     const metadata = ideaMetadataFromText(context, selected.ideaType);
     const patch: Partial<LightbulbIdea> = {};
-    if (!selected.audience && metadata.audience) patch.audience = metadata.audience;
+    if ((!selected.audience || isGeneratedReadoutLine(selected.audience)) && metadata.audience) patch.audience = metadata.audience;
     if (!selected.industry && metadata.industry) patch.industry = metadata.industry;
     if ((!selected.ideaType || isPlaceholderIdeaType(selected.ideaType) || !isBroadIdeaType(selected.ideaType)) && metadata.ideaType) patch.ideaType = metadata.ideaType;
     if (!selected.description && metadata.description) patch.description = metadata.description;
@@ -1190,7 +1211,7 @@ function Dashboard() {
       const ts = Date.now();
       const folderPosts = mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts);
       const newAnswered = answeredQuestionsFromClarityDigest(cleaned, folderPosts);
-      const metadata = ideaMetadataFromText(cleaned, selected.ideaType);
+      const metadata = ideaMetadataFromText(`${selected.title}\n${cleaned}`, selected.ideaType);
       const mergedAnswered = Array.from(
         new Set([...selectedExtras.answeredQuestions, ...newAnswered]),
       );
