@@ -261,19 +261,19 @@ function RootRoom() {
           100% { transform: translateY(0)     scale(1)    rotate(0deg);  opacity: 1; }
         }
         @keyframes rr-smoke-rise {
-          0%   { transform: translate(-50%, 10%) scale(0.5) rotate(0deg); opacity: 0; }
-          15%  { opacity: 0.95; }
-          50%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.6) rotate(20deg); opacity: 0.8; }
-          100% { transform: translate(calc(-50% + var(--drift)), -210%) scale(2.6) rotate(40deg); opacity: 0; }
+          0%   { transform: translate(-50%, 20%) scale(0.35); opacity: 0; }
+          25%  { opacity: 0.55; }
+          60%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.1); opacity: 0.4; }
+          100% { transform: translate(calc(-50% + var(--drift)), -200%) scale(1.8); opacity: 0; }
         }
         .rr-smoke {
           position: absolute;
-          bottom: -10%;
+          top: 0;
           border-radius: 50%;
           background:
-            radial-gradient(circle at 35% 35%, rgba(240,235,225,0.7) 0%, rgba(200,190,175,0.5) 35%, rgba(150,140,125,0.25) 65%, transparent 82%),
-            radial-gradient(circle at 70% 60%, rgba(225,215,200,0.4) 0%, transparent 55%);
-          filter: blur(7px);
+            radial-gradient(circle at 35% 35%, rgba(235,228,215,0.5) 0%, rgba(195,185,170,0.32) 38%, rgba(140,130,115,0.15) 65%, transparent 82%),
+            radial-gradient(circle at 70% 60%, rgba(220,210,195,0.25) 0%, transparent 55%);
+          filter: blur(6px);
           mix-blend-mode: screen;
           transform: translate(-50%, 0);
           animation: rr-smoke-rise ease-out infinite;
