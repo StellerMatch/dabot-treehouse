@@ -110,12 +110,12 @@ const postItCategoryPalette: Record<
 > = {
   "core-idea": { bg: "linear-gradient(180deg,#d8c397 0%,#b59970 100%)", edge: "#6e4d1a", tape: "rgba(80,55,20,0.55)", chip: "#dcc89e", label: "Core Idea" },
   clarity:     { bg: "linear-gradient(180deg,#d4be88 0%,#a8895a 100%)", edge: "#6a4818", tape: "rgba(78,52,16,0.55)", chip: "#d6c192", label: "Clarity" },
-  problem:     { bg: "linear-gradient(180deg,#a9b08a 0%,#7c8761 100%)", edge: "#4a5424", tape: "rgba(55,62,28,0.55)", chip: "#b0b790", label: "Problem" },
+  problem:     { bg: "linear-gradient(180deg,#b7b67d 0%,#85874e 100%)", edge: "#515a1e", tape: "rgba(63,68,24,0.55)", chip: "#bdbe86", label: "Problem" },
   audience:    { bg: "linear-gradient(180deg,#cf8f5a 0%,#a45f30 100%)", edge: "#6e2f0c", tape: "rgba(95,42,12,0.55)", chip: "#d29570", label: "Audience" },
   features:    { bg: "linear-gradient(180deg,#a89eac 0%,#7b7184 100%)", edge: "#473c50", tape: "rgba(58,46,66,0.55)", chip: "#ad9eb2", label: "Features" },
-  workflow:    { bg: "linear-gradient(180deg,#94aaa9 0%,#6a8483 100%)", edge: "#36504f", tape: "rgba(30,55,60,0.55)", chip: "#9bb0af", label: "Workflow" },
-  design:      { bg: "linear-gradient(180deg,#9aa1b0 0%,#6e7488 100%)", edge: "#3d4456", tape: "rgba(38,42,58,0.55)", chip: "#a0a7b5", label: "Design / UX" },
-  business:    { bg: "linear-gradient(180deg,#94ab8d 0%,#677e62 100%)", edge: "#365030", tape: "rgba(36,60,28,0.55)", chip: "#9bb094", label: "Business" },
+  workflow:    { bg: "linear-gradient(180deg,#86b7b0 0%,#508e88 100%)", edge: "#286762", tape: "rgba(28,76,74,0.55)", chip: "#94c2bb", label: "Workflow" },
+  design:      { bg: "linear-gradient(180deg,#8f9fbd 0%,#5f7098 100%)", edge: "#34446d", tape: "rgba(34,43,72,0.55)", chip: "#9ba9c6", label: "Design / UX" },
+  business:    { bg: "linear-gradient(180deg,#82a96f 0%,#557848 100%)", edge: "#2f5429", tape: "rgba(33,70,28,0.55)", chip: "#8fb57d", label: "Business" },
   concerns:    { bg: "linear-gradient(180deg,#b8897c 0%,#8c5e51 100%)", edge: "#5d2820", tape: "rgba(74,32,22,0.55)", chip: "#bd9085", label: "Concerns" },
   mixed:       { bg: "linear-gradient(180deg,#bcaa86 0%,#8f7e5c 100%)", edge: "#54401e", tape: "rgba(66,50,18,0.55)", chip: "#bfae8c", label: "Mixed" },
 };
@@ -772,6 +772,27 @@ function Dashboard() {
     else updateExtras({ notes: { [key]: value } });
   };
 
+  const getCategoryProgressValue = (key: CategoryKey): string => {
+    const rawValue = getCategoryValue(key);
+    const missingPlaceholder = CATEGORY_MISSING[key];
+    const realPosts = selectedExtras.posts.filter((p) => {
+      if (!(p.categories ?? []).includes(key)) return false;
+      const body = (p.fullText ?? p.text ?? "").trim();
+      if (!body) return false;
+      if (isGeneratedCategoryFolderPost(p, key)) return false;
+      if (body === missingPlaceholder) return false;
+      if (body.startsWith(missingPlaceholder)) return false;
+      return true;
+    });
+    const ratingAggregated = realPosts
+      .map((p) => p.fullText ?? p.text)
+      .join("\n\n");
+    const ratingValue = key === "core-idea" ? rawValue : selectedExtras.notes[key] ?? "";
+    return [ratingValue, ratingAggregated]
+      .filter((s) => s && s.trim().length > 0)
+      .join("\n\n");
+  };
+
   const addAttachment = (kind: Attachment["kind"], label: string) => {
     if (!selected || !label.trim()) return;
     const a: Attachment = {
@@ -791,7 +812,7 @@ function Dashboard() {
   const overallPct = useMemo(() => {
     if (!selected) return 0;
     const sum = categoryDefs.reduce(
-      (acc, c) => acc + categoryStatus(getCategoryValue(c.key)).pct,
+      (acc, c) => acc + categoryStatus(getCategoryProgressValue(c.key)).pct,
       0,
     );
     return Math.round(sum / categoryDefs.length);
@@ -845,7 +866,7 @@ function Dashboard() {
       categoryShelves.map((row, rIdx) => (
         <Shelf key={rIdx} widthPct={rightWidths[rIdx] ?? 85} align="right">
           {row.map((c) => {
-            const status = categoryStatus(getCategoryValue(c.key));
+            const status = categoryStatus(getCategoryProgressValue(c.key));
             return (
               <CategoryBook
                 key={c.key}
@@ -920,7 +941,7 @@ function Dashboard() {
           <ProgressPopover
             disabled={!selected}
             categories={categoryDefs}
-            getValue={getCategoryValue}
+            getValue={getCategoryProgressValue}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
             onAskCategory={(k) => setCategoryAsk(k)}
@@ -3662,6 +3683,4 @@ function DraggableOwl({ src }: { src: string }) {
     />
   );
 }
-
-
 
