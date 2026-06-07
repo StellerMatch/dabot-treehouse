@@ -3438,11 +3438,26 @@ function PostItCard({
           >
             {isMixed ? "Mixed" : label}
           </span>
-          {!pinned && (
-            <span className="font-serif text-[8px] uppercase tracking-widest text-amber-900/70">
-              {pct}%
-            </span>
-          )}
+          {!pinned && (() => {
+            const stars = pct >= 100 ? 4 : pct >= 80 ? 3 : pct >= 55 ? 2 : pct >= 25 ? 1 : 0;
+            return (
+              <span
+                className="inline-flex items-center gap-[1px] text-[9px] leading-none"
+                aria-label={`Strength ${stars} of 4`}
+                title={`Strength ${stars} of 4`}
+              >
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    style={{ color: i < stars ? "#7a4a10" : "rgba(120,80,30,0.28)" }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </span>
+            );
+          })()}
+
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
