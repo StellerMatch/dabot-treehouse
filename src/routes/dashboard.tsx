@@ -2786,7 +2786,7 @@ function Journal(props: {
           )}
 
           <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
-            Updated <span suppressHydrationWarning>{timeAgo(selected.updatedAt)}</span> · Next: {selected.nextAction}
+            Updated <StableTimeAgo ts={selected.updatedAt} /> · Next: {selected.nextAction}
           </div>
         </div>
       </div>
@@ -3549,7 +3549,7 @@ function PostItCard({
               {isMixed ? "Mixed note" : label}
             </DialogTitle>
             <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
-              {pinned ? "Seed note" : <span suppressHydrationWarning>{timeAgo(ts)}</span>}
+              {pinned ? "Seed note" : <StableTimeAgo ts={ts} />}
               {categories && categories.length > 0 && (
                 <> · {categories.map((c) => postItCategoryPalette[c].label).join(", ")}</>
               )}
