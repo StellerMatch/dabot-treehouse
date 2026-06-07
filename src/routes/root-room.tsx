@@ -239,8 +239,21 @@ function RootRoom() {
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Library
         </Link>
-        <RootRoomNextButton unlocked={rootRoomComplete} />
+        <RootRoomNextButton unlocked={rootRoomComplete} onAscend={handleAscend} />
       </header>
+
+      {ascending && (
+        <div className="pointer-events-none fixed inset-0 z-[80]">
+          <img
+            src={floatingBookAsset.url}
+            alt=""
+            className="rr-book-ascend absolute left-1/2 -translate-x-1/2"
+            draggable={false}
+          />
+          <div className="rr-ascent-glow absolute left-1/2 top-0 -translate-x-1/2" />
+          <div className="rr-ascent-flash absolute inset-0" />
+        </div>
+      )}
 
       {/* Parchment status panel */}
       <div
