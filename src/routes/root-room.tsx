@@ -569,7 +569,7 @@ function RootRoom() {
             height: min(57.33vh, 30.03rem);
           }
           @keyframes rr-clarity-fly-kf {
-            0%   { left: 50%; top: 42%; transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+            0%   { left: 50%; top: var(--rr-fly-start-y-mobile, 42%); transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
             15%  { opacity: 1; }
             100% { left: 50%; top: 57%; transform: translate(-50%, -50%) scale(0.819) rotate(1deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
           }
