@@ -909,7 +909,7 @@ function Dashboard() {
             selectedId={selected?.id ?? ""}
             onSelect={(id) => setSelectedId(id)}
           />
-          <NewLightbulbPopover />
+          <NewLightbulbPopover onCreate={(type) => addIdea(type)} />
 
         </div>
 
