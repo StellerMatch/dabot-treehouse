@@ -682,9 +682,9 @@ function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscen
 
   if (unlocked) {
     return (
-      <Link to="/dashboard" className="pointer-events-auto">
+      <button type="button" className="pointer-events-auto" onClick={onAscend}>
         {content}
-      </Link>
+      </button>
     );
   }
 
