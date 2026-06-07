@@ -600,7 +600,7 @@ function RootRoom() {
             margin-left: 0;
           }
           .rr-char-clarity.rr-clarity-present {
-            height: min(44.1vh, 23.1rem);
+            height: min(30.87vh, 16.17rem);
             margin-left: 0;
           }
           @keyframes rr-clarity-fly-kf {
