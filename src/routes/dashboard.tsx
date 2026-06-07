@@ -1874,7 +1874,7 @@ function IdeaBookplate({
         type="button"
         onClick={() => setEditOpen(true)}
         title="Edit idea details"
-        className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-2.5 rounded-[4px] border px-5 py-2 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px]"
+        className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-1.5 rounded-[4px] border px-3 py-1 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px] sm:gap-2.5 sm:px-5 sm:py-2"
         style={{
           background:
             "linear-gradient(180deg, #fbf6e7 0%, #efe3c4 100%)",
@@ -1894,9 +1894,9 @@ function IdeaBookplate({
           className="absolute right-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 30%, #f5d27a, #6b3a08)" }}
         />
-        <Lightbulb className="h-4 w-4 shrink-0 text-amber-700" />
+        <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-700 sm:h-4 sm:w-4" />
         <span
-          className="truncate font-serif text-[20px] font-bold leading-tight text-amber-950"
+          className="truncate font-serif text-[14px] font-bold leading-tight text-amber-950 sm:text-[20px]"
           style={{ textShadow: "0 1px 0 rgba(255,250,235,0.85)", letterSpacing: "0.015em" }}
         >
           {display}
@@ -1907,7 +1907,7 @@ function IdeaBookplate({
         >
           {idea.ideaType?.trim() || "Idea Type"}
         </span>
-        <Pencil className="h-3.5 w-3.5 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100" />
+        <Pencil className="h-3 w-3 shrink-0 text-amber-800 opacity-60 transition group-hover:opacity-100 sm:h-3.5 sm:w-3.5" />
       </button>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
