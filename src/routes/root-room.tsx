@@ -225,7 +225,7 @@ function RootRoom() {
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
                 style={{
                   bottom: "19%",
-                  height: "36.17vh",
+                  height: "34.723vh",
                   width: "auto",
                   opacity: showFinalPodium || showInterimBook ? 0 : 1,
                 }}
@@ -238,7 +238,7 @@ function RootRoom() {
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
                 style={{
                   bottom: "19%",
-                  height: "36.17vh",
+                  height: "34.723vh",
                   width: "auto",
                   opacity: !showFinalPodium && showInterimBook ? 1 : 0,
                 }}
