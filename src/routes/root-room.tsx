@@ -251,7 +251,7 @@ function RootRoom() {
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
                 style={{
                   bottom: "19%",
-                  height: "36.17vh",
+                  height: "39.787vh",
                   width: "auto",
                   opacity: showFinalPodium ? 1 : 0,
                   transition: "opacity 600ms ease",
