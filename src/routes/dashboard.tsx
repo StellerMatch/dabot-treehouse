@@ -283,7 +283,7 @@ function requiredFollowupQuestionFor(
     ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
   return {
     id: `required-${answeredCount + 1}-${cat}`,
-    prompt: `${categoryQuestionFor(cat, idea)} This is required follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS} before Next Step unlocks.`,
+    prompt: `${categoryQuestionFor(cat, idea)} Follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS}.`,
     keywords: [],
   };
 }
@@ -3596,12 +3596,14 @@ function ClarityGuide({
   currentQuestion,
   answeredCount,
   totalQuestions,
+  overall,
   onSkip,
 }: {
   selected: LightbulbIdea | undefined;
   currentQuestion: ClarityQuestion | undefined;
   answeredCount: number;
   totalQuestions: number;
+  overall: number;
   onSkip: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -3611,11 +3613,21 @@ function ClarityGuide({
     if (!selected)
       return "Welcome to the Creator Library. Open My Library and choose a spark to begin.";
     if (!currentQuestion)
-      return "You've answered every question I had. This idea is glowing — try Next Stage.";
+      return "You've answered every question I had. This idea is glowing — try Next Step.";
     return null;
   }, [selected, currentQuestion]);
 
-  const bubbleText = fallbackTip ?? currentQuestion!.prompt;
+  const needsDepthPass =
+    !!selected &&
+    !!currentQuestion &&
+    currentQuestion.id.startsWith("required-") &&
+    overall >= 90 &&
+    answeredCount < MIN_CLARITY_FOLLOWUPS;
+  const bubbleText =
+    fallbackTip ??
+    (needsDepthPass
+      ? `This already has a strong shape. I want to ask a few focused questions so the project has more depth before it moves forward.\n\n${currentQuestion!.prompt}`
+      : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;
   const isCategoryQuestion = currentQuestion?.id.startsWith("cat-") ?? false;
 
@@ -3645,7 +3657,7 @@ function ClarityGuide({
                 Clarity asks
               </div>
             </div>
-            <p className="mt-1.5 font-serif text-sm leading-snug text-amber-950">
+            <p className="mt-1.5 whitespace-pre-wrap font-serif text-sm leading-snug text-amber-950">
               {showQuestionControls ? `“${bubbleText}”` : bubbleText}
             </p>
 
@@ -3917,6 +3929,7 @@ function NoteDesk(props: {
               currentQuestion={currentQuestion}
               answeredCount={answeredCount}
               totalQuestions={totalQuestions}
+              overall={overallPct}
               onSkip={onSkipClarityQuestion}
             />
             <div
