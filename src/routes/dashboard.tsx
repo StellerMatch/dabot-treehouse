@@ -1689,7 +1689,8 @@ function OrganizeButton({
   };
 
   const variant: LaidBookVariant = unlocked ? "gold" : "leather";
-  const size = unlocked ? "lg" : "md";
+  const isMobile = useIsMobile();
+  const size = isMobile ? "sm" : unlocked ? "lg" : "md";
 
   return (
     <div className="relative">
