@@ -3384,8 +3384,7 @@ function PostItCard({
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
   // earthy paper: warm grain + subtle fiber flecks layered over the palette color
-  const paperBg = `linear-gradient(rgba(255,247,225,0.06), rgba(255,247,225,0.06)),
-       radial-gradient(120% 80% at 20% 0%, rgba(255,247,225,0.28), transparent 60%),
+  const paperBg = `radial-gradient(120% 80% at 20% 0%, rgba(245,232,200,0.22), transparent 60%),
        radial-gradient(140% 100% at 100% 100%, rgba(80,50,15,0.18), transparent 55%),
        repeating-linear-gradient(115deg, rgba(90,55,20,0.05) 0 1px, transparent 1px 6px),
        repeating-linear-gradient(35deg, rgba(60,35,10,0.04) 0 1px, transparent 1px 9px),
