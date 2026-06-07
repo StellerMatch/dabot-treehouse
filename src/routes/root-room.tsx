@@ -271,9 +271,9 @@ function RootRoom() {
           bottom: -10%;
           border-radius: 50%;
           background:
-            radial-gradient(circle at 35% 35%, rgba(245,240,230,0.95) 0%, rgba(210,200,185,0.75) 30%, rgba(150,140,125,0.4) 60%, transparent 80%),
-            radial-gradient(circle at 70% 60%, rgba(230,220,205,0.6) 0%, transparent 55%);
-          filter: blur(6px);
+            radial-gradient(circle at 35% 35%, rgba(240,235,225,0.7) 0%, rgba(200,190,175,0.5) 35%, rgba(150,140,125,0.25) 65%, transparent 82%),
+            radial-gradient(circle at 70% 60%, rgba(225,215,200,0.4) 0%, transparent 55%);
+          filter: blur(7px);
           mix-blend-mode: screen;
           transform: translate(-50%, 0);
           animation: rr-smoke-rise ease-out infinite;
