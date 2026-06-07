@@ -3397,8 +3397,8 @@ function PostItCard({
         onClick={() => setOpen(true)}
         className={
           wide
-            ? "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:aspect-[4.7/1] md:text-left md:[transform:rotate(var(--note-rot))]"
-            : "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
+            ? "relative aspect-[10/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
+            : "relative aspect-[4/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
         }
         style={{
           background: paperBg,
@@ -3411,7 +3411,7 @@ function PostItCard({
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 lg:-rotate-3"
+          className="pointer-events-none absolute -top-1.5 left-1/2 h-2 w-8 -translate-x-1/2 lg:-rotate-3"
           style={{
             background: `linear-gradient(180deg, ${palette.tape}, color-mix(in oklab, ${palette.tape} 70%, #5a3a14))`,
             boxShadow: "0 1px 3px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.15)",
@@ -3429,24 +3429,19 @@ function PostItCard({
             borderRadius: "inherit",
           }}
         />
-        <div className="relative flex h-full items-center justify-center px-2 py-2 sm:px-2.5 lg:block lg:h-auto lg:px-2.5 lg:pt-3 lg:pb-2.5">
-          <div className="font-serif text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-amber-950 sm:text-[10px] lg:hidden">
+        <div className="relative flex h-full items-center justify-center gap-1.5 px-1.5 py-1">
+          <span
+            className="rounded-sm border px-1.5 py-[1px] font-serif text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-950"
+            style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
+            title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
+          >
             {isMixed ? "Mixed" : label}
-          </div>
-          <div className="hidden lg:flex lg:h-full lg:flex-col lg:items-center lg:justify-center">
-            <span
-              className="rounded-sm border px-2 py-[2px] font-serif text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950"
-              style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
-              title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
-            >
-              {isMixed ? "Mixed" : label}
+          </span>
+          {!pinned && (
+            <span className="font-serif text-[8px] uppercase tracking-widest text-amber-900/70">
+              {pct}%
             </span>
-            {!pinned && (
-              <span className="mt-1 font-serif text-[9px] uppercase tracking-widest text-amber-900/70">
-                {pct}% filled
-              </span>
-            )}
-          </div>
+          )}
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
