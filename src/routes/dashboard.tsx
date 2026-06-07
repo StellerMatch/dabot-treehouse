@@ -246,18 +246,60 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   },
 ];
 
+function projectQuestionName(idea: LightbulbIdea | undefined): string {
+  const title = idea?.title?.trim();
+  if (title && title !== "Untitled Idea") return title;
+  const ideaType = idea?.ideaType?.trim();
+  if (ideaType && ideaType !== "Undecided") return `this ${ideaType.toLowerCase()}`;
+  return "this project";
+}
+
+function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefined): string {
+  const name = projectQuestionName(idea);
+  switch (question.id) {
+    case "problem":
+      return `What problem should ${name} solve first?`;
+    case "who":
+      return `Who is ${name} for first? Picture one real person using it.`;
+    case "why-now":
+      return `Why does ${name} matter to you right now?`;
+    case "look-like":
+      return `If ${name} existed today, what would someone see or do first?`;
+    case "first-step":
+      return `What's one tiny first step you could take for ${name} this week?`;
+    case "first-paying-user":
+      return `For ${name}, who is the first paying user — owner, manager, supervisor, crew lead, or someone else?`;
+    case "smallest-workflow":
+      return `For ${name}, what's the smallest first workflow worth proving?`;
+    case "v1-fields":
+      return `For ${name}, what information is required in version one, and what should be left out for now?`;
+    case "auto-vs-suggest":
+      return `For ${name}, what should be automatic, and what should only be a suggestion someone approves?`;
+    case "publish-channel":
+      return `When ${name} publishes or sends an update, what should each person receive?`;
+    case "pickup-detail":
+      return `For ${name}, what coordination detail matters most first — rides, drivers, locations, timing, or something else?`;
+    default:
+      return question.prompt.replace(/\bthis idea\b/gi, name);
+  }
+}
+
 // Premade Clarity questions per category — used when a user clicks a category folder
-const CATEGORY_QUESTIONS: Record<CategoryKey, string> = {
-  "core-idea": "In one line, what is this project and what's its main purpose?",
-  clarity: "In one line, what does Clarity already understand and where is the direction still fuzzy?",
-  problem: "What pain point, need, or opportunity makes this worth building?",
-  audience: "Who exactly is this for — which users, buyers, or roles?",
-  features: "What tools, screens, or actions does this need to do its job?",
-  workflow: "How does someone move through this step by step?",
-  design: "How should this look, feel, and behave so it's easy to use?",
-  business: "How does this make money or become worth paying for?",
-  concerns: "What should we watch out for, validate, or revisit later?",
-};
+function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
+  const name = projectQuestionName(idea);
+  const questions: Record<CategoryKey, string> = {
+    "core-idea": `In one line, what is ${name}, and what's its main purpose?`,
+    clarity: `What does Clarity already understand about ${name}, and where is the direction still fuzzy?`,
+    problem: `What pain point, need, or opportunity makes ${name} worth building?`,
+    audience: `Who exactly is ${name} for — which users, buyers, or roles?`,
+    features: `What tools, screens, or actions does ${name} need to do its job?`,
+    workflow: `How does someone move through ${name} step by step?`,
+    design: `How should ${name} look, feel, and behave so it's easy to use?`,
+    business: `How does ${name} make money or become worth paying for?`,
+    concerns: `What should we watch, validate, or revisit before ${name} moves forward?`,
+  };
+  return questions[cat];
+}
 
 const IDEA_TYPE_OPTIONS = [
   "Tool",
@@ -717,14 +759,18 @@ function Dashboard() {
     if (categoryAsk) {
       return {
         id: `cat-${categoryAsk}`,
-        prompt: CATEGORY_QUESTIONS[categoryAsk],
+        prompt: categoryQuestionFor(categoryAsk, selected),
         keywords: [],
       };
     }
     const answered = new Set(selectedExtras.answeredQuestions);
     const next = CLARITY_QUESTIONS.find((q) => !answered.has(q.id));
-    return next ?? CLARITY_QUESTIONS[0];
-  }, [selectedExtras.answeredQuestions, categoryAsk]);
+    const question = next ?? CLARITY_QUESTIONS[0];
+    return {
+      ...question,
+      prompt: questionTextFor(question, selected),
+    };
+  }, [selected, selectedExtras.answeredQuestions, categoryAsk]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
