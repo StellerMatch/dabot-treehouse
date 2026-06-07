@@ -5,7 +5,8 @@ import {
   stageLabels,
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+import libraryBgAsset from "@/assets/dabottree-library-bg-v2.png.asset.json";
+// To revert to the previous background, change the import above back to "@/assets/dabottree-library-bg.png.asset.json".
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 const libraryBg = libraryBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
