@@ -4,7 +4,7 @@ import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
 import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/root-room")({
   head: () => ({
@@ -57,13 +57,13 @@ const STEP_MESSAGES: Record<StepId, string> = {
     "Da Stamp is the final blessing of the roots. When this glows, the packet has earned its mark and is ready to rise back into the light.",
 };
 
-// Phases: intro -> smoke (smoke only, 2s) -> clarity (clarity flying in) -> dropoff (presenting at podium)
-type Phase = "intro" | "smoke" | "clarity" | "dropoff";
+// Phases: intro -> smoke -> flying -> working -> complete, then repeat for each tunnel.
+type Phase = "intro" | "smoke" | "flying" | "working" | "complete" | "finished";
 
 function RootRoom() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [activeStepIndex] = useState(0);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -74,21 +74,35 @@ function RootRoom() {
   // Sequence after Start
   useEffect(() => {
     if (phase === "smoke") {
-      const t = window.setTimeout(() => setPhase("clarity"), 2000);
+      const t = window.setTimeout(() => setPhase("flying"), 1400);
       return () => window.clearTimeout(t);
     }
-    if (phase === "clarity") {
-      // Clarity flies from tunnel to behind podium (~3.2s), then switches to dropoff
-      const t = window.setTimeout(() => setPhase("dropoff"), 3200);
+    if (phase === "flying") {
+      const t = window.setTimeout(() => setPhase("working"), 3200);
       return () => window.clearTimeout(t);
     }
-  }, [phase]);
+    if (phase === "working") {
+      const t = window.setTimeout(() => setPhase("complete"), 6000);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === "complete") {
+      const t = window.setTimeout(() => {
+        if (activeStepIndex >= PROCESS_ORDER.length - 1) {
+          setPhase("finished");
+          return;
+        }
+        setActiveStepIndex((index) => index + 1);
+        setPhase("smoke");
+      }, 1400);
+      return () => window.clearTimeout(t);
+    }
+  }, [activeStepIndex, phase]);
 
   const activeStepId = PROCESS_ORDER[activeStepIndex] ?? "foundation";
   const activeTunnel = useMemo(() => TUNNEL_BY_ID[activeStepId], [activeStepId]);
 
-  const showFoundationGlow = phase !== "intro";
-  const showFoundationText = phase === "clarity" || phase === "dropoff";
+  const showTunnelGlow = phase !== "intro" && phase !== "finished";
+  const showActiveStepText = phase !== "intro" && phase !== "finished";
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
@@ -125,7 +139,7 @@ function RootRoom() {
         </div>
 
         {/* Active tunnel smoke (only after Start) */}
-        {showFoundationGlow && (
+        {showTunnelGlow && (
           <>
             <SmokeColumn
               className="rr-desktop-smoke"
@@ -145,18 +159,19 @@ function RootRoom() {
           draggable={false}
         />
 
-        {/* Clarity flying from Foundation tunnel to podium */}
-        {phase === "clarity" && (
+        {/* Character flying from the active tunnel to the podium */}
+        {phase === "flying" && (
           <img
             src={clarityFlyingAsset.url}
             alt=""
             className="pointer-events-none absolute z-[5] rr-clarity-fly"
+            style={{ "--rr-fly-start-x": `${activeTunnel.x}%` } as React.CSSProperties}
             draggable={false}
           />
         )}
 
-        {/* Clarity presenting the book at the podium */}
-        {phase === "dropoff" && (
+        {/* Character working at the podium */}
+        {(phase === "working" || phase === "complete") && (
           <img
             src={clarityPresentingAsset.url}
             alt=""
@@ -202,7 +217,7 @@ function RootRoom() {
             }}
           />
 
-          {showFoundationText ? (
+          {showActiveStepText ? (
             <>
               <div className="relative flex items-center justify-center gap-2">
                 <Sparkles className="h-3.5 w-3.5 text-amber-200" />
@@ -215,6 +230,22 @@ function RootRoom() {
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
                 {STEP_MESSAGES[activeStepId]}
+              </p>
+              <StepActivity phase={phase} />
+            </>
+          ) : phase === "finished" ? (
+            <>
+              <div className="relative flex items-center justify-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-200" />
+                <span className="text-[11px] uppercase tracking-[0.34em] text-amber-100/90">
+                  Complete
+                </span>
+              </div>
+              <h2 className="relative mt-1 text-center text-[22px] font-bold tracking-wide text-amber-50">
+                Root Room Complete
+              </h2>
+              <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
+                Every root check is complete. The packet is ready to rise back into the library.
               </p>
             </>
           ) : (
@@ -229,7 +260,10 @@ function RootRoom() {
               {phase === "intro" && (
                 <div className="relative mt-4 flex justify-center">
                   <button
-                    onClick={() => setPhase("smoke")}
+                    onClick={() => {
+                      setActiveStepIndex(0);
+                      setPhase("smoke");
+                    }}
                     className="inline-flex items-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-6 py-2 text-sm font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-200 hover:to-amber-400"
                   >
                     <Sparkles className="h-4 w-4" />
@@ -349,9 +383,68 @@ function RootRoom() {
           50% { filter: blur(20px); transform: translate(-50%, -50%) scale(1.12); }
         }
 
-        /* Clarity flying from Foundation tunnel (~10% left, ~55% top) toward podium (~50% left, ~70% top) */
+        .rr-step-activity {
+          position: relative;
+          margin-top: 0.9rem;
+          min-height: 1.55rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .rr-progress-dots {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.44rem;
+          border: 1px solid rgba(238, 194, 113, 0.34);
+          border-radius: 999px;
+          background: rgba(30, 14, 4, 0.34);
+          padding: 0.36rem 0.62rem;
+          box-shadow: inset 0 1px 0 rgba(255, 226, 170, 0.14);
+        }
+        .rr-progress-dot {
+          width: 0.42rem;
+          height: 0.42rem;
+          border-radius: 999px;
+          background: rgba(255, 221, 157, 0.38);
+          box-shadow: 0 0 0 rgba(255, 202, 105, 0);
+          animation: rr-progress-dot 1.35s ease-in-out infinite;
+        }
+        .rr-progress-dot:nth-child(2) { animation-delay: 0.18s; }
+        .rr-progress-dot:nth-child(3) { animation-delay: 0.36s; }
+        .rr-progress-dot:nth-child(4) { animation-delay: 0.54s; }
+        .rr-progress-dot:nth-child(5) { animation-delay: 0.72s; }
+        .rr-step-complete {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.42rem;
+          border: 1px solid rgba(167, 243, 208, 0.46);
+          border-radius: 999px;
+          background: rgba(6, 49, 32, 0.36);
+          padding: 0.32rem 0.68rem;
+          color: rgba(219, 255, 236, 0.96);
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          box-shadow: 0 0 20px rgba(52, 211, 153, 0.16);
+        }
+        @keyframes rr-progress-dot {
+          0%, 100% {
+            transform: scale(0.78);
+            opacity: 0.42;
+            background: rgba(255, 221, 157, 0.38);
+          }
+          45% {
+            transform: scale(1.26);
+            opacity: 1;
+            background: rgba(255, 232, 178, 0.98);
+            box-shadow: 0 0 12px rgba(255, 202, 105, 0.8);
+          }
+        }
+
+        /* Character flying from the active tunnel toward the podium. */
         @keyframes rr-clarity-fly-kf {
-          0%   { left: 10%; top: 58%; transform: translate(-50%, -50%) scale(0.368) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          0%   { left: var(--rr-fly-start-x, 10%); top: 58%; transform: translate(-50%, -50%) scale(0.368) rotate(-4deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
           15%  { opacity: 1; }
           100% { left: 50%; top: 48%; transform: translate(-50%, -50%) scale(0.893) rotate(2deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
@@ -386,6 +479,12 @@ function RootRoom() {
             100% { left: 50%; top: 57%; transform: translate(-50%, -50%) scale(0.819) rotate(1deg);  opacity: 1; filter: drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
           }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .rr-progress-dot {
+            animation: none;
+            opacity: 0.85;
+          }
+        }
         @media (min-width: 1200px) {
           .rr-desktop-tunnels,
           .rr-desktop-smoke {
@@ -402,6 +501,33 @@ function RootRoom() {
       `}</style>
     </main>
   );
+}
+
+function StepActivity({ phase }: { phase: Phase }) {
+  if (phase === "working") {
+    return (
+      <div className="rr-step-activity" aria-label="Working">
+        <div className="rr-progress-dots" aria-hidden="true">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <span key={index} className="rr-progress-dot" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "complete") {
+    return (
+      <div className="rr-step-activity">
+        <div className="rr-step-complete">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Complete
+        </div>
+      </div>
+    );
+  }
+
+  return <div className="rr-step-activity" />;
 }
 
 function TunnelMarker({ tunnel, active }: { tunnel: Tunnel; active: boolean }) {
