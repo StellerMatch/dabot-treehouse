@@ -3165,8 +3165,14 @@ function NoteDesk(props: {
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
       <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:max-w-[640px]">
-        <div className="grid grid-cols-2 gap-1.5 pb-40 sm:grid-cols-4 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
-          {CATEGORY_ORDER.map((cat, i) => {
+        <div className="grid grid-cols-2 gap-1.5 pb-40 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
+          {([
+            "clarity", "problem",
+            "audience", "features",
+            "workflow", "design",
+            "business", "concerns",
+            "core-idea",
+          ] as CategoryKey[]).map((cat, i) => {
             // Aggregate any posts the user has captured for this category so
             // the detail view shows everything in one place.
             const postsForCat = extras.posts.filter((p) =>
@@ -3180,21 +3186,24 @@ function NoteDesk(props: {
             const filled = combined.trim().length > 0;
             const pct = categoryStatus(combined).pct;
             const label = postItCategoryPalette[cat].label;
+            const isCoreIdea = cat === "core-idea";
             return (
-              <PostItCard
-                key={cat}
-                text={label}
-                fullText={
-                  filled
-                    ? combined
-                    : `${CATEGORY_MISSING[cat]}\n\nNothing captured yet for ${label}. Use the parchment tray below to add a note.`
-                }
-                kind="idea-notes"
-                ts={selected.updatedAt}
-                hue={i + 1}
-                categories={[cat]}
-                pct={pct}
-              />
+              <div key={cat} className={isCoreIdea ? "col-span-2" : undefined}>
+                <PostItCard
+                  text={label}
+                  fullText={
+                    filled
+                      ? combined
+                      : `${CATEGORY_MISSING[cat]}\n\nNothing captured yet for ${label}. Use the parchment tray below to add a note.`
+                  }
+                  kind="idea-notes"
+                  ts={selected.updatedAt}
+                  hue={i + 1}
+                  categories={[cat]}
+                  pct={pct}
+                  wide={isCoreIdea}
+                />
+              </div>
             );
           })}
         </div>
@@ -3352,6 +3361,7 @@ function PostItCard({
   pinned,
   categories,
   pct = 0,
+  wide = false,
 }: {
   text: string;
   fullText?: string;
@@ -3361,6 +3371,7 @@ function PostItCard({
   pinned?: boolean;
   categories?: CategoryKey[];
   pct?: number;
+  wide?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const fallback: CategoryKey = "core-idea";
@@ -3380,7 +3391,11 @@ function PostItCard({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
+        className={
+          wide
+            ? "relative aspect-[5/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-[6/1] lg:max-w-none lg:text-left lg:[transform:rotate(var(--note-rot))]"
+            : "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
+        }
         style={{
           background: paperBg,
           borderColor: "rgba(70,40,15,0.55)",
