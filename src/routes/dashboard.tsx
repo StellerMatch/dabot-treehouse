@@ -766,6 +766,59 @@ function isGeneratedCategoryFolderPost(post: PostIt, cat: CategoryKey) {
       && post.categories?.[0] === cat);
 }
 
+function categoryProgressTextFor(idea: LightbulbIdea | undefined, extras: IdeaExtras, key: CategoryKey): string {
+  if (!idea) return "";
+  const ideaPosts = extras.posts
+    .filter((p) => p.kind === "idea-notes")
+    .map((p) => p.text)
+    .join("\n");
+  const rawValue = key === "core-idea"
+    ? [idea.messy, ideaPosts].filter(Boolean).join("\n")
+    : extras.notes[key] ?? "";
+  const missingPlaceholder = CATEGORY_MISSING[key];
+  const realPosts = extras.posts.filter((p) => {
+    if (!(p.categories ?? []).includes(key)) return false;
+    const body = isGeneratedCategoryFolderPost(p, key)
+      ? extractCategorySourceBody(p, key)
+      : (p.fullText ?? p.text ?? "").trim();
+    if (!body) return false;
+    if (body === missingPlaceholder) return false;
+    if (body.startsWith(missingPlaceholder)) return false;
+    return true;
+  });
+  const ratingAggregated = realPosts
+    .map((p) => p.fullText ?? p.text)
+    .join("\n\n");
+  const ratingValue = key === "core-idea" ? rawValue : extras.notes[key] ?? "";
+  return [ratingValue, ratingAggregated]
+    .filter((s) => s && s.trim().length > 0)
+    .join("\n\n");
+}
+
+function weakestCategoryQuestionFor(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+): { category: CategoryKey; pct: number; prompt: string } | undefined {
+  const skipped = new Set(extras.skippedQuestions);
+  const candidates = CATEGORY_ORDER
+    .filter((cat) => !skipped.has(`weak-${cat}`))
+    .map((cat) => ({
+      category: cat,
+      pct: categoryStatus(categoryProgressTextFor(idea, extras, cat)).pct,
+    }))
+    .filter((item) => item.pct < 80)
+    .sort((a, b) => {
+      if (a.pct !== b.pct) return a.pct - b.pct;
+      return CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
+    });
+  const weakest = candidates[0];
+  if (!weakest) return undefined;
+  return {
+    ...weakest,
+    prompt: categoryQuestionFor(weakest.category, idea),
+  };
+}
+
 
 function mainSummaryFrom(text: string, fallbackTitle?: string): string {
   const buckets = parsePromptIntoCategories(text);
@@ -1086,6 +1139,14 @@ function Dashboard() {
         keywords: [],
       };
     }
+    const weakest = weakestCategoryQuestionFor(selected, selectedExtras);
+    if (weakest) {
+      return {
+        id: `weak-${weakest.category}`,
+        prompt: weakest.prompt,
+        keywords: [],
+      };
+    }
     const answered = new Set(selectedExtras.answeredQuestions);
     for (const id of answeredQuestionsFromFolders(selectedExtras.posts)) {
       answered.add(id);
@@ -1096,7 +1157,7 @@ function Dashboard() {
       ...next,
       prompt: questionTextFor(next, selected),
     };
-  }, [selected, selectedExtras.answeredQuestions, selectedExtras.posts, categoryAsk]);
+  }, [selected, selectedExtras, categoryAsk]);
 
   const addPostIt = (text: string, kind: PostIt["kind"]) => {
     if (!selected || !text.trim()) return;
@@ -1166,6 +1227,16 @@ function Dashboard() {
       setCategoryAsk(null);
       return;
     }
+    if (currentQuestion.id.startsWith("weak-")) {
+      if (selectedExtras.skippedQuestions.includes(currentQuestion.id)) return;
+      updateExtras({
+        skippedQuestions: [
+          ...selectedExtras.skippedQuestions,
+          currentQuestion.id,
+        ],
+      });
+      return;
+    }
     if (selectedExtras.answeredQuestions.includes(currentQuestion.id)) return;
     updateExtras({
       answeredQuestions: [
@@ -1229,25 +1300,7 @@ function Dashboard() {
   };
 
   const getCategoryProgressValue = (key: CategoryKey): string => {
-    const rawValue = getCategoryValue(key);
-    const missingPlaceholder = CATEGORY_MISSING[key];
-    const realPosts = selectedExtras.posts.filter((p) => {
-      if (!(p.categories ?? []).includes(key)) return false;
-      const body = isGeneratedCategoryFolderPost(p, key)
-        ? extractCategorySourceBody(p, key)
-        : (p.fullText ?? p.text ?? "").trim();
-      if (!body) return false;
-      if (body === missingPlaceholder) return false;
-      if (body.startsWith(missingPlaceholder)) return false;
-      return true;
-    });
-    const ratingAggregated = realPosts
-      .map((p) => p.fullText ?? p.text)
-      .join("\n\n");
-    const ratingValue = key === "core-idea" ? rawValue : selectedExtras.notes[key] ?? "";
-    return [ratingValue, ratingAggregated]
-      .filter((s) => s && s.trim().length > 0)
-      .join("\n\n");
+    return categoryProgressTextFor(selected, selectedExtras, key);
   };
 
   const addAttachment = (kind: Attachment["kind"], label: string) => {
