@@ -192,7 +192,8 @@ function RootRoom() {
         {/* Podium centered on the cavern floor — original podium during the journey, swaps to final podium+book when root room is complete */}
         {(() => {
           const showInterimBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
-          const showFinal = rootRoomComplete && !ascending;
+          const showFinalPodium = rootRoomComplete;
+          const showRestingBook = rootRoomComplete && !ascending;
           return (
             <>
               {/* Original podium (empty) */}
@@ -200,7 +201,7 @@ function RootRoom() {
                 src={rootRoomPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinal || showInterimBook ? 0 : 1 }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinalPodium || showInterimBook ? 0 : 1 }}
                 draggable={false}
               />
               {/* Original podium with book (during steps) */}
@@ -208,15 +209,15 @@ function RootRoom() {
                 src={rootRoomPodiumBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: !showFinal && showInterimBook ? 1 : 0 }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: !showFinalPodium && showInterimBook ? 1 : 0 }}
                 draggable={false}
               />
-              {/* Final podium shown only when root room is complete */}
+              {/* Final podium shown only when root room is complete (stays during ascent) */}
               <img
                 src={rootRoomFinalPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinalPodium ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
               {/* Final book resting on the final podium, ready to float */}
@@ -224,9 +225,18 @@ function RootRoom() {
                 src={rootRoomFinalBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
-                style={{ bottom: "40%", height: "14vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "40%", height: "14vh", width: "auto", opacity: showRestingBook ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
+              {/* Ascending book — same container, same coordinates as resting book */}
+              {ascending && (
+                <img
+                  src={rootRoomFinalBookAsset.url}
+                  alt=""
+                  className="rr-book-ascend pointer-events-none absolute left-1/2 z-[12] select-none"
+                  draggable={false}
+                />
+              )}
             </>
           );
         })()}
