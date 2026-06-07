@@ -1420,6 +1420,9 @@ function Dashboard() {
       clarityFollowupCount: MIN_CLARITY_FOLLOWUPS,
       answeredQuestions: CLARITY_QUESTIONS.map((q) => q.id),
     });
+  };
+
+
 
   const getCategoryValue = (key: CategoryKey): string => {
     if (!selected) return "";
