@@ -3165,40 +3165,34 @@ function NoteDesk(props: {
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
       <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:max-w-[640px]">
-        {extras.posts.length === 0 && !selected.messy && (
-          <div
-            className="relative mx-auto max-w-md rounded-md border border-amber-950/40 px-5 py-4 text-center font-serif italic text-amber-950 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.7)]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(252,236,197,0.92) 0%, rgba(238,214,160,0.92) 100%)",
-            }}
-          >
-            No notes yet. Jot one thought below and tap Add — each slip strengthens this idea.
-          </div>
-        )}
         <div className="grid grid-cols-2 gap-1.5 pb-40 sm:grid-cols-4 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
-          {selected.messy && extras.posts.length === 0 && (
-            <PostItCard
-              text={selected.messy}
-              kind="idea-notes"
-              ts={selected.updatedAt}
-              hue={0}
-              pinned
-              categories={["core-idea"]}
-            />
-          )}
-          {extras.posts.map((p, i) => {
-            const catKey = p.categories?.[0];
-            const pct = catKey ? categoryStatus(getCategoryValue(catKey)).pct : 0;
+          {CATEGORY_ORDER.map((cat, i) => {
+            // Aggregate any posts the user has captured for this category so
+            // the detail view shows everything in one place.
+            const postsForCat = extras.posts.filter((p) =>
+              (p.categories ?? []).includes(cat),
+            );
+            const aggregated = postsForCat
+              .map((p) => p.fullText ?? p.text)
+              .join("\n\n");
+            const value = getCategoryValue(cat);
+            const combined = [value, aggregated].filter((s) => s && s.trim().length > 0).join("\n\n");
+            const filled = combined.trim().length > 0;
+            const pct = categoryStatus(combined).pct;
+            const label = postItCategoryPalette[cat].label;
             return (
               <PostItCard
-                key={p.id}
-                text={p.text}
-                fullText={p.fullText}
-                kind={p.kind}
-                ts={p.ts}
+                key={cat}
+                text={label}
+                fullText={
+                  filled
+                    ? combined
+                    : `${CATEGORY_MISSING[cat]}\n\nNothing captured yet for ${label}. Use the parchment tray below to add a note.`
+                }
+                kind="idea-notes"
+                ts={selected.updatedAt}
                 hue={i + 1}
-                categories={p.categories}
+                categories={[cat]}
                 pct={pct}
               />
             );
