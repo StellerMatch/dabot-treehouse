@@ -83,7 +83,7 @@ const STEP_COPY: Record<StepId, { character: string; panelTitle: string; message
   },
   "da-stamp": {
     character: "CHIEF",
-    panelTitle: "Readiness Stamp",
+    panelTitle: "Stamp of Approval",
     message:
       "is giving the final Root Room readiness mark. When this glows, the packet has earned its stamp and is ready to rise toward the Trunk.",
   },
