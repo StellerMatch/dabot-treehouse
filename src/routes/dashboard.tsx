@@ -545,6 +545,7 @@ const spinePalettes: Array<[string, string, string]> = [
 ];
 
 function Dashboard() {
+  const navigate = useNavigate();
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [selectedId, setSelectedId] = useState<string>(seedIdeas[0]?.id ?? "");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
