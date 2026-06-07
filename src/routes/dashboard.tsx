@@ -3168,7 +3168,7 @@ function NoteDesk(props: {
   return (
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
-      <div className="relative mx-auto mt-1 w-full max-w-[520px] flex-1">
+      <div className="relative mx-auto mt-1 w-full max-w-[460px] flex-1">
         <div className="grid grid-cols-1 gap-2 pb-40 md:grid-cols-2 md:gap-2 md:pb-46 lg:pb-56">
           {([
             "clarity", "problem",
