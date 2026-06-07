@@ -594,7 +594,7 @@ function RootRoom() {
         }
         .rr-char-clarity.rr-clarity-present {
           height: 49.66vh;
-          margin-left: -3vw;
+          margin-left: -1vw;
         }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
