@@ -107,7 +107,7 @@ const postItCategoryPalette: Record<
   "core-idea": { bg: "linear-gradient(180deg,#e8d29a 0%,#c9a868 100%)", edge: "#7a5418", tape: "rgba(80,50,18,0.6)",  chip: "#ebd6a0", label: "Core Idea" },
   clarity:     { bg: "linear-gradient(180deg,#dec59a 0%,#b8966a 100%)", edge: "#6e4c1c", tape: "rgba(80,55,18,0.6)",  chip: "#dfc89e", label: "Clarity" },
   problem:     { bg: "linear-gradient(180deg,#c2c89a 0%,#8e9a64 100%)", edge: "#525c2a", tape: "rgba(50,60,25,0.6)",  chip: "#c8cd9f", label: "Problem" },
-  audience:    { bg: "linear-gradient(180deg,#d8a87e 0%,#b07a4e 100%)", edge: "#7a4220", tape: "rgba(100,55,25,0.6)", chip: "#dcae86", label: "Audience" },
+  audience:    { bg: "linear-gradient(180deg,#e89a5c 0%,#c2632a 100%)", edge: "#7a3408", tape: "rgba(110,45,10,0.6)", chip: "#ecaa78", label: "Audience" },
   features:    { bg: "linear-gradient(180deg,#b3a8b8 0%,#86788e 100%)", edge: "#4e4258", tape: "rgba(60,45,70,0.6)",  chip: "#b8aebd", label: "Features" },
   workflow:    { bg: "linear-gradient(180deg,#a8c0bf 0%,#7a9594 100%)", edge: "#3e5a5a", tape: "rgba(30,60,65,0.6)",  chip: "#aec5c4", label: "Workflow" },
   design:      { bg: "linear-gradient(180deg,#aab2c2 0%,#7d8499 100%)", edge: "#454d63", tape: "rgba(35,40,60,0.6)",  chip: "#b0b7c7", label: "Design / UX" },
@@ -3384,8 +3384,8 @@ function PostItCard({
   const { palette, label, isMixed } = postItPaletteFor(categories, fallback);
   const rot = ((hue * 37) % 7) - 3;
   // earthy paper: warm grain + subtle fiber flecks layered over the palette color
-  const paperBg = `linear-gradient(rgba(255,247,225,0.2), rgba(255,247,225,0.2)),
-       radial-gradient(120% 80% at 20% 0%, rgba(255,247,225,0.45), transparent 60%),
+  const paperBg = `linear-gradient(rgba(255,247,225,0.06), rgba(255,247,225,0.06)),
+       radial-gradient(120% 80% at 20% 0%, rgba(255,247,225,0.28), transparent 60%),
        radial-gradient(140% 100% at 100% 100%, rgba(80,50,15,0.18), transparent 55%),
        repeating-linear-gradient(115deg, rgba(90,55,20,0.05) 0 1px, transparent 1px 6px),
        repeating-linear-gradient(35deg, rgba(60,35,10,0.04) 0 1px, transparent 1px 9px),
