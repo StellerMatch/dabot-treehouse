@@ -215,10 +215,10 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""} ${activeStepId === "safety" ? "rr-char-shield" : ""}`}
             style={{
               "--rr-fly-start-x": `${activeTunnel.x}%`,
-              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "58%",
+              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "53%",
               "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "25%" : "42%",
             } as React.CSSProperties}
             draggable={false}
@@ -230,7 +230,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampPresentingAsset.url : activeStepId === "record" ? ledgerPresentingAsset.url : activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""} ${activeStepId === "safety" ? "rr-char-shield" : ""}`}
             draggable={false}
           />
         )}
@@ -553,11 +553,18 @@ function RootRoom() {
         .rr-char-large.rr-clarity-present {
           height: 62.79vh;
         }
+        .rr-char-shield.rr-clarity-fly {
+          height: 65.93vh;
+        }
+        .rr-char-shield.rr-clarity-present {
+          height: 72.21vh;
+        }
         .rr-char-xl.rr-clarity-fly {
           height: 71.66vh;
         }
         .rr-char-xl.rr-clarity-present {
           height: 78.49vh;
+          top: 52%;
         }
         .rr-char-clarity.rr-clarity-fly {
           height: 76.20vh;
