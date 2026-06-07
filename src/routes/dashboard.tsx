@@ -3456,7 +3456,7 @@ function PostItCard({
         />
         <div className="relative flex h-full flex-col items-center justify-center gap-0.5 px-1.5 py-1.5">
           <span
-            className="rounded-sm border px-1.5 py-[1px] font-serif text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-950"
+            className="rounded-sm border px-1.5 py-[1px] font-serif text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-950"
             style={{ background: palette.chip, borderColor: "rgba(70,40,15,0.45)" }}
             title={isMixed ? "Covers multiple categories" : `${label} folder — click to open`}
           >
