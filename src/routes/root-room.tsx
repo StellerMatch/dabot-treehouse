@@ -411,7 +411,7 @@ function RootRoom() {
           100% { opacity: 1; transform: translate(-50%, -50%) scale(0.9);  }
         }
         .rr-clarity-present {
-          left: 50%; top: 52%;
+          left: 50%; top: 48%;
           height: 46vh; width: auto;
           transform: translate(-50%, -50%);
           animation: rr-clarity-present-kf 0.5s ease-out forwards;
