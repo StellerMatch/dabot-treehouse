@@ -89,12 +89,23 @@ function RootRoom() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [ascending, setAscending] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
   }, []);
+
+  useEffect(() => {
+    if (!ascending) return;
+    const dur = reducedMotion ? 500 : 2000;
+    const t = window.setTimeout(() => navigate({ to: "/trunk" }), dur);
+    return () => window.clearTimeout(t);
+  }, [ascending, navigate, reducedMotion]);
+
+  const handleAscend = () => setAscending(true);
 
   // Sequence after Start
   useEffect(() => {
