@@ -376,15 +376,51 @@ const SORTABLE_CATEGORIES: CategoryKey[] = [
 ];
 
 const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
-  "core-idea": /\b(this (?:app|tool|product|project|platform|idea|system)|is an? (?:app|tool|platform|product|system)|helps? .* (?:organize|turn|move|build|create|track|manage)|main purpose|concept is|core idea|in short|basically|essentially|the goal is)\b/i,
+  "core-idea": /\b(this (?:app|tool|product|project|platform|idea|system)|is an? (?:app|tool|platform|product|system)|i want to (?:build|make|create)|helps? .* (?:organize|turn|move|build|create|track|manage)|main purpose|concept is|core idea|idea is|in short|basically|essentially|the goal is)\b/i,
   clarity:     /\b(clarity|readout|understood|direction|fuzzy|90%|so far|overall|summary)\b/i,
-  problem:     /\b(problem|pain|painful|need|opportunity|solve[sd]?|struggle|struggling|frustrat|because|wastes? (?:time|hours)|spend(?:ing)? hours|messy|hard to|difficult to|broken|missing tool|gap|inefficien|currently (?:no|nothing|hard))\b/i,
-  audience:    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target|for (?:small|new|busy|solo|independent)|aimed at|built for|designed for)\b/i,
-  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template)\b/i,
-  workflow:    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|journey|onboard|pipeline)\b/i,
-  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|tree|treehouse|earthly|earthy|sticky note|post-it|post it)\b/i,
+  problem:     /\b(problem|pain|painful|need|opportunity|solve[sd]?|struggle|struggling|frustrat|because|wastes? (?:time|hours)|takes? too long|spend(?:ing)? hours|messy|hard to|difficult to|confusing|broken|missing tool|gap|inefficien|currently (?:no|nothing|hard)|don't have|doesn't exist|can't)\b/i,
+  audience:    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target|for (?:small|new|busy|solo|independent|creators?|users?|teams?|owners?|managers?|workers?|customers?)|aimed at|built for|designed for|who (?:it'?s|this is) for)\b/i,
+  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?|me)|should (?:have|include|show|ask|save|sort|create|generate|track)|needs? to (?:have|include|show|ask|save|sort|create|generate|track)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template|question(?:s)?|upload|save|generate)\b/i,
+  workflow:    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|go(?:es)? to|come(?:s)? to|land(?:s)? on|journey|onboard|pipeline)\b/i,
+  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|header|logo|tree|treehouse|earthly|earthy|sticky note|post-it|post it)\b/i,
   business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin|saves? (?:time|money|hours)|faster|cheap|valuable|worth (?:paying|money)|commercial|positioning|package|packaged)\b/i,
-  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|should not|must not|do not|watch|validate|fix later|assumption|weak spot|edge case|later phase|might break|unclear|fuzzy)\b/i,
+  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|not sure|don't know|should not|must not|do not|watch|validate|fix later|assumption|weak spot|edge case|later phase|might break|unclear|fuzzy)\b/i,
+};
+
+const CATEGORY_HEADING_ALIASES: Record<string, CategoryKey> = {
+  "core idea": "core-idea",
+  "idea": "core-idea",
+  "concept": "core-idea",
+  "clarity": "clarity",
+  "summary": "clarity",
+  "problem": "problem",
+  "pain": "problem",
+  "need": "problem",
+  "audience": "audience",
+  "who": "audience",
+  "users": "audience",
+  "customer": "audience",
+  "customers": "audience",
+  "features": "features",
+  "feature": "features",
+  "functions": "features",
+  "capabilities": "features",
+  "workflow": "workflow",
+  "process": "workflow",
+  "flow": "workflow",
+  "steps": "workflow",
+  "design": "design",
+  "design ux": "design",
+  "ux": "design",
+  "ui": "design",
+  "business": "business",
+  "money": "business",
+  "pricing": "business",
+  "concerns": "concerns",
+  "concern": "concerns",
+  "risks": "concerns",
+  "watchouts": "concerns",
+  "watch outs": "concerns",
 };
 
 const CATEGORY_MISSING: Record<CategoryKey, string> = {
@@ -413,29 +449,68 @@ function splitSentences(text: string): string[] {
 // can each land in a different folder.
 function splitClauses(sentence: string): string[] {
   return sentence
-    .split(/\s*(?:;|\s+(?:so that|so|because|but|and then|and also|while|whereas|in order to)\s+)\s*/i)
+    .split(/\s*(?:;|,(?=\s+(?:and|but|so|then|after|before|once)\b)|\s+(?:so that|so|because|but|and then|and also|while|whereas|in order to)\s+)\s*/i)
     .map((c) => c.replace(/^[,;\s]+|[,;\s]+$/g, "").trim())
     .filter((c) => c.length >= 6);
 }
 
+function normalizeCategoryHeading(raw: string): CategoryKey | null {
+  const normalized = raw
+    .toLowerCase()
+    .replace(/[/_-]+/g, " ")
+    .replace(/[^a-z\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return CATEGORY_HEADING_ALIASES[normalized] ?? null;
+}
+
+function splitLabeledCategoryLine(line: string): { cat: CategoryKey; body: string } | null {
+  const match = line.match(/^\s*(?:[-•*]\s*)?([A-Za-z][A-Za-z /_-]{1,24})\s*[:\-–—]\s*(.+)$/);
+  if (!match) return null;
+  const cat = normalizeCategoryHeading(match[1]);
+  const body = match[2]?.trim();
+  if (!cat || !body || body.length < 3) return null;
+  return { cat, body };
+}
+
+function pushUnique(out: Record<CategoryKey, string[]>, cat: CategoryKey, value: string) {
+  const cleaned = value.replace(/^[-•·\s]+/, "").trim();
+  if (cleaned.length < 3) return;
+  if (!out[cat].some((existing) => existing.toLowerCase() === cleaned.toLowerCase())) {
+    out[cat].push(cleaned);
+  }
+}
+
 function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> {
   const sentences = splitSentences(text);
+  const semanticSentences = sentences.map((sentence) => {
+    const labeled = splitLabeledCategoryLine(sentence);
+    return labeled?.body ?? sentence;
+  });
   const out: Record<CategoryKey, string[]> = {
     "core-idea": [], clarity: [], problem: [], audience: [], features: [],
     workflow: [], design: [], business: [], concerns: [],
   };
 
-  // Seed Core Idea with the first descriptive sentence (a plain concept line).
-  if (sentences[0]) out["core-idea"].push(sentences[0]);
+  for (const line of text.replace(/\r\n/g, "\n").split("\n")) {
+    const labeled = splitLabeledCategoryLine(line);
+    if (labeled) pushUnique(out, labeled.cat, labeled.body);
+  }
 
-  for (const sentence of sentences) {
+  // Seed Core Idea with the first descriptive sentence (a plain concept line).
+  const firstPlainSentence =
+    sentences.find((sentence) => !splitLabeledCategoryLine(sentence))
+    ?? semanticSentences[0];
+  if (firstPlainSentence) pushUnique(out, "core-idea", firstPlainSentence);
+
+  for (const sentence of semanticSentences) {
     const clauses = splitClauses(sentence);
     const targets = clauses.length > 1 ? clauses : [sentence];
     for (const clause of targets) {
       let matched = false;
       for (const cat of SORTABLE_CATEGORIES) {
-        if (CAT_PATTERNS[cat].test(clause) && !out[cat].includes(clause)) {
-          out[cat].push(clause);
+        if (CAT_PATTERNS[cat].test(clause)) {
+          pushUnique(out, cat, clause);
           matched = true;
         }
       }
@@ -3683,4 +3758,3 @@ function DraggableOwl({ src }: { src: string }) {
     />
   );
 }
-
