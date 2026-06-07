@@ -394,16 +394,30 @@ function RootRoom() {
         .rr-progress-dots {
           display: inline-flex;
           align-items: center;
-          gap: 0.44rem;
-          border: 1px solid rgba(238, 194, 113, 0.34);
+          gap: 0.52rem;
+          border: 1px solid rgba(255, 216, 139, 0.6);
           border-radius: 999px;
-          background: rgba(30, 14, 4, 0.34);
-          padding: 0.36rem 0.62rem;
-          box-shadow: inset 0 1px 0 rgba(255, 226, 170, 0.14);
+          background: rgba(35, 17, 5, 0.62);
+          padding: 0.44rem 0.78rem;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 226, 170, 0.18),
+            0 0 22px rgba(255, 184, 76, 0.18);
+        }
+        .rr-progress-label {
+          color: rgba(255, 238, 202, 0.94);
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+        .rr-dot-track {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.42rem;
         }
         .rr-progress-dot {
-          width: 0.42rem;
-          height: 0.42rem;
+          width: 0.54rem;
+          height: 0.54rem;
           border-radius: 999px;
           background: rgba(255, 221, 157, 0.38);
           box-shadow: 0 0 0 rgba(255, 202, 105, 0);
@@ -507,10 +521,13 @@ function StepActivity({ phase }: { phase: Phase }) {
   if (phase === "smoke" || phase === "flying" || phase === "working") {
     return (
       <div className="rr-step-activity" aria-label="Working">
-        <div className="rr-progress-dots" aria-hidden="true">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <span key={index} className="rr-progress-dot" />
-          ))}
+        <div className="rr-progress-dots">
+          <span className="rr-progress-label">Working</span>
+          <span className="rr-dot-track" aria-hidden="true">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <span key={index} className="rr-progress-dot" />
+            ))}
+          </span>
         </div>
       </div>
     );
