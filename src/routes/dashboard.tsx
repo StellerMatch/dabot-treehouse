@@ -3323,6 +3323,9 @@ function NoteDesk(props: {
                 >
                   Info Gathered
                 </button>
+                <span className="ml-2 hidden font-serif text-[10px] italic normal-case tracking-normal text-amber-900/70 sm:inline">
+                  Answer by typing or speaking a note.
+                </span>
                 <span className="ml-auto italic normal-case tracking-normal">
                   {voiceState === "listening"
                     ? "Listening…"
@@ -3330,6 +3333,7 @@ function NoteDesk(props: {
                       ? "Transcribing…"
                       : `${extras.posts.length} ${extras.posts.length === 1 ? "note" : "notes"}`}
                 </span>
+
               </div>
               <div className="relative flex items-end gap-2 px-3 py-2">
                 <textarea
