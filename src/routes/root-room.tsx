@@ -107,19 +107,19 @@ function RootRoom() {
                 transform: "translate(-50%, 0)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => {
-                const drift = (i % 2 === 0 ? 1 : -1) * (10 + (i * 5) % 18);
-                const size = 32 + (i * 9) % 26;
+              {!reducedMotion && Array.from({ length: 10 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (12 + (i * 5) % 20);
+                const size = 42 + (i * 11) % 32;
                 return (
                   <span
                     key={i}
                     className="rr-smoke"
                     style={{
-                      left: `${35 + (i * 13) % 30}%`,
+                      left: `${30 + (i * 13) % 40}%`,
                       width: `${size}px`,
                       height: `${size}px`,
-                      animationDelay: `${(i * 0.7) % 4}s`,
-                      animationDuration: `${7 + (i % 4) * 1.2}s`,
+                      animationDelay: `${(i * 0.55) % 4}s`,
+                      animationDuration: `${6.5 + (i % 4) * 1.1}s`,
                       ['--drift' as never]: `${drift}px`,
                     }}
                   />
