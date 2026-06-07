@@ -101,25 +101,25 @@ function RootRoom() {
               className="pointer-events-none absolute"
               style={{
                 left: `${t.x}%`,
-                top: "55%",
-                width: "26%",
-                height: "70%",
-                transform: "translate(-50%, -100%)",
+                top: "42%",
+                width: "10%",
+                height: "45%",
+                transform: "translate(-50%, 0)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 8 }).map((_, i) => {
-                const drift = (i % 2 === 0 ? 1 : -1) * (15 + (i * 7) % 30);
-                const size = 50 + (i * 11) % 45;
+              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (10 + (i * 5) % 18);
+                const size = 32 + (i * 9) % 26;
                 return (
                   <span
                     key={i}
                     className="rr-smoke"
                     style={{
-                      left: `${15 + (i * 19) % 70}%`,
+                      left: `${35 + (i * 13) % 30}%`,
                       width: `${size}px`,
                       height: `${size}px`,
-                      animationDelay: `${(i * 0.6) % 4}s`,
-                      animationDuration: `${6 + (i % 4) * 1.2}s`,
+                      animationDelay: `${(i * 0.7) % 4}s`,
+                      animationDuration: `${7 + (i % 4) * 1.2}s`,
                       ['--drift' as never]: `${drift}px`,
                     }}
                   />
@@ -261,19 +261,19 @@ function RootRoom() {
           100% { transform: translateY(0)     scale(1)    rotate(0deg);  opacity: 1; }
         }
         @keyframes rr-smoke-rise {
-          0%   { transform: translate(-50%, 10%) scale(0.5) rotate(0deg); opacity: 0; }
-          15%  { opacity: 0.95; }
-          50%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.6) rotate(20deg); opacity: 0.8; }
-          100% { transform: translate(calc(-50% + var(--drift)), -210%) scale(2.6) rotate(40deg); opacity: 0; }
+          0%   { transform: translate(-50%, 20%) scale(0.35); opacity: 0; }
+          25%  { opacity: 0.55; }
+          60%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.1); opacity: 0.4; }
+          100% { transform: translate(calc(-50% + var(--drift)), -200%) scale(1.8); opacity: 0; }
         }
         .rr-smoke {
           position: absolute;
-          bottom: -10%;
+          top: 0;
           border-radius: 50%;
           background:
-            radial-gradient(circle at 35% 35%, rgba(240,235,225,0.7) 0%, rgba(200,190,175,0.5) 35%, rgba(150,140,125,0.25) 65%, transparent 82%),
-            radial-gradient(circle at 70% 60%, rgba(225,215,200,0.4) 0%, transparent 55%);
-          filter: blur(7px);
+            radial-gradient(circle at 35% 35%, rgba(235,228,215,0.5) 0%, rgba(195,185,170,0.32) 38%, rgba(140,130,115,0.15) 65%, transparent 82%),
+            radial-gradient(circle at 70% 60%, rgba(220,210,195,0.25) 0%, transparent 55%);
+          filter: blur(6px);
           mix-blend-mode: screen;
           transform: translate(-50%, 0);
           animation: rr-smoke-rise ease-out infinite;
