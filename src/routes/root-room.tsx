@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import rootRoomBgAsset from "@/assets/root-room-bg.png.asset.json";
+import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
+import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import { ArrowLeft, Sparkles } from "lucide-react";
