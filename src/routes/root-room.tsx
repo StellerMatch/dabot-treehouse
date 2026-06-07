@@ -141,7 +141,7 @@ function RootRoom() {
           src={rootRoomPodiumAsset.url}
           alt=""
           className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none"
-          style={{ bottom: "22%", height: "34vh", width: "auto" }}
+          style={{ bottom: "22%", height: "31.6vh", width: "auto" }}
           draggable={false}
         />
 
