@@ -558,6 +558,12 @@ function RootRoom() {
             top: 56%;
             height: min(44.1vh, 23.1rem);
           }
+          .rr-char-large.rr-clarity-fly {
+            height: min(60.06vh, 31.395rem);
+          }
+          .rr-char-large.rr-clarity-present {
+            height: min(57.33vh, 30.03rem);
+          }
           @keyframes rr-clarity-fly-kf {
             0%   { left: 50%; top: 42%; transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
             15%  { opacity: 1; }
