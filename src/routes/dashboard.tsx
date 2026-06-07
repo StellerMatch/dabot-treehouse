@@ -3216,16 +3216,18 @@ function NoteDesk(props: {
             const ratingAggregated = realPosts
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
-            // For star strength, ignore the seed `messy` blurb on core-idea —
-            // it's the original capture, not developed category content.
-            const ratingValue = extras.notes[cat] ?? "";
+            // For star strength on most categories, only count developed notes.
+            // Core idea is special: the user's initial messy dump counts toward
+            // its strength so the first star lights up as soon as there's a seed.
+            const rawValue = getCategoryValue(cat);
+            const ratingValue =
+              cat === "core-idea" ? rawValue : extras.notes[cat] ?? "";
             const ratingCombined = [ratingValue, ratingAggregated]
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
             const pct = categoryStatus(ratingCombined).pct;
             // Display still shows everything the user has captured so the
             // detail view is complete, even though stars are stricter.
-            const rawValue = getCategoryValue(cat);
             const displayAggregated = postsForCat
               .map((p) => p.fullText ?? p.text)
               .join("\n\n");
@@ -3233,6 +3235,7 @@ function NoteDesk(props: {
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
             const filled = displayCombined.trim().length > 0;
+
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
             return (
@@ -3525,12 +3528,13 @@ function PostItCard({
                     key={i}
                     aria-hidden
                     style={{
-                      color: i < stars ? "#ffd84d" : "#7b5a2a",
-                      WebkitTextStroke: i < stars ? "0" : "0",
+                      color: i < stars ? "#f5d27a" : "#7b5a2a",
+                      WebkitTextStroke: "0",
                       textShadow: i < stars
-                        ? "0 0 5px rgba(255,216,77,0.75), 0 1px 0 rgba(120,70,15,0.45)"
+                        ? "0 0 6px rgba(245,210,122,0.85), 0 1px 0 rgba(74,40,8,0.6), 0 0 1px rgba(168,102,20,0.9)"
                         : "0 1px 0 rgba(245,223,184,0.35), 0 -1px 0 rgba(73,43,16,0.22)",
                     }}
+
                   >
                     ★
                   </span>
