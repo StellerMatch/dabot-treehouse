@@ -216,7 +216,7 @@ function RootRoom() {
                 src={rootRoomFinalPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "33.8vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
               {/* Final book resting on the final podium, ready to float */}
