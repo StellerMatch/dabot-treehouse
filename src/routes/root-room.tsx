@@ -656,7 +656,7 @@ function RootRoom() {
           height: 65.93vh;
         }
         .rr-char-shield.rr-clarity-present {
-          height: 72.21vh;
+          height: 79.431vh;
         }
         .rr-char-xl.rr-clarity-fly {
           height: 71.66vh;
