@@ -107,19 +107,19 @@ function RootRoom() {
                 transform: "translate(-50%, 0)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => {
-                const drift = (i % 2 === 0 ? 1 : -1) * (10 + (i * 5) % 18);
-                const size = 32 + (i * 9) % 26;
+              {!reducedMotion && Array.from({ length: 10 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (12 + (i * 5) % 20);
+                const size = 42 + (i * 11) % 32;
                 return (
                   <span
                     key={i}
                     className="rr-smoke"
                     style={{
-                      left: `${35 + (i * 13) % 30}%`,
+                      left: `${30 + (i * 13) % 40}%`,
                       width: `${size}px`,
                       height: `${size}px`,
-                      animationDelay: `${(i * 0.7) % 4}s`,
-                      animationDuration: `${7 + (i % 4) * 1.2}s`,
+                      animationDelay: `${(i * 0.55) % 4}s`,
+                      animationDuration: `${6.5 + (i % 4) * 1.1}s`,
                       ['--drift' as never]: `${drift}px`,
                     }}
                   />
@@ -261,18 +261,18 @@ function RootRoom() {
           100% { transform: translateY(0)     scale(1)    rotate(0deg);  opacity: 1; }
         }
         @keyframes rr-smoke-rise {
-          0%   { transform: translate(-50%, 20%) scale(0.35); opacity: 0; }
-          25%  { opacity: 0.55; }
-          60%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -90%) scale(1.1); opacity: 0.4; }
-          100% { transform: translate(calc(-50% + var(--drift)), -200%) scale(1.8); opacity: 0; }
+          0%   { transform: translate(-50%, 20%) scale(0.4); opacity: 0; }
+          20%  { opacity: 0.75; }
+          60%  { transform: translate(calc(-50% + (var(--drift) * 0.5)), -100%) scale(1.3); opacity: 0.55; }
+          100% { transform: translate(calc(-50% + var(--drift)), -210%) scale(2); opacity: 0; }
         }
         .rr-smoke {
           position: absolute;
           top: 0;
           border-radius: 50%;
           background:
-            radial-gradient(circle at 35% 35%, rgba(235,228,215,0.5) 0%, rgba(195,185,170,0.32) 38%, rgba(140,130,115,0.15) 65%, transparent 82%),
-            radial-gradient(circle at 70% 60%, rgba(220,210,195,0.25) 0%, transparent 55%);
+            radial-gradient(circle at 35% 35%, rgba(240,233,220,0.65) 0%, rgba(200,190,175,0.45) 38%, rgba(150,140,125,0.22) 65%, transparent 82%),
+            radial-gradient(circle at 70% 60%, rgba(225,215,200,0.35) 0%, transparent 55%);
           filter: blur(6px);
           mix-blend-mode: screen;
           transform: translate(-50%, 0);
