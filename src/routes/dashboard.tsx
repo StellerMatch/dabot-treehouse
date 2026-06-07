@@ -3222,7 +3222,7 @@ function NoteDesk(props: {
                   text={label}
                   fullText={
                     filled
-                      ? combined
+                      ? displayCombined
                       : `${CATEGORY_MISSING[cat]}\n\nNothing captured yet for ${label}. Use the parchment tray below to add a note.`
                   }
                   kind="idea-notes"
