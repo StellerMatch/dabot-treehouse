@@ -402,10 +402,10 @@ const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
   "core-idea": /\b(this (?:app|tool|product|project|platform|idea|system)|is an? (?:app|tool|platform|product|system)|i want to (?:build|make|create)|helps? .* (?:organize|turn|move|build|create|track|manage)|main purpose|concept is|core idea|idea is|in short|basically|essentially|the goal is)\b/i,
   clarity:     /\b(clarity|readout|understood|direction|fuzzy|90%|so far|overall|summary)\b/i,
   problem:     /\b(problem|pain|painful|need|opportunity|solve[sd]?|struggle|struggling|frustrat|because|wastes? (?:time|hours)|takes? too long|spend(?:ing)? hours|messy|hard to|difficult to|confusing|broken|missing tool|gap|inefficien|currently (?:no|nothing|hard)|don't have|doesn't exist|can't)\b/i,
-  audience:    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|persona|target|for (?:small|new|busy|solo|independent|creators?|users?|teams?|owners?|managers?|workers?|customers?)|aimed at|built for|designed for|who (?:it'?s|this is) for)\b/i,
-  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?|me)|should (?:have|include|show|ask|save|sort|create|generate|track)|needs? to (?:have|include|show|ask|save|sort|create|generate|track)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template|question(?:s)?|upload|save|generate)\b/i,
-  workflow:    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|go(?:es)? to|come(?:s)? to|land(?:s)? on|journey|onboard|pipeline)\b/i,
-  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|header|logo|tree|treehouse|earthly|earthy|sticky note|post-it|post it)\b/i,
+  audience:    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|photographer|editor|persona|target|for (?:small|new|busy|solo|independent|creators?|users?|teams?|owners?|managers?|workers?|customers?|photographers?)|aimed at|built for|designed for|who (?:it'?s|this is) for)\b/i,
+  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?|me)|should (?:have|include|show|ask|save|sort|create|generate|track)|needs? to (?:have|include|show|ask|save|sort|create|generate|track)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template|question(?:s)?|upload|save|generate|photo|photos|camera|wi-?fi|photoshop|edit|editing|raw-vs-edited|ai tool)\b/i,
+  workflow:    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|go(?:es)? to|come(?:s)? to|land(?:s)? on|journey|onboard|pipeline|owner|approval|approve|human review|turn approval on|turn approval off|automatically)\b/i,
+  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|header|logo|tree|treehouse|earthly|earthy|sticky note|post-it|post it|desired feeling|same color tone|same cropping|same style|consistency|lighting|skin)\b/i,
   business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin|saves? (?:time|money|hours)|faster|cheap|valuable|worth (?:paying|money)|commercial|positioning|package|packaged)\b/i,
   concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|not sure|don't know|should not|must not|do not|watch|validate|fix later|assumption|weak spot|edge case|later phase|might break|unclear|fuzzy)\b/i,
 };
@@ -420,6 +420,33 @@ const CATEGORY_HEADING_ALIASES: Record<string, CategoryKey> = {
   "clarity": "clarity",
   "summary": "clarity",
   "mode lightbulb receipt": "clarity",
+  "mode capture": "clarity",
+  "mode 0 capture": "clarity",
+  "mode 0 thread": "clarity",
+  "clean mode 0 capture": "clarity",
+  "saved boss heres the clean mode capture of what you just answered": "clarity",
+  "new piece": "features",
+  "version one": "features",
+  "new piece version one": "features",
+  "first version": "features",
+  "v": "features",
+  "v1": "features",
+  "editing owner": "workflow",
+  "work owner": "workflow",
+  "owner": "workflow",
+  "approval": "workflow",
+  "human approval": "workflow",
+  "first trust builder": "clarity",
+  "trust builder": "clarity",
+  "proof": "clarity",
+  "paid version": "business",
+  "first paid version": "business",
+  "tiny paid version": "business",
+  "core desired feeling": "design",
+  "desired feeling": "design",
+  "feeling": "design",
+  "trust problem youre solving": "problem",
+  "trust problem": "problem",
   "problem": "problem",
   "problem or desire": "problem",
   "why it matters": "problem",
@@ -511,9 +538,18 @@ function splitReceiptHeadingLine(line: string): { cat: CategoryKey; body?: strin
   );
   if (!match) return null;
   const heading = stripReceiptHeadingStatus(match[1]);
-  const cat = normalizeCategoryHeading(heading);
+  let cat = normalizeCategoryHeading(heading);
+  let body = stripReceiptHeadingStatus(match[2] ?? "");
+  // Clarity often writes receipts as "New piece: version one" where the
+  // first label is generic and the second label is the actual folder signal.
+  if (!cat && body) {
+    const bodyAsHeading = normalizeCategoryHeading(body);
+    if (bodyAsHeading) {
+      cat = bodyAsHeading;
+      body = "";
+    }
+  }
   if (!cat) return null;
-  const body = stripReceiptHeadingStatus(match[2] ?? "");
   return { cat, body: body.length >= 3 ? body : undefined };
 }
 
