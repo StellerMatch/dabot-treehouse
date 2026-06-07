@@ -190,6 +190,31 @@ type ClarityQuestion = {
 };
 const CLARITY_QUESTIONS: ClarityQuestion[] = [
   {
+    id: "version-one",
+    prompt: "What is version one?",
+    keywords: ["version one", "version 1", "v1", "first version", "simple version", "smallest version", "start with", "mvp"],
+  },
+  {
+    id: "who-does-work",
+    prompt: "Who is doing the work?",
+    keywords: ["who does", "who is doing", "human", "ai", "approve", "approval", "operator", "admin", "manager", "user does", "assistant", "review"],
+  },
+  {
+    id: "trust-first",
+    prompt: "What should the user trust first?",
+    keywords: ["trust", "confidence", "believe", "proof", "compare", "comparison", "review", "approve", "quality", "accurate", "reliable"],
+  },
+  {
+    id: "first-paid-version",
+    prompt: "What is the first tiny paid version?",
+    keywords: ["paid", "pay", "price", "pricing", "subscription", "monthly", "credit", "package", "setup", "one job", "one edit", "purchase"],
+  },
+  {
+    id: "most-important-detail",
+    prompt: "What detail matters most?",
+    keywords: ["matters most", "most important", "detail", "style", "tone", "quality", "consistency", "privacy", "speed", "control", "exact"],
+  },
+  {
     id: "problem",
     prompt: "What problem is this idea trying to solve?",
     keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because", "hours", "faster than", "spend"],
@@ -200,49 +225,9 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
     keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they", "manager", "worker", "employee", "crew", "team", "owner", "supervisor"],
   },
   {
-    id: "why-now",
-    prompt: "Why does this matter to you right now?",
-    keywords: ["because", "matter", "why", "now", "want", "need", "passion", "care", "wants", "needs"],
-  },
-  {
     id: "look-like",
     prompt: "If it existed today, what would it look or feel like?",
     keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual", "board", "dashboard", "draft", "published"],
-  },
-  {
-    id: "first-step",
-    prompt: "What's one tiny first step you could take this week?",
-    keywords: ["step", "start", "first", "try", "build", "sketch", "draft", "make", "first version", "v1"],
-  },
-  {
-    id: "first-paying-user",
-    prompt: "Who is the first paying user — a small construction company owner, office manager, field supervisor, or crew lead?",
-    keywords: [],
-  },
-  {
-    id: "smallest-workflow",
-    prompt: "What's the smallest first workflow — one day's schedule, one week's schedule, or assigning workers to one jobsite?",
-    keywords: [],
-  },
-  {
-    id: "v1-fields",
-    prompt: "What employee information is required for version one, and what should be left out for now?",
-    keywords: [],
-  },
-  {
-    id: "auto-vs-suggest",
-    prompt: "What should the app recommend automatically, and what should only be a suggestion the manager approves?",
-    keywords: [],
-  },
-  {
-    id: "publish-channel",
-    prompt: "When a schedule is published, what does each employee receive — SMS, app notification, email, or a simple link?",
-    keywords: [],
-  },
-  {
-    id: "pickup-detail",
-    prompt: "What pickup coordination detail matters most first — who needs a ride, who can drive, the pickup location, or the timing?",
-    keywords: [],
   },
 ];
 
@@ -257,28 +242,22 @@ function projectQuestionName(idea: LightbulbIdea | undefined): string {
 function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
   switch (question.id) {
+    case "version-one":
+      return `What is version one for ${name}? You gave me the bigger shape; what is the smallest useful version of it?`;
+    case "who-does-work":
+      return `Who is doing the work inside ${name}? Is it the user, a human helper, AI, or AI making the first pass for someone to approve?`;
+    case "trust-first":
+      return `What should someone trust first in ${name}? Should they trust the saved profile, the first result, the comparison, the handoff, or something else?`;
+    case "first-paid-version":
+      return `What is the first tiny paid version of ${name}? Would someone pay for one job, a monthly helper, a setup/profile, credits, or something else?`;
+    case "most-important-detail":
+      return `What detail matters most for ${name}? Is it speed, consistency, personal style, approval control, privacy, or matching the exact finished result?`;
     case "problem":
       return `What problem should ${name} solve first?`;
     case "who":
       return `Who is ${name} for first? Picture one real person using it.`;
-    case "why-now":
-      return `Why does ${name} matter to you right now?`;
     case "look-like":
       return `If ${name} existed today, what would someone see or do first?`;
-    case "first-step":
-      return `What's one tiny first step you could take for ${name} this week?`;
-    case "first-paying-user":
-      return `For ${name}, who is the first paying user — owner, manager, supervisor, crew lead, or someone else?`;
-    case "smallest-workflow":
-      return `For ${name}, what's the smallest first workflow worth proving?`;
-    case "v1-fields":
-      return `For ${name}, what information is required in version one, and what should be left out for now?`;
-    case "auto-vs-suggest":
-      return `For ${name}, what should be automatic, and what should only be a suggestion someone approves?`;
-    case "publish-channel":
-      return `When ${name} publishes or sends an update, what should each person receive?`;
-    case "pickup-detail":
-      return `For ${name}, what coordination detail matters most first — rides, drivers, locations, timing, or something else?`;
     default:
       return question.prompt.replace(/\bthis idea\b/gi, name);
   }
