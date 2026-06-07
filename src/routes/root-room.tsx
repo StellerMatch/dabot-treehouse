@@ -215,7 +215,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampFlyingAsset.url : activeStepId === "record" ? ledgerFlyingAsset.url : activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : ""} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
             style={{
               "--rr-fly-start-x": `${activeTunnel.x}%`,
               "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "58%",
@@ -230,7 +230,7 @@ function RootRoom() {
           <img
             src={activeStepId === "da-stamp" ? stampPresentingAsset.url : activeStepId === "record" ? ledgerPresentingAsset.url : activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
             alt=""
-            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : ""} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
+            className={`pointer-events-none absolute z-[5] rr-clarity-present ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
             draggable={false}
           />
         )}
@@ -559,6 +559,12 @@ function RootRoom() {
         .rr-char-xl.rr-clarity-present {
           height: 78.49vh;
         }
+        .rr-char-clarity.rr-clarity-fly {
+          height: 52.92vh;
+        }
+        .rr-char-clarity.rr-clarity-present {
+          height: 57.96vh;
+        }
         /* Tablet and phone layout: every character enters through the centered middle tunnel. */
         @media (max-width: 1199px) {
           .rr-clarity-fly {
@@ -579,6 +585,12 @@ function RootRoom() {
           }
           .rr-char-xl.rr-clarity-present {
             height: min(71.66vh, 37.54rem);
+          }
+          .rr-char-clarity.rr-clarity-fly {
+            height: min(55.44vh, 28.98rem);
+          }
+          .rr-char-clarity.rr-clarity-present {
+            height: min(52.92vh, 27.72rem);
           }
           @keyframes rr-clarity-fly-kf {
             0%   { left: 50%; top: var(--rr-fly-start-y-mobile, 42%); transform: translate(-50%, -50%) scale(0.357) rotate(-3deg); opacity: 0; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
