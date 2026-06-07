@@ -7,6 +7,8 @@ import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import echoFlyingAsset from "@/assets/echo-flying.png.asset.json";
 import echoPresentingAsset from "@/assets/echo-presenting.png.asset.json";
+import shieldFlyingAsset from "@/assets/shield-flying.png.asset.json";
+import shieldPresentingAsset from "@/assets/shield-presenting.png.asset.json";
 import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/root-room")({
@@ -195,7 +197,7 @@ function RootRoom() {
         {/* Character flying from the active tunnel to the podium */}
         {phase === "flying" && (
           <img
-            src={activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
+            src={activeStepId === "safety" ? shieldFlyingAsset.url : activeStepId === "possibilities" ? echoFlyingAsset.url : clarityFlyingAsset.url}
             alt=""
             className="pointer-events-none absolute z-[5] rr-clarity-fly"
             style={{ "--rr-fly-start-x": `${activeTunnel.x}%` } as React.CSSProperties}
@@ -206,7 +208,7 @@ function RootRoom() {
         {/* Character working at the podium — hidden during foundation's complete phase so Clarity disappears as the book appears */}
         {(phase === "working" || (phase === "complete" && activeStepId !== "foundation")) && (
           <img
-            src={activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
+            src={activeStepId === "safety" ? shieldPresentingAsset.url : activeStepId === "possibilities" ? echoPresentingAsset.url : clarityPresentingAsset.url}
             alt=""
             className="pointer-events-none absolute z-[5] rr-clarity-present"
             draggable={false}
