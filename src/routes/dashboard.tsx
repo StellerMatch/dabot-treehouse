@@ -929,7 +929,7 @@ function Dashboard() {
 
       {/* Active idea bookplate — compact carved label, centered */}
       {selected && (
-        <div className="relative z-20 mx-auto mt-3 flex w-full justify-center px-3">
+        <div className="relative z-20 mx-auto mt-1 flex w-full justify-center px-2 sm:mt-3 sm:px-3">
           <IdeaBookplate
             idea={selected}
             onUpdate={(patch) => updateSelected(patch)}
@@ -938,7 +938,7 @@ function Dashboard() {
       )}
 
       {/* Center stage — full width, the library room breathes */}
-      <div className="relative flex flex-1 flex-col px-3 pb-4 pt-3 lg:px-6">
+      <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
         {!selected ? (
           <div className="relative mx-auto mt-12 max-w-md rounded-md border border-amber-950/50 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
             Open My Library and pick an idea to begin.
