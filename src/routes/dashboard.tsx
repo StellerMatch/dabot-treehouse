@@ -779,6 +779,59 @@ function mainSummaryFrom(text: string, fallbackTitle?: string): string {
   return summary.length > 420 ? summary.slice(0, 418).replace(/\s+\S*$/, "") + "..." : summary;
 }
 
+function cleanMetadataLine(value: string | undefined): string | undefined {
+  const cleaned = (value ?? "")
+    .replace(/^[-•·\s]+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || undefined;
+}
+
+function firstBucketLine(items: string[]): string | undefined {
+  return cleanMetadataLine(items.find((item) => item && !item.toLowerCase().startsWith("missing:")));
+}
+
+function inferIdeaType(text: string, fallback?: string): string | undefined {
+  const existing = fallback?.trim();
+  if (existing && existing !== "Undecided") return existing;
+  if (/\btv\s*show|television show|series\b/i.test(text)) return "TV show";
+  if (/\b(program\s*\/\s*site|site\s*\/\s*program|website|web app|app|application)\b/i.test(text)) {
+    return /\b(program\s*\/\s*site|site\s*\/\s*program|website|site)\b/i.test(text) ? "App / site" : "App";
+  }
+  if (/\bservice\b/i.test(text)) return "Service";
+  if (/\bcourse\b/i.test(text)) return "Course";
+  if (/\bbook\b/i.test(text)) return "Book";
+  if (/\bgame\b/i.test(text)) return "Game";
+  return undefined;
+}
+
+function inferIndustry(text: string): string | undefined {
+  if (/\bwedding\b/i.test(text) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)) {
+    return "Wedding photography";
+  }
+  if (/\b(photo|photos|photographer|photography|camera|photoshop|editing)\b/i.test(text)) {
+    return "Photography";
+  }
+  if (/\bconstruction|jobsite|contractor|crew\b/i.test(text)) return "Construction";
+  if (/\bclassroom|teacher|student|school\b/i.test(text)) return "Education";
+  if (/\brecipe|cook|kitchen\b/i.test(text)) return "Food / family";
+  return undefined;
+}
+
+function ideaMetadataFromText(text: string, ideaTypeFallback?: string): Pick<LightbulbIdea, "audience" | "industry" | "ideaType" | "description"> {
+  const buckets = parsePromptIntoCategories(text);
+  const audience =
+    firstBucketLine(buckets.audience)
+    ?? (/\bwedding photographers?\b/i.test(text) ? "Wedding photographers" : undefined)
+    ?? (/\bphotographers?\b/i.test(text) ? "Photographers" : undefined);
+  return {
+    audience,
+    industry: inferIndustry(text),
+    ideaType: inferIdeaType(text, ideaTypeFallback),
+    description: mainSummaryFrom(text),
+  };
+}
+
 
 function lightbulbSummaryFrom(text: string): string {
   const first = splitSentences(text)[0] ?? text.trim();
@@ -888,6 +941,7 @@ function Dashboard() {
       const ts = Date.now();
       const posts: PostIt[] = buildCategoryFolderPosts(draft, ts);
       const answered = answeredQuestionsFromClarityDigest(draft, posts);
+      const metadata = ideaMetadataFromText(draft, draftType || undefined);
       const newIdea: LightbulbIdea = {
         id,
         title,
@@ -896,8 +950,10 @@ function Dashboard() {
         updatedAt: ts,
         stage: "lightbulb",
         nextAction: "Answer the next clarity question",
-        ideaType: draftType || undefined,
-        description: mainSummaryFrom(draft, title),
+        audience: metadata.audience,
+        industry: metadata.industry,
+        ideaType: metadata.ideaType,
+        description: metadata.description || mainSummaryFrom(draft, title),
       };
       setIdeas((prev) => [newIdea, ...prev]);
       setSelectedId(id);
@@ -986,6 +1042,7 @@ function Dashboard() {
       const ts = Date.now();
       const folderPosts = mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts);
       const newAnswered = answeredQuestionsFromClarityDigest(cleaned, folderPosts);
+      const metadata = ideaMetadataFromText(cleaned, selected.ideaType);
       const mergedAnswered = Array.from(
         new Set([...selectedExtras.answeredQuestions, ...newAnswered]),
       );
@@ -996,7 +1053,10 @@ function Dashboard() {
       updateSelected({
         title: generateTitle(cleaned, selected.ideaType),
         messy: lightbulbSummaryFrom(cleaned),
-        description: mainSummaryFrom(cleaned, selected.title),
+        audience: metadata.audience ?? selected.audience,
+        industry: metadata.industry ?? selected.industry,
+        ideaType: metadata.ideaType ?? selected.ideaType,
+        description: metadata.description || mainSummaryFrom(cleaned, selected.title),
         shelfReadiness: Math.max(selected.shelfReadiness, 45),
       });
       if (categoryAsk) setCategoryAsk(null);
