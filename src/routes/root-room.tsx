@@ -218,7 +218,7 @@ function RootRoom() {
             className={`pointer-events-none absolute z-[5] rr-clarity-fly ${activeStepId !== "foundation" ? "rr-char-large" : "rr-char-clarity"} ${activeStepId === "da-stamp" ? "rr-char-xl" : ""}`}
             style={{
               "--rr-fly-start-x": `${activeTunnel.x}%`,
-              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "58%",
+              "--rr-fly-start-y": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "38%" : "53%",
               "--rr-fly-start-y-mobile": (activeStepId === "safety" || activeStepId === "record" || activeStepId === "da-stamp") ? "25%" : "42%",
             } as React.CSSProperties}
             draggable={false}
