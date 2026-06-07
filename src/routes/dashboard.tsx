@@ -3528,12 +3528,13 @@ function PostItCard({
                     key={i}
                     aria-hidden
                     style={{
-                      color: i < stars ? "#ffd84d" : "#7b5a2a",
-                      WebkitTextStroke: i < stars ? "0" : "0",
+                      color: i < stars ? "#f5d27a" : "#7b5a2a",
+                      WebkitTextStroke: "0",
                       textShadow: i < stars
-                        ? "0 0 5px rgba(255,216,77,0.75), 0 1px 0 rgba(120,70,15,0.45)"
+                        ? "0 0 6px rgba(245,210,122,0.85), 0 1px 0 rgba(74,40,8,0.6), 0 0 1px rgba(168,102,20,0.9)"
                         : "0 1px 0 rgba(245,223,184,0.35), 0 -1px 0 rgba(73,43,16,0.22)",
                     }}
+
                   >
                     ★
                   </span>
