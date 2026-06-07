@@ -20,6 +20,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RootDescentTransition } from "@/components/RootDescentTransition";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -1101,6 +1102,7 @@ function Dashboard() {
     useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [descending, setDescending] = useState(false);
 
   // Pull draft from front-page intake
   useEffect(() => {
@@ -1587,7 +1589,10 @@ function Dashboard() {
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
-            onClick={() => selected && moveToPreClarity(selected.id)}
+            onClick={() => {
+              if (!selected) return;
+              setDescending(true);
+            }}
           />
         </div>
       </header>
@@ -1638,6 +1643,16 @@ function Dashboard() {
             "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
         }}
       />
+      {descending && (
+        <RootDescentTransition
+          onComplete={() => {
+            if (selected) {
+              moveToPreClarity(selected.id);
+            }
+            navigate({ to: "/root-room" });
+          }}
+        />
+      )}
     </main>
   );
 }
