@@ -548,9 +548,15 @@ function RootRoom() {
           filter: drop-shadow(0 0 32px rgba(255,210,140,0.9));
         }
         .rr-char-large.rr-clarity-fly {
-          height: 65.93vh;
+          height: 57.33vh;
         }
         .rr-char-large.rr-clarity-present {
+          height: 62.79vh;
+        }
+        .rr-char-shield.rr-clarity-fly {
+          height: 65.93vh;
+        }
+        .rr-char-shield.rr-clarity-present {
           height: 72.21vh;
         }
         .rr-char-xl.rr-clarity-fly {
