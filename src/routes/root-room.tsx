@@ -101,25 +101,25 @@ function RootRoom() {
               className="pointer-events-none absolute"
               style={{
                 left: `${t.x}%`,
-                top: "55%",
-                width: "26%",
-                height: "70%",
-                transform: "translate(-50%, -100%)",
+                top: "42%",
+                width: "10%",
+                height: "45%",
+                transform: "translate(-50%, 0)",
               }}
             >
-              {!reducedMotion && Array.from({ length: 8 }).map((_, i) => {
-                const drift = (i % 2 === 0 ? 1 : -1) * (15 + (i * 7) % 30);
-                const size = 50 + (i * 11) % 45;
+              {!reducedMotion && Array.from({ length: 7 }).map((_, i) => {
+                const drift = (i % 2 === 0 ? 1 : -1) * (10 + (i * 5) % 18);
+                const size = 32 + (i * 9) % 26;
                 return (
                   <span
                     key={i}
                     className="rr-smoke"
                     style={{
-                      left: `${15 + (i * 19) % 70}%`,
+                      left: `${35 + (i * 13) % 30}%`,
                       width: `${size}px`,
                       height: `${size}px`,
-                      animationDelay: `${(i * 0.6) % 4}s`,
-                      animationDuration: `${6 + (i % 4) * 1.2}s`,
+                      animationDelay: `${(i * 0.7) % 4}s`,
+                      animationDuration: `${7 + (i % 4) * 1.2}s`,
                       ['--drift' as never]: `${drift}px`,
                     }}
                   />
