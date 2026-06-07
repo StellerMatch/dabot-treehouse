@@ -192,7 +192,8 @@ function RootRoom() {
         {/* Podium centered on the cavern floor — original podium during the journey, swaps to final podium+book when root room is complete */}
         {(() => {
           const showInterimBook = activeStepIndex > 0 || (activeStepId === "foundation" && phase === "complete");
-          const showFinal = rootRoomComplete && !ascending;
+          const showFinalPodium = rootRoomComplete;
+          const showRestingBook = rootRoomComplete && !ascending;
           return (
             <>
               {/* Original podium (empty) */}
@@ -200,7 +201,7 @@ function RootRoom() {
                 src={rootRoomPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinal || showInterimBook ? 0 : 1 }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinalPodium || showInterimBook ? 0 : 1 }}
                 draggable={false}
               />
               {/* Original podium with book (during steps) */}
@@ -208,15 +209,15 @@ function RootRoom() {
                 src={rootRoomPodiumBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: !showFinal && showInterimBook ? 1 : 0 }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: !showFinalPodium && showInterimBook ? 1 : 0 }}
                 draggable={false}
               />
-              {/* Final podium shown only when root room is complete */}
+              {/* Final podium shown only when root room is complete (stays during ascent) */}
               <img
                 src={rootRoomFinalPodiumAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: showFinalPodium ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
               {/* Final book resting on the final podium, ready to float */}
@@ -224,9 +225,18 @@ function RootRoom() {
                 src={rootRoomFinalBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
-                style={{ bottom: "40%", height: "14vh", width: "auto", opacity: showFinal ? 1 : 0, transition: "opacity 600ms ease" }}
+                style={{ bottom: "40%", height: "14vh", width: "auto", opacity: showRestingBook ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
+              {/* Ascending book — same container, same coordinates as resting book */}
+              {ascending && (
+                <img
+                  src={rootRoomFinalBookAsset.url}
+                  alt=""
+                  className="rr-book-ascend pointer-events-none absolute left-1/2 z-[12] select-none"
+                  draggable={false}
+                />
+              )}
             </>
           );
         })()}
@@ -269,12 +279,6 @@ function RootRoom() {
 
       {ascending && (
         <div className="pointer-events-none fixed inset-0 z-[80]">
-          <img
-            src={rootRoomFinalBookAsset.url}
-            alt=""
-            className="rr-book-ascend absolute left-1/2 -translate-x-1/2"
-            draggable={false}
-          />
           <div className="rr-ascent-glow absolute left-1/2 top-0 -translate-x-1/2" />
           <div className="rr-ascent-flash absolute inset-0" />
         </div>
@@ -652,12 +656,13 @@ function RootRoom() {
           }
         }
         @keyframes rr-book-ascend-kf {
-          0%   { bottom: 40%; transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
-          70%  { bottom: 72%; transform: translateX(-50%) scale(1.5) rotate(3deg); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
-          100% { bottom: 115%; transform: translateX(-50%) scale(2.2) rotate(6deg); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
+          0%   { bottom: 40%; transform: translateX(-50%) scale(1); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,200,120,0.6)); }
+          70%  { bottom: 72%; transform: translateX(-50%) scale(1.4); opacity: 1; filter: drop-shadow(0 0 50px rgba(255,220,140,1)); }
+          100% { bottom: 115%; transform: translateX(-50%) scale(2); opacity: 0; filter: drop-shadow(0 0 80px rgba(255,235,180,1)); }
         }
         .rr-book-ascend {
           height: 14vh; width: auto; bottom: 40%;
+          transform-origin: center center;
           animation: rr-book-ascend-kf 2s cubic-bezier(0.5, 0.05, 0.5, 1) forwards;
           will-change: bottom, transform, opacity;
         }
