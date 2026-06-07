@@ -2545,10 +2545,14 @@ function Journal(props: {
 
   // Voice dictation
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
+  const [voiceSupported, setVoiceSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const voiceSupported = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setVoiceSupported(
+      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
+    );
   }, []);
 
   const startVoice = useCallback(() => {
@@ -3164,8 +3168,8 @@ function NoteDesk(props: {
   return (
     <div className="relative flex w-full flex-1 flex-col">
       {/* Notes collection — parchment slips on the desk */}
-      <div className="relative mx-auto w-full max-w-[920px] flex-1 lg:max-w-[640px]">
-        <div className="grid grid-cols-2 gap-1.5 pb-40 sm:gap-2 sm:pb-46 lg:gap-1.5 lg:pb-56">
+      <div className="relative mx-auto mt-1 w-full max-w-[460px] flex-1">
+        <div className="grid grid-cols-1 gap-2 pb-40 md:grid-cols-2 md:gap-2 md:pb-46 lg:pb-56">
           {([
             "clarity", "problem",
             "audience", "features",
@@ -3188,7 +3192,7 @@ function NoteDesk(props: {
             const label = postItCategoryPalette[cat].label;
             const isCoreIdea = cat === "core-idea";
             return (
-              <div key={cat} className={isCoreIdea ? "col-span-2" : undefined}>
+              <div key={cat} className={isCoreIdea ? "md:col-span-2" : undefined}>
                 <PostItCard
                   text={label}
                   fullText={
@@ -3393,8 +3397,8 @@ function PostItCard({
         onClick={() => setOpen(true)}
         className={
           wide
-            ? "relative aspect-[5/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-[6/1] lg:max-w-none lg:text-left lg:[transform:rotate(var(--note-rot))]"
-            : "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 lg:aspect-auto lg:max-w-[200px] lg:text-left lg:[transform:rotate(var(--note-rot))]"
+            ? "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:aspect-[4.7/1] md:text-left md:[transform:rotate(var(--note-rot))]"
+            : "relative aspect-[2.35/1] w-full cursor-pointer border text-center transition hover:-translate-y-0.5 md:text-left md:[transform:rotate(var(--note-rot))]"
         }
         style={{
           background: paperBg,
