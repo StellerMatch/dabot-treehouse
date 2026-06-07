@@ -270,7 +270,7 @@ function RootRoom() {
       {ascending && (
         <div className="pointer-events-none fixed inset-0 z-[80]">
           <img
-            src={floatingBookAsset.url}
+            src={rootRoomFinalBookAsset.url}
             alt=""
             className="rr-book-ascend absolute left-1/2 -translate-x-1/2"
             draggable={false}
