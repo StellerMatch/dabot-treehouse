@@ -18,7 +18,7 @@ import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User } from "lucide-react";
+import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User, Wand2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 
@@ -1380,6 +1380,50 @@ function Dashboard() {
     setActiveCategory("core-idea");
   };
 
+  // Demo Fill — instantly populate the Library/Clarity intake with realistic
+  // sample content so testers can jump straight to Next Step without typing
+  // through the five-question intake.
+  const demoFill = () => {
+    if (!selected) return;
+    const sampleMessy =
+      "A small neighborhood tool-sharing app where neighbors list tools they own (drills, ladders, saws) and borrow from each other. Members get reminders to return items, see who is nearby, and build trust through simple reviews. The goal is to reduce duplicate purchases, build community, and make weekend projects cheaper and friendlier across a single block or building.";
+    updateSelected({
+      messy: sampleMessy,
+      title: selected.title && selected.title.length > 3 ? selected.title : "Neighborhood Tool Share",
+      audience: "Homeowners and renters on a single block or apartment building",
+      industry: "Community / sharing economy",
+      ideaType: selected.ideaType || "App",
+      description:
+        "Lightweight tool-lending app that connects neighbors so a drill, ladder, or saw can be borrowed in minutes instead of bought.",
+      shelfReadiness: 95,
+    });
+    const sampleNotes: Partial<Record<CategoryKey, string>> = {
+      clarity:
+        "The single sentence: a neighbor-to-neighbor tool lending app for one block. Success means: in 30 days, at least 20 households join, 50 tools listed, and 10 successful borrow-and-return cycles complete with positive reviews. Not a marketplace, not a rental business — pure community sharing.",
+      problem:
+        "Most households own tools they use a few times a year. Drills, ladders, hedge trimmers, and stand mixers sit idle while neighbors a few doors away buy their own. Storage is wasted, money is wasted, and there is no easy, trusted way to ask the block if anyone already owns the thing you need for a weekend project.",
+      audience:
+        "Primary: homeowners and long-term renters aged 28-55 in dense neighborhoods or mid-size apartment buildings who already feel friendly with at least one neighbor. Secondary: building managers and HOA leaders who want a community feature to offer residents. They are comfortable with phone apps and value saving money and meeting neighbors.",
+      features:
+        "Core features: list a tool with photo, browse tools by distance, request to borrow with date range, in-app messaging, return reminders, simple thumbs up/down review after each loan, and a private map limited to your block or building. Trust features: verified address, photo ID on signup, and a strike system for no-returns.",
+      workflow:
+        "Flow: neighbor opens app -> sees a feed of nearby tools -> taps Request -> owner accepts -> they meet to hand off -> app pings both on return date -> both leave a quick review. Behind the scenes: signup requires address verification, listings get auto-tagged, and reminders fire 24h before return and 24h after if overdue.",
+      design:
+        "Warm, friendly, and trustworthy. Soft wood and paper textures with a clear green primary action color. Big photos of the tools, not stock illustrations. Map view feels like a quiet local neighborhood, not a delivery app. Type is generous and readable. Tone of voice in copy is neighborly and casual, never corporate or transactional.",
+      business:
+        "Free for individual neighbors. Revenue from optional building-level subscriptions paid by HOAs or property managers (around $2 per unit per month) that unlock building-wide analytics, custom rules, and bulk onboarding. Long term: optional paid insurance add-on per loan. No ads. No data resale.",
+      concerns:
+        "Risks: a tool gets damaged or not returned, neighbors feel unsafe meeting strangers, low density means empty feed, and liability if something breaks during use. Mitigations: clear borrow agreement, optional deposit hold, verified addresses, strike system, building-only mode, and a small claims-friendly damage report flow. Privacy: addresses never shown publicly.",
+    };
+    updateExtras({
+      notes: sampleNotes as CategoryNotes,
+      clarityFollowupCount: MIN_CLARITY_FOLLOWUPS,
+      answeredQuestions: CLARITY_QUESTIONS.map((q) => q.id),
+    });
+  };
+
+
+
   const getCategoryValue = (key: CategoryKey): string => {
     if (!selected) return "";
     const ideaPosts = selectedExtras.posts
@@ -1630,6 +1674,7 @@ function Dashboard() {
             onSkipClarityQuestion={skipClarityQuestion}
             getCategoryValue={getCategoryValue}
             overallPct={overallPct}
+            onDemoFill={demoFill}
           />
         )}
       </div>
@@ -3810,6 +3855,7 @@ function NoteDesk(props: {
   onSkipClarityQuestion: () => void;
   getCategoryValue: (k: CategoryKey) => string;
   overallPct: number;
+  onDemoFill: () => void;
 }) {
   const {
     selected,
@@ -3825,6 +3871,7 @@ function NoteDesk(props: {
     onSkipClarityQuestion,
     getCategoryValue,
     overallPct,
+    onDemoFill,
   } = props;
 
   const [draft, setDraft] = useState("");
@@ -4098,6 +4145,12 @@ function NoteDesk(props: {
                   title="Add Link"
                   icon={<Link2 className="h-3.5 w-3.5" />}
                   label="Link"
+                />
+                <DeskIconButton
+                  onClick={onDemoFill}
+                  title="Demo Fill — auto-complete the intake with sample answers (for testing)"
+                  icon={<Wand2 className="h-3.5 w-3.5" />}
+                  label="Demo"
                 />
                 {extras.attachments.length > 0 && (
                   <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
