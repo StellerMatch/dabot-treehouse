@@ -504,7 +504,7 @@ function RootRoom() {
 }
 
 function StepActivity({ phase }: { phase: Phase }) {
-  if (phase === "working") {
+  if (phase === "smoke" || phase === "flying" || phase === "working") {
     return (
       <div className="rr-step-activity" aria-label="Working">
         <div className="rr-progress-dots" aria-hidden="true">
