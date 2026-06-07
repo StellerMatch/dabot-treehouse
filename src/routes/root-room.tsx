@@ -199,10 +199,10 @@ function RootRoom() {
                 draggable={false}
               />
               <img
-                src={rootRoomPodiumBookAsset.url}
+                src={floatingBookAsset.url}
                 alt=""
-                className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "31.6vh", width: "auto", opacity: showBook ? 1 : 0 }}
+                className="pointer-events-none absolute left-1/2 z-[11] -translate-x-1/2 select-none rr-podium-book"
+                style={{ bottom: "33%", height: "14vh", width: "auto", opacity: showBook ? 1 : 0, transition: "opacity 600ms ease" }}
                 draggable={false}
               />
             </>
