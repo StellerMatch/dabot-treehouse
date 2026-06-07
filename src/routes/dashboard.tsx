@@ -873,20 +873,8 @@ function Dashboard() {
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
-      {/* Owl sage — overlay layer, positioned to match where he stood in the baked-in version */}
-      <img
-        aria-hidden
-        src={owlSage}
-        alt=""
-        className="pointer-events-none fixed -z-20 select-none object-contain"
-        style={{
-          left: "26.5vw",
-          top: "19vh",
-          height: "46vh",
-          width: "auto",
-          filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.45))",
-        }}
-      />
+      {/* Owl sage — draggable overlay layer */}
+      <DraggableOwl src={owlSage} />
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-20"
