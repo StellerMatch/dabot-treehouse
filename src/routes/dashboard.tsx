@@ -4146,6 +4146,12 @@ function NoteDesk(props: {
                   icon={<Link2 className="h-3.5 w-3.5" />}
                   label="Link"
                 />
+                <DeskIconButton
+                  onClick={onDemoFill}
+                  title="Demo Fill — auto-complete the intake with sample answers (for testing)"
+                  icon={<Wand2 className="h-3.5 w-3.5" />}
+                  label="Demo"
+                />
                 {extras.attachments.length > 0 && (
                   <span className="ml-auto font-serif text-[10px] italic text-amber-900/65">
                     {extras.attachments.length} attachment
