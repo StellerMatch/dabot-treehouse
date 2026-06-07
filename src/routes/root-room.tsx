@@ -324,6 +324,9 @@ function RootRoom() {
         .rr-mobile-smoke {
           display: block;
         }
+        .rr-podium {
+          transition: opacity 900ms ease-in-out;
+        }
         .rr-room-bg {
           object-position: center center;
         }
