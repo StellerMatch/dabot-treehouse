@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import rootRoomBgAsset from "@/assets/root-room-bg.png.asset.json";
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/root-room")({
   head: () => ({
