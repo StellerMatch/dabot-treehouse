@@ -5,7 +5,7 @@ import rootRoomPodiumAsset from "@/assets/root-room-podium.png.asset.json";
 import rootRoomPodiumBookAsset from "@/assets/root-room-podium-book.png.asset.json";
 import clarityFlyingAsset from "@/assets/clarity-flying.png.asset.json";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
-import { ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/root-room")({
   head: () => ({
@@ -58,6 +58,21 @@ const STEP_MESSAGES: Record<StepId, string> = {
     "Da Stamp is the final blessing of the roots. When this glows, the packet has earned its mark and is ready to rise back into the light.",
 };
 
+const ROOT_ROOM_NEXT_PALETTE = {
+  leather: {
+    cover: "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
+    edge: "linear-gradient(180deg, #f5d99a 0%, #c89a52 100%)",
+    stroke: "rgba(20,10,2,0.85)",
+    text: "#fbe6b8",
+  },
+  gold: {
+    cover: "linear-gradient(180deg, #8b5a18 0%, #5a3208 55%, #2d1605 100%)",
+    edge: "linear-gradient(180deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
+    stroke: "rgba(20,10,2,0.85)",
+    text: "#ffe9b8",
+  },
+};
+
 // Phases: intro -> smoke -> flying -> working -> complete, then repeat for each tunnel.
 type Phase = "intro" | "smoke" | "flying" | "working" | "complete" | "finished";
 
@@ -104,6 +119,7 @@ function RootRoom() {
 
   const showTunnelGlow = phase !== "intro" && phase !== "finished";
   const showActiveStepText = phase !== "intro" && phase !== "finished";
+  const rootRoomComplete = phase === "finished";
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
@@ -203,9 +219,7 @@ function RootRoom() {
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Library
         </Link>
-        <div className="pointer-events-auto rounded-full border border-amber-200/40 bg-black/35 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.3em] text-amber-100/90 backdrop-blur-md">
-          Root Room
-        </div>
+        <RootRoomNextButton unlocked={rootRoomComplete} />
       </header>
 
       {/* Parchment status panel */}
@@ -532,6 +546,119 @@ function RootRoom() {
         }
       `}</style>
     </main>
+  );
+}
+
+function RootRoomNextButton({ unlocked }: { unlocked: boolean }) {
+  const palette = unlocked ? ROOT_ROOM_NEXT_PALETTE.gold : ROOT_ROOM_NEXT_PALETTE.leather;
+  const content = (
+    <span
+      className={`group relative inline-flex h-[40px] w-[188px] shrink-0 items-center font-serif transition-transform ${
+        unlocked ? "hover:-translate-y-[1px]" : "cursor-not-allowed opacity-60 saturate-[0.55]"
+      }`}
+      title={unlocked ? "Ready! Return to the Library" : "Complete the Root Room first"}
+      aria-disabled={!unlocked}
+    >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-1 left-1.5 right-1.5 h-2 rounded-full blur-[3px]"
+        style={{ background: "rgba(10,5,0,0.55)" }}
+      />
+      {unlocked && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
+          style={{ background: "rgba(255,210,120,0.45)" }}
+        />
+      )}
+      <span
+        className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
+        style={{
+          background: palette.cover,
+          border: `1px solid ${palette.stroke}`,
+          boxShadow:
+            "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+        }}
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[5px]"
+          style={{
+            background:
+              "repeating-linear-gradient(90deg, rgba(245,220,170,0.85) 0 1px, rgba(200,170,120,0.6) 1px 2px)",
+            borderTop: "1px solid rgba(0,0,0,0.5)",
+          }}
+        />
+        {unlocked && (
+          <>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0"
+              style={{
+                width: "100%",
+                background:
+                  "linear-gradient(90deg, rgba(255,220,140,0.22), rgba(255,235,170,0.10) 70%, transparent)",
+              }}
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute bottom-0 left-0 h-[5px]"
+              style={{
+                width: "100%",
+                background: palette.edge,
+                boxShadow: "0 0 10px 2px rgba(255,220,140,0.7), 0 0 2px rgba(255,255,200,0.9)",
+              }}
+            />
+          </>
+        )}
+        <span
+          aria-hidden
+          className="absolute inset-y-1 left-1 w-[3px] rounded-sm"
+          style={{
+            background: "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            boxShadow: "0 0 4px rgba(255,210,130,0.5)",
+          }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-y-1 right-1 w-[3px] rounded-sm"
+          style={{
+            background: "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            boxShadow: "0 0 4px rgba(255,210,130,0.5)",
+          }}
+        />
+        <span
+          className="relative z-10 flex w-full items-center justify-center gap-1.5 px-3.5 text-[12px] font-semibold uppercase tracking-[0.18em]"
+          style={{
+            color: palette.text,
+            textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
+          }}
+        >
+          <span className="truncate">Next Step</span>
+          {unlocked && <ArrowRight className="h-3 w-3 opacity-90" />}
+        </span>
+        <span
+          className="pointer-events-none absolute right-2 top-1 text-[9px] italic"
+          style={{ color: palette.text, opacity: 0.8 }}
+        >
+          {unlocked ? "Ready" : "Not Yet"}
+        </span>
+      </span>
+    </span>
+  );
+
+  if (unlocked) {
+    return (
+      <Link to="/dashboard" className="pointer-events-auto">
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" className="pointer-events-auto" disabled>
+      {content}
+    </button>
   );
 }
 
