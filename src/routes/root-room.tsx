@@ -208,7 +208,7 @@ function RootRoom() {
                 src={rootRoomPodiumBookAsset.url}
                 alt=""
                 className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none rr-podium"
-                style={{ bottom: "19%", height: "33.8vh", width: "auto", opacity: !showFinal && showInterimBook ? 1 : 0 }}
+                style={{ bottom: "19%", height: "36.17vh", width: "auto", opacity: !showFinal && showInterimBook ? 1 : 0 }}
                 draggable={false}
               />
               {/* Final podium shown only when root room is complete */}
