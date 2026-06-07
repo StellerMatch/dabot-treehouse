@@ -1643,6 +1643,16 @@ function Dashboard() {
             "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
         }}
       />
+      {descending && (
+        <RootDescentTransition
+          onComplete={() => {
+            if (selected) {
+              moveToPreClarity(selected.id);
+            }
+            navigate({ to: "/root-room" });
+          }}
+        />
+      )}
     </main>
   );
 }
