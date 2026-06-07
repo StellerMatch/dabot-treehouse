@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 export const Route = createFileRoute("/dashboard")({
