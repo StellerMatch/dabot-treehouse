@@ -3512,12 +3512,13 @@ function PostItCard({
                 {[0, 1, 2, 3].map((i) => (
                   <span
                     key={i}
+                    aria-hidden
                     style={{
-                      color: i < stars ? "#ffd84d" : "transparent",
-                      WebkitTextStroke: i < stars ? "0" : "1px rgba(90,55,20,0.55)",
+                      color: i < stars ? "#ffd84d" : "#7b5a2a",
+                      WebkitTextStroke: i < stars ? "0" : "0",
                       textShadow: i < stars
                         ? "0 0 5px rgba(255,216,77,0.75), 0 1px 0 rgba(120,70,15,0.45)"
-                        : "0 1px 0 rgba(255,240,200,0.5)",
+                        : "0 1px 0 rgba(245,223,184,0.35), 0 -1px 0 rgba(73,43,16,0.22)",
                     }}
                   >
                     ★
