@@ -48,7 +48,7 @@ export const seedIdeas: LightbulbIdea[] = [
     nextAction: "Add more notes & start building",
     audience: "Local community members",
     industry: "Community tool sharing",
-    ideaType: "Tool library",
+    ideaType: "App",
     description:
       "A neighborhood tool library for sharing underused tools among people on the same block.",
   },
