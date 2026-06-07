@@ -140,8 +140,8 @@ function RootRoom() {
         <img
           src={rootRoomPodiumAsset.url}
           alt=""
-          className="pointer-events-none absolute left-1/2 z-[3] -translate-x-1/2 select-none"
-          style={{ bottom: "18%", height: "28vh", width: "auto" }}
+          className="pointer-events-none absolute left-1/2 z-[10] -translate-x-1/2 select-none"
+          style={{ bottom: "26%", height: "34vh", width: "auto" }}
           draggable={false}
         />
 
