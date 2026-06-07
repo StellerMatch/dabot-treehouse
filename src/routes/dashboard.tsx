@@ -1595,19 +1595,18 @@ const NEW_IDEA_CATEGORIES: { id: string; label: string; type: string }[] = [
   { id: "story", label: "Tell a Story", type: "Story" },
 ];
 
-function NewLightbulbPopover() {
+function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }) {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const goToDoor = (type?: string) => {
+  const create = (type?: string) => {
     setOpen(false);
+    // Clear any stale homepage draft so nothing leaks into the new project.
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
-        if (type) sessionStorage.setItem("dabottree:draftIdeaType", type);
-        else sessionStorage.removeItem("dabottree:draftIdeaType");
+        sessionStorage.removeItem("dabottree:draftIdeaType");
       } catch {}
     }
-    navigate({ to: "/", search: type ? { type } : undefined as never });
+    onCreate(type);
   };
   return (
     <Popover open={open} onOpenChange={setOpen}>
