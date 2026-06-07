@@ -1674,6 +1674,7 @@ function Dashboard() {
             onSkipClarityQuestion={skipClarityQuestion}
             getCategoryValue={getCategoryValue}
             overallPct={overallPct}
+            onDemoFill={demoFill}
           />
         )}
       </div>
