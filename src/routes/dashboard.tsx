@@ -3201,6 +3201,7 @@ function NoteDesk(props: {
                   hue={i + 1}
                   categories={[cat]}
                   pct={pct}
+                  wide={isCoreIdea}
                 />
               </div>
             );
