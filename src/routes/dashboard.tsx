@@ -873,20 +873,8 @@ function Dashboard() {
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
-      {/* Owl sage — overlay layer, positioned to match where he stood in the baked-in version */}
-      <img
-        aria-hidden
-        src={owlSage}
-        alt=""
-        className="pointer-events-none fixed -z-20 select-none object-contain"
-        style={{
-          left: "26.5vw",
-          top: "19vh",
-          height: "46vh",
-          width: "auto",
-          filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.45))",
-        }}
-      />
+      {/* Owl sage — draggable overlay layer */}
+      <DraggableOwl src={owlSage} />
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-20"
@@ -3582,5 +3570,102 @@ function PostItCard({
     </>
   );
 }
+
+function DraggableOwl({ src }: { src: string }) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const dragging = useRef(false);
+  const start = useRef({ x: 0, y: 0 });
+  const offset = useRef({ x: 0, y: 0 });
+  const current = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("dabottree.owl.pos");
+      if (raw) {
+        const p = JSON.parse(raw) as { x?: number; y?: number };
+        if (typeof p.x === "number" && typeof p.y === "number") {
+          offset.current = { x: p.x, y: p.y };
+        }
+      }
+    } catch {}
+    current.current = { ...offset.current };
+    if (imgRef.current) {
+      imgRef.current.style.transform = `translate(${current.current.x}px, ${current.current.y}px)`;
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging.current) return;
+      current.current = {
+        x: offset.current.x + e.clientX - start.current.x,
+        y: offset.current.y + e.clientY - start.current.y,
+      };
+      if (imgRef.current) {
+        imgRef.current.style.transform = `translate(${current.current.x}px, ${current.current.y}px)`;
+      }
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!dragging.current) return;
+      const t = e.touches[0];
+      current.current = {
+        x: offset.current.x + t.clientX - start.current.x,
+        y: offset.current.y + t.clientY - start.current.y,
+      };
+      if (imgRef.current) {
+        imgRef.current.style.transform = `translate(${current.current.x}px, ${current.current.y}px)`;
+      }
+    };
+    const onUp = () => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      offset.current = { ...current.current };
+      try {
+        localStorage.setItem("dabottree.owl.pos", JSON.stringify(offset.current));
+      } catch {}
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, []);
+
+  const onMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
+    dragging.current = true;
+    start.current = { x: e.clientX, y: e.clientY };
+  };
+  const onTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
+    dragging.current = true;
+    start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  return (
+    <img
+      ref={imgRef}
+      aria-hidden
+      src={src}
+      alt=""
+      className="fixed select-none object-contain cursor-move"
+      style={{
+        left: "22vw",
+        top: "14vh",
+        height: "32vh",
+        width: "auto",
+        zIndex: 25,
+        filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.45))",
+        touchAction: "none",
+      }}
+      onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
+    />
+  );
+}
+
 
 
