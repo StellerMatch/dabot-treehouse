@@ -198,8 +198,8 @@ function TrunkPage() {
           will-change: left, bottom, transform, opacity;
         }
         @keyframes trunk-compass-stand-kf {
-          0%, 100% { transform: translateX(-50%) scale(0.53) translateY(0); }
-          50%      { transform: translateX(-50%) scale(0.53) translateY(-3px); }
+          0%, 100% { transform: translateX(-50%) scale(0.53) translateX(0); }
+          50%      { transform: translateX(-50%) scale(0.53) translateX(5px); }
         }
         .trunk-compass-standing {
           left: 50%; bottom: 38%;
