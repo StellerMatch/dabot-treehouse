@@ -243,6 +243,18 @@ function TrunkPage() {
           right: 10%;
           bottom: 9%;
           height: 61.2vh;
+          filter: drop-shadow(0 22px 18px rgba(0,0,0,0.75)) drop-shadow(0 0 32px rgba(255,190,70,0.35)) drop-shadow(0 -8px 18px rgba(255,200,90,0.22));
+        }
+        .trunk-guide-gold-shadow {
+          right: 8%;
+          bottom: 7%;
+          width: 28vh;
+          height: 5vh;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at center, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 55%, transparent 80%);
+          filter: blur(10px);
+          transform: scaleY(0.55);
+          opacity: 0.85;
         }
         @media (max-width: 900px) {
           .trunk-guide-pink {
