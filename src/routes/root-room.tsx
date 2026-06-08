@@ -341,7 +341,20 @@ function RootRoom() {
             draggable={false}
           />
         )}
+
+        {/* Room dim + ceiling spotlight on the podium when Root Room is complete */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[15] rr-complete-dim"
+          style={{ opacity: rootRoomComplete ? 1 : 0 }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[16] rr-complete-spotlight"
+          style={{ opacity: rootRoomComplete ? 1 : 0 }}
+          aria-hidden
+        />
       </div>
+
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
         <Link
@@ -789,6 +802,31 @@ function RootRoom() {
           background: rgba(255,245,215,0);
           animation: rr-ascent-flash-kf 2s ease-in forwards;
         }
+
+        /* Root Room complete — dim ambience + ceiling spotlight onto podium */
+        .rr-complete-dim {
+          background:
+            radial-gradient(ellipse 32% 46% at 50% 68%, transparent 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.88) 100%);
+          transition: opacity 1400ms ease-in-out;
+          mix-blend-mode: multiply;
+        }
+        .rr-complete-spotlight {
+          background:
+            radial-gradient(ellipse 14% 8% at 50% 56%, rgba(255,235,180,0.55) 0%, rgba(255,210,130,0.25) 45%, transparent 75%),
+            radial-gradient(ellipse 22% 30% at 50% 64%, rgba(255,225,160,0.35) 0%, rgba(255,200,120,0.12) 45%, transparent 75%),
+            linear-gradient(to bottom, transparent 0%, transparent 6%, rgba(255,225,165,0.10) 18%, rgba(255,210,135,0.05) 45%, transparent 70%);
+          -webkit-mask-image: radial-gradient(ellipse 28% 60% at 50% 50%, #000 0%, #000 55%, transparent 90%);
+                  mask-image: radial-gradient(ellipse 28% 60% at 50% 50%, #000 0%, #000 55%, transparent 90%);
+          mix-blend-mode: screen;
+          filter: blur(2px);
+          transition: opacity 1600ms ease-in-out;
+          animation: rr-spotlight-breathe 5.5s ease-in-out infinite;
+        }
+        @keyframes rr-spotlight-breathe {
+          0%, 100% { filter: blur(2px) brightness(1); }
+          50%      { filter: blur(2.5px) brightness(1.12); }
+        }
+
       `}</style>
     </main>
   );
