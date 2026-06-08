@@ -94,9 +94,8 @@ function TrunkPage() {
         <img
           src={compassStagAsset.url}
           alt=""
-          className="pointer-events-none absolute z-[5] trunk-compass"
+          className="pointer-events-none absolute z-[5] trunk-compass trunk-compass-standing"
           draggable={false}
-          style={{ left: "50%", bottom: "38%", transform: "translateX(-50%) scale(0.53)", height: "auto", width: "auto", maxHeight: "44vh", filter: "drop-shadow(0 14px 22px rgba(0,0,0,0.7))" }}
         />
 
         <img
