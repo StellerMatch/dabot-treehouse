@@ -135,6 +135,12 @@ function Index() {
             Dashboard
           </Link>
           <Link
+            to="/levels"
+            className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
+          >
+            Levels
+          </Link>
+          <Link
             to="/signin"
             className="rounded-full border border-amber-200/40 bg-gradient-to-b from-amber-100/15 to-amber-200/5 px-3.5 py-1.5 text-amber-50 shadow-[0_0_22px_-4px_rgba(255,180,90,0.55)] backdrop-blur-md transition hover:from-amber-100/25 hover:to-amber-200/10 hover:text-white"
           >
