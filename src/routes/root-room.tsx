@@ -341,7 +341,20 @@ function RootRoom() {
             draggable={false}
           />
         )}
+
+        {/* Room dim + ceiling spotlight on the podium when Root Room is complete */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[15] rr-complete-dim"
+          style={{ opacity: rootRoomComplete ? 1 : 0 }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[16] rr-complete-spotlight"
+          style={{ opacity: rootRoomComplete ? 1 : 0 }}
+          aria-hidden
+        />
       </div>
+
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
         <Link
