@@ -6,7 +6,7 @@ import pinkGuideAsset from "@/assets/trunk-pink-guide-cutout.png.asset.json";
 import greenGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import goldGuardianAsset from "@/assets/trunk-gold-guardian-cutout.png.asset.json";
 import compassStagAsset from "@/assets/compass-stag.png.asset.json";
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/trunk")({
   head: () => ({
@@ -37,8 +37,55 @@ const TRUNK_NEXT_PALETTE = {
   },
 };
 
+type TrunkStageId = "arrival" | "past" | "present" | "future" | "compass" | "ready";
+
+const TRUNK_STAGES: Array<{
+  id: TrunkStageId;
+  label: string;
+  title: string;
+  body: string;
+}> = [
+  {
+    id: "arrival",
+    label: "Packet",
+    title: "The Packet Has Arrived",
+    body: "The packet rests on the trunk table. The lantern guides are gathering Past, Present, and Future before Compass brings the path together.",
+  },
+  {
+    id: "past",
+    label: "Past",
+    title: "Past Review",
+    body: "PAST is reading the roots of the idea and gathering where it came from.",
+  },
+  {
+    id: "present",
+    label: "Present",
+    title: "Present Review",
+    body: "PRESENT is checking what the idea is now and what is already clear.",
+  },
+  {
+    id: "future",
+    label: "Future",
+    title: "Future Review",
+    body: "FUTURE is looking ahead at possible paths, risks, and opportunities.",
+  },
+  {
+    id: "compass",
+    label: "Compass",
+    title: "Compass Synthesis",
+    body: "COMPASS is bringing Past, Present, and Future together into one direction.",
+  },
+  {
+    id: "ready",
+    label: "Ready",
+    title: "Trunk Report Ready",
+    body: "The Trunk report is ready. The packet can move to the next layer.",
+  },
+];
+
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
+  const [stageIndex, setStageIndex] = useState(0);
 
   useEffect(() => {
     const t1 = window.setTimeout(() => setBookArrived(true), 1800);
@@ -46,6 +93,21 @@ function TrunkPage() {
       window.clearTimeout(t1);
     };
   }, []);
+
+  useEffect(() => {
+    if (!bookArrived || stageIndex >= TRUNK_STAGES.length - 1) return;
+    const t = window.setTimeout(
+      () => {
+        setStageIndex((current) => Math.min(current + 1, TRUNK_STAGES.length - 1));
+      },
+      stageIndex === 0 ? 2600 : 3400,
+    );
+    return () => window.clearTimeout(t);
+  }, [bookArrived, stageIndex]);
+
+  const activeStage = bookArrived ? TRUNK_STAGES[stageIndex] : null;
+  const nextUnlocked = activeStage?.id === "ready";
+  const activeGuide = activeStage?.id;
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
@@ -73,14 +135,18 @@ function TrunkPage() {
         <img
           src={pinkGuideAsset.url}
           alt=""
-          className="pointer-events-none absolute z-[6] trunk-guide-pink"
+          className={`pointer-events-none absolute z-[6] trunk-guide-pink ${
+            activeGuide === "past" ? "trunk-guide-active" : ""
+          }`}
           draggable={false}
         />
 
         <img
           src={greenGuideAsset.url}
           alt=""
-          className="pointer-events-none absolute z-[7] trunk-guide-green"
+          className={`pointer-events-none absolute z-[7] trunk-guide-green ${
+            activeGuide === "present" ? "trunk-guide-active" : ""
+          }`}
           draggable={false}
         />
 
@@ -88,14 +154,18 @@ function TrunkPage() {
         <img
           src={goldGuardianAsset.url}
           alt=""
-          className="pointer-events-none absolute z-[6] trunk-guide-gold"
+          className={`pointer-events-none absolute z-[6] trunk-guide-gold ${
+            activeGuide === "future" ? "trunk-guide-active" : ""
+          }`}
           draggable={false}
         />
 
         <img
           src={compassStagAsset.url}
           alt=""
-          className="pointer-events-none absolute z-[5] trunk-compass trunk-compass-standing"
+          className={`pointer-events-none absolute z-[5] trunk-compass trunk-compass-standing ${
+            activeGuide === "compass" || activeGuide === "ready" ? "trunk-guide-active" : ""
+          }`}
           draggable={false}
         />
 
@@ -123,38 +193,49 @@ function TrunkPage() {
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Root Room
         </Link>
-        <TrunkNextButton unlocked={false} />
+        <TrunkNextButton unlocked={nextUnlocked} />
       </header>
 
       <div
-        className="pointer-events-none absolute left-1/2 z-10 w-[min(460px,88vw)] -translate-x-1/2 px-4"
-        style={{ bottom: "6%" }}
+        className="pointer-events-none absolute left-1/2 z-10 w-[min(540px,92vw)] -translate-x-1/2 px-4"
+        style={{ bottom: "4.5%" }}
       >
-        <div
-          className="pointer-events-auto relative overflow-hidden rounded-[14px] px-6 py-5 text-amber-50"
-          style={{
-            background:
-              "radial-gradient(ellipse at top, rgba(150,100,30,0.82) 0%, rgba(95,60,15,0.86) 60%, rgba(55,32,8,0.92) 100%)",
-            border: "1px solid rgba(240,195,110,0.55)",
-            boxShadow:
-              "0 14px 44px -10px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,225,160,0.25), 0 0 36px -8px rgba(255,190,90,0.55)",
-            backdropFilter: "blur(6px)",
-          }}
-        >
+        <div className="pointer-events-auto trunk-status-panel relative overflow-hidden rounded-[14px] px-5 py-4 text-amber-50 sm:px-6 sm:py-5">
+          <div className="trunk-ring-field" aria-hidden />
+          <div className="trunk-bark-edge" aria-hidden />
           <div className="relative flex items-center justify-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-amber-200" />
-            <span className="text-[11px] uppercase tracking-[0.34em] text-amber-100/90">
+            <span className="text-[11px] uppercase tracking-[0.34em] text-amber-100/90 max-sm:tracking-[0.22em]">
               Trunk Layer
             </span>
           </div>
-          <h2 className="relative mt-1 text-center text-[22px] font-bold tracking-wide text-amber-50">
-            {bookArrived ? "The Packet Has Arrived" : "Carrying the Packet…"}
+          <h2 className="trunk-panel-title relative mt-1 text-center text-[23px] font-bold text-amber-50 sm:text-[26px]">
+            {activeStage ? activeStage.title : "Carrying the Packet…"}
           </h2>
           <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-            {bookArrived
-              ? "Your packet rests on the trunk table. The lantern guides will soon gather to light the next steps."
-              : "The packet is rising through the trunk on a thread of light."}
+            {activeStage?.body ?? "The packet is rising through the trunk on a thread of light."}
           </p>
+          <div className="relative mt-3 grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+            {TRUNK_STAGES.map((stage, index) => {
+              const complete = bookArrived && index < stageIndex;
+              const active = bookArrived && index === stageIndex;
+              return (
+                <div
+                  key={stage.id}
+                  className={`trunk-stage-chip ${complete ? "trunk-stage-complete" : ""} ${
+                    active ? "trunk-stage-active" : ""
+                  }`}
+                >
+                  {complete ? (
+                    <CheckCircle2 className="h-3 w-3 shrink-0" />
+                  ) : (
+                    <CircleDashed className="h-3 w-3 shrink-0" />
+                  )}
+                  <span>{stage.label}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -256,6 +337,76 @@ function TrunkPage() {
           transform: scaleY(0.55);
           opacity: 0.85;
         }
+        .trunk-guide-active {
+          filter: drop-shadow(0 20px 28px rgba(0,0,0,0.72)) drop-shadow(0 0 34px rgba(255,222,145,0.78)) drop-shadow(0 0 14px rgba(255,245,205,0.45));
+          animation: trunk-guide-active-kf 1.6s ease-in-out infinite;
+        }
+        @keyframes trunk-guide-active-kf {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.88; }
+        }
+        .trunk-status-panel {
+          background:
+            radial-gradient(circle at 50% 45%, rgba(134, 79, 26, 0.45) 0 12%, transparent 13%),
+            radial-gradient(circle at 50% 45%, transparent 0 22%, rgba(222, 165, 82, 0.2) 22.5% 23.5%, transparent 24% 34%, rgba(255, 212, 133, 0.15) 34.5% 35.5%, transparent 36% 48%, rgba(177, 105, 37, 0.18) 48.5% 50%, transparent 50.5%),
+            radial-gradient(ellipse at top, rgba(134,84,24,0.9) 0%, rgba(74,43,13,0.93) 58%, rgba(38,21,7,0.96) 100%);
+          border: 1px solid rgba(243, 194, 103, 0.62);
+          box-shadow:
+            0 16px 46px -12px rgba(0,0,0,0.88),
+            inset 0 0 0 1px rgba(255,238,181,0.12),
+            inset 0 12px 28px rgba(255,205,125,0.12),
+            inset 0 -20px 38px rgba(25,11,3,0.54),
+            0 0 38px -12px rgba(255,190,90,0.55);
+          backdrop-filter: blur(7px);
+        }
+        .trunk-ring-field {
+          position: absolute;
+          inset: -18%;
+          background:
+            repeating-radial-gradient(circle at 50% 46%, rgba(255,232,164,0.18) 0 1px, transparent 1px 15px),
+            radial-gradient(circle at 50% 46%, rgba(255,220,150,0.16), transparent 58%);
+          opacity: 0.68;
+          transform: scaleX(1.35);
+        }
+        .trunk-bark-edge {
+          position: absolute;
+          inset: 6px;
+          border-radius: 11px;
+          border: 1px solid rgba(80, 39, 10, 0.62);
+          box-shadow:
+            inset 0 0 0 2px rgba(255, 213, 136, 0.08),
+            inset 0 0 22px rgba(14, 7, 2, 0.58);
+        }
+        .trunk-panel-title {
+          font-family: "Cormorant Garamond", "Cinzel Decorative", serif;
+          letter-spacing: 0.05em;
+          text-shadow: 0 2px 2px rgba(18, 8, 2, 0.78), 0 0 13px rgba(255, 209, 128, 0.24);
+        }
+        .trunk-stage-chip {
+          min-width: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.25rem;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 219, 150, 0.2);
+          background: rgba(29, 14, 5, 0.38);
+          padding: 0.28rem 0.35rem;
+          font-size: 0.64rem;
+          line-height: 1;
+          color: rgba(255, 240, 204, 0.72);
+          white-space: nowrap;
+        }
+        .trunk-stage-active {
+          border-color: rgba(255, 220, 145, 0.75);
+          background: rgba(105, 62, 16, 0.62);
+          color: rgba(255, 247, 221, 0.96);
+          box-shadow: 0 0 16px rgba(255, 193, 91, 0.24);
+        }
+        .trunk-stage-complete {
+          border-color: rgba(191, 255, 188, 0.42);
+          color: rgba(219, 255, 206, 0.86);
+        }
         @media (max-width: 900px) {
           .trunk-guide-pink {
             left: 3%;
@@ -307,6 +458,9 @@ function TrunkPage() {
             width: 17.1vh;
             height: 3.325vh;
           }
+          .trunk-stage-chip {
+            font-size: 0.58rem;
+          }
         }
       `}</style>
     </main>
@@ -323,7 +477,7 @@ function TrunkNextButton({ unlocked }: { unlocked: boolean }) {
       title={unlocked ? "Ready for the next layer" : "Complete the Trunk first"}
     >
       <span
-        className={`group relative inline-flex h-[40px] w-[188px] shrink-0 items-center font-serif transition-transform ${
+        className={`group relative inline-flex h-[40px] w-[132px] shrink-0 items-center font-serif transition-transform sm:w-[188px] ${
           unlocked ? "hover:-translate-y-[1px]" : "cursor-not-allowed opacity-60 saturate-[0.55]"
         }`}
         aria-disabled={!unlocked}
@@ -368,7 +522,7 @@ function TrunkNextButton({ unlocked }: { unlocked: boolean }) {
             }}
           />
           <span
-            className="relative z-10 flex w-full items-center justify-center gap-1.5 px-3.5 text-[12px] font-semibold uppercase tracking-[0.18em]"
+            className="relative z-10 flex w-full items-center justify-center gap-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] sm:px-3.5 sm:text-[12px] sm:tracking-[0.18em]"
             style={{
               color: palette.text,
               textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
@@ -378,7 +532,7 @@ function TrunkNextButton({ unlocked }: { unlocked: boolean }) {
             {unlocked && <ArrowRight className="h-3 w-3 opacity-90" />}
           </span>
           <span
-            className="pointer-events-none absolute right-2 top-1 text-[9px] italic"
+            className="pointer-events-none absolute right-1.5 top-1 text-[8px] italic sm:right-2 sm:text-[9px]"
             style={{ color: palette.text, opacity: 0.8 }}
           >
             {unlocked ? "Ready" : "Not Yet"}
