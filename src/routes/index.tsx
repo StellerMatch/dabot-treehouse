@@ -652,35 +652,38 @@ function FantasyDoor({
         })}
       </span>
 
-      {/* lock badge when locked */}
-      {state === "locked" && (
+      {/* lock badge: closed when locked, open shackle when cracked+unlocked */}
+      {(state === "locked" || (state === "cracked" && unlocked)) && (
         <span
           className="pointer-events-none absolute left-1/2 -translate-x-1/2"
           style={{
-            top: "52%",
-            width: 18,
-            height: 22,
+            top: "50%",
+            width: 20,
+            height: 24,
           }}
           aria-hidden
         >
-          {/* shackle */}
+          {/* shackle — rotated/lifted when unlocked */}
           <span
-            className="absolute left-1/2 -translate-x-1/2"
+            className="absolute"
             style={{
-              top: 0,
+              left: unlocked ? -2 : "50%",
+              top: unlocked ? -3 : 0,
+              transform: unlocked ? "rotate(-32deg)" : "translateX(-50%)",
               width: 12,
-              height: 10,
+              height: 11,
               borderRadius: "6px 6px 0 0",
-              border: "2px solid #d8b878",
+              border: "2.2px solid #f0d28a",
               borderBottom: "none",
               background: "transparent",
+              boxShadow: "0 0 4px rgba(255,210,130,0.55)",
             }}
           />
           {/* body */}
           <span
             className="absolute left-1/2 -translate-x-1/2"
             style={{
-              top: 8,
+              top: 9,
               width: 18,
               height: 14,
               borderRadius: 3,
@@ -695,7 +698,7 @@ function FantasyDoor({
           <span
             className="absolute left-1/2 -translate-x-1/2"
             style={{
-              top: 12,
+              top: 13,
               width: 3,
               height: 6,
               borderRadius: "50% 50% 30% 30%",
@@ -704,6 +707,7 @@ function FantasyDoor({
           />
         </span>
       )}
+
 
       {/* threshold shadow */}
       <span
