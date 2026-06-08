@@ -1,10 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import {
-  seedIdeas,
-  stageLabels,
-  type LightbulbIdea,
-} from "@/lib/dabottree-state";
+import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 // Background is the original library scene (no owl baked in). The owl sage is now a separate overlay layer (owlSage) so it can be repositioned independently.
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
@@ -17,11 +13,56 @@ const owlSage = owlSageAsset.url;
 import logo from "@/assets/dabottree-logo.png";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { BookOpen, Paperclip, Link2, Plus, Lightbulb, ArrowRight, Pencil, User, Wand2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  BookOpen,
+  Paperclip,
+  Link2,
+  Plus,
+  Lightbulb,
+  ArrowRight,
+  Pencil,
+  User,
+  Wand2,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 
+type ReportTier = "good" | "better" | "best";
+type LibraryDoorId = "door1" | "door2";
+
+const LIBRARY_DOOR_QUESTIONS: Record<LibraryDoorId, string[]> = {
+  door1: [
+    "What is the clearest version of this idea if it had to be useful in one week?",
+    "What kind of person should this help first?",
+    "What detail would make this feel trustworthy instead of half-built?",
+    "What should DaBotTree avoid changing about your original idea?",
+  ],
+  door2: [
+    "What would make this report valuable enough that you would want the project built next?",
+    "What future upgrade, feature, or business path should the bots keep in mind?",
+    "What risk or unknown would make you nervous before moving forward?",
+    "What would make this project feel exciting instead of just practical?",
+  ],
+};
+
+function readReportTier(): ReportTier {
+  if (typeof window === "undefined") return "good";
+  try {
+    const value =
+      sessionStorage.getItem("dabottree:reportPath") ??
+      sessionStorage.getItem("dabottree:packageTier");
+    return value === "better" || value === "best" ? value : "good";
+  } catch {
+    return "good";
+  }
+}
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -60,7 +101,8 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: s
     key: "clarity",
     label: "Clarity",
     hint: "Overall readout & 90% direction",
-    guidance: "Clarity's overall readout: what's understood, the current 90% direction, and what's still fuzzy.",
+    guidance:
+      "Clarity's overall readout: what's understood, the current 90% direction, and what's still fuzzy.",
   },
   {
     key: "problem",
@@ -111,28 +153,168 @@ const postItCategoryPalette: Record<
   CategoryKey | "mixed",
   { bg: string; edge: string; tape: string; chip: string; label: string }
 > = {
-  "core-idea": { bg: "linear-gradient(180deg,#d8c397 0%,#b59970 100%)", edge: "#6e4d1a", tape: "rgba(80,55,20,0.55)", chip: "#dcc89e", label: "Core Idea" },
-  clarity:     { bg: "linear-gradient(180deg,#d4be88 0%,#a8895a 100%)", edge: "#6a4818", tape: "rgba(78,52,16,0.55)", chip: "#d6c192", label: "Clarity" },
-  problem:     { bg: "linear-gradient(180deg,#b7b67d 0%,#85874e 100%)", edge: "#515a1e", tape: "rgba(63,68,24,0.55)", chip: "#bdbe86", label: "Problem" },
-  audience:    { bg: "linear-gradient(180deg,#cf8f5a 0%,#a45f30 100%)", edge: "#6e2f0c", tape: "rgba(95,42,12,0.55)", chip: "#d29570", label: "Audience" },
-  features:    { bg: "linear-gradient(180deg,#a89eac 0%,#7b7184 100%)", edge: "#473c50", tape: "rgba(58,46,66,0.55)", chip: "#ad9eb2", label: "Features" },
-  workflow:    { bg: "linear-gradient(180deg,#86b7b0 0%,#508e88 100%)", edge: "#286762", tape: "rgba(28,76,74,0.55)", chip: "#94c2bb", label: "Workflow" },
-  design:      { bg: "linear-gradient(180deg,#8f9fbd 0%,#5f7098 100%)", edge: "#34446d", tape: "rgba(34,43,72,0.55)", chip: "#9ba9c6", label: "Design / UX" },
-  business:    { bg: "linear-gradient(180deg,#82a96f 0%,#557848 100%)", edge: "#2f5429", tape: "rgba(33,70,28,0.55)", chip: "#8fb57d", label: "Business" },
-  concerns:    { bg: "linear-gradient(180deg,#b8897c 0%,#8c5e51 100%)", edge: "#5d2820", tape: "rgba(74,32,22,0.55)", chip: "#bd9085", label: "Concerns" },
-  mixed:       { bg: "linear-gradient(180deg,#bcaa86 0%,#8f7e5c 100%)", edge: "#54401e", tape: "rgba(66,50,18,0.55)", chip: "#bfae8c", label: "Mixed" },
+  "core-idea": {
+    bg: "linear-gradient(180deg,#d8c397 0%,#b59970 100%)",
+    edge: "#6e4d1a",
+    tape: "rgba(80,55,20,0.55)",
+    chip: "#dcc89e",
+    label: "Core Idea",
+  },
+  clarity: {
+    bg: "linear-gradient(180deg,#d4be88 0%,#a8895a 100%)",
+    edge: "#6a4818",
+    tape: "rgba(78,52,16,0.55)",
+    chip: "#d6c192",
+    label: "Clarity",
+  },
+  problem: {
+    bg: "linear-gradient(180deg,#b7b67d 0%,#85874e 100%)",
+    edge: "#515a1e",
+    tape: "rgba(63,68,24,0.55)",
+    chip: "#bdbe86",
+    label: "Problem",
+  },
+  audience: {
+    bg: "linear-gradient(180deg,#cf8f5a 0%,#a45f30 100%)",
+    edge: "#6e2f0c",
+    tape: "rgba(95,42,12,0.55)",
+    chip: "#d29570",
+    label: "Audience",
+  },
+  features: {
+    bg: "linear-gradient(180deg,#a89eac 0%,#7b7184 100%)",
+    edge: "#473c50",
+    tape: "rgba(58,46,66,0.55)",
+    chip: "#ad9eb2",
+    label: "Features",
+  },
+  workflow: {
+    bg: "linear-gradient(180deg,#86b7b0 0%,#508e88 100%)",
+    edge: "#286762",
+    tape: "rgba(28,76,74,0.55)",
+    chip: "#94c2bb",
+    label: "Workflow",
+  },
+  design: {
+    bg: "linear-gradient(180deg,#8f9fbd 0%,#5f7098 100%)",
+    edge: "#34446d",
+    tape: "rgba(34,43,72,0.55)",
+    chip: "#9ba9c6",
+    label: "Design / UX",
+  },
+  business: {
+    bg: "linear-gradient(180deg,#82a96f 0%,#557848 100%)",
+    edge: "#2f5429",
+    tape: "rgba(33,70,28,0.55)",
+    chip: "#8fb57d",
+    label: "Business",
+  },
+  concerns: {
+    bg: "linear-gradient(180deg,#b8897c 0%,#8c5e51 100%)",
+    edge: "#5d2820",
+    tape: "rgba(74,32,22,0.55)",
+    chip: "#bd9085",
+    label: "Concerns",
+  },
+  mixed: {
+    bg: "linear-gradient(180deg,#bcaa86 0%,#8f7e5c 100%)",
+    edge: "#54401e",
+    tape: "rgba(66,50,18,0.55)",
+    chip: "#bfae8c",
+    label: "Mixed",
+  },
 };
 
 const CATEGORY_KEYWORDS: Record<CategoryKey, RegExp[]> = {
-  "core-idea": [/\bidea\b/i, /\bapp\b/i, /\btool\b/i, /\bplatform\b/i, /\bproduct\b/i, /\bpurpose\b/i, /\bsummary\b/i],
-  clarity:     [/\bclarity\b/i, /\breadout\b/i, /\bunderstood\b/i, /\bdirection\b/i],
-  problem:     [/\bproblem\b/i, /\bpain\b/i, /\bneed\b/i, /\bstruggle\b/i, /\bopportunit/i, /\bbecause\b/i, /\bfrustrat/i],
-  audience:    [/\baudience\b/i, /\buser/i, /\bcustomer/i, /\bbuyer/i, /\bpeople\b/i, /\bmanager\b/i, /\bcrew\b/i, /\bworker\b/i, /\bemployee\b/i, /\bteam\b/i, /\bowner\b/i],
-  features:    [/\bfeature/i, /\bfunction\b/i, /\bscreen\b/i, /\bbutton\b/i, /\bform\b/i, /\baction\b/i, /\bcapabilit/i, /\bability\b/i, /\bsupport/i, /\bnotif/i],
-  workflow:    [/\bworkflow\b/i, /\bstep\b/i, /\bprocess\b/i, /\bflow\b/i, /\bschedul/i, /\bassign/i, /\bpipeline\b/i, /\bhandoff\b/i, /\bsequence\b/i],
-  design:      [/\bdesign\b/i, /\blayout\b/i, /\bui\b/i, /\bux\b/i, /\blook\b/i, /\bfeel\b/i, /\bcolor\b/i, /\bstyle\b/i, /\binteraction\b/i, /\busabilit/i],
-  business:    [/\bmoney\b/i, /\bcost/i, /\bprice/i, /\bpay/i, /\brevenue\b/i, /\bsell\b/i, /\bsubscri/i, /\bbusiness model\b/i, /\$\d/],
-  concerns:    [/\brisk/i, /\bworry\b/i, /\bconcern/i, /\bavoid\b/i, /\bfail/i, /\blegal\b/i, /\bprivacy\b/i, /\bvalidate\b/i, /\bwatch\b/i],
+  "core-idea": [
+    /\bidea\b/i,
+    /\bapp\b/i,
+    /\btool\b/i,
+    /\bplatform\b/i,
+    /\bproduct\b/i,
+    /\bpurpose\b/i,
+    /\bsummary\b/i,
+  ],
+  clarity: [/\bclarity\b/i, /\breadout\b/i, /\bunderstood\b/i, /\bdirection\b/i],
+  problem: [
+    /\bproblem\b/i,
+    /\bpain\b/i,
+    /\bneed\b/i,
+    /\bstruggle\b/i,
+    /\bopportunit/i,
+    /\bbecause\b/i,
+    /\bfrustrat/i,
+  ],
+  audience: [
+    /\baudience\b/i,
+    /\buser/i,
+    /\bcustomer/i,
+    /\bbuyer/i,
+    /\bpeople\b/i,
+    /\bmanager\b/i,
+    /\bcrew\b/i,
+    /\bworker\b/i,
+    /\bemployee\b/i,
+    /\bteam\b/i,
+    /\bowner\b/i,
+  ],
+  features: [
+    /\bfeature/i,
+    /\bfunction\b/i,
+    /\bscreen\b/i,
+    /\bbutton\b/i,
+    /\bform\b/i,
+    /\baction\b/i,
+    /\bcapabilit/i,
+    /\bability\b/i,
+    /\bsupport/i,
+    /\bnotif/i,
+  ],
+  workflow: [
+    /\bworkflow\b/i,
+    /\bstep\b/i,
+    /\bprocess\b/i,
+    /\bflow\b/i,
+    /\bschedul/i,
+    /\bassign/i,
+    /\bpipeline\b/i,
+    /\bhandoff\b/i,
+    /\bsequence\b/i,
+  ],
+  design: [
+    /\bdesign\b/i,
+    /\blayout\b/i,
+    /\bui\b/i,
+    /\bux\b/i,
+    /\blook\b/i,
+    /\bfeel\b/i,
+    /\bcolor\b/i,
+    /\bstyle\b/i,
+    /\binteraction\b/i,
+    /\busabilit/i,
+  ],
+  business: [
+    /\bmoney\b/i,
+    /\bcost/i,
+    /\bprice/i,
+    /\bpay/i,
+    /\brevenue\b/i,
+    /\bsell\b/i,
+    /\bsubscri/i,
+    /\bbusiness model\b/i,
+    /\$\d/,
+  ],
+  concerns: [
+    /\brisk/i,
+    /\bworry\b/i,
+    /\bconcern/i,
+    /\bavoid\b/i,
+    /\bfail/i,
+    /\blegal\b/i,
+    /\bprivacy\b/i,
+    /\bvalidate\b/i,
+    /\bwatch\b/i,
+  ],
 };
 
 function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
@@ -148,13 +330,12 @@ function detectCategories(text: string, kind: PostIt["kind"]): CategoryKey[] {
 function postItPaletteFor(categories: CategoryKey[] | undefined, fallback: CategoryKey) {
   const cats = categories && categories.length ? categories : [fallback];
   const key: CategoryKey | "mixed" = cats.length > 1 ? "mixed" : cats[0];
-  return { palette: postItCategoryPalette[key], label: postItCategoryPalette[key].label, isMixed: cats.length > 1 };
+  return {
+    palette: postItCategoryPalette[key],
+    label: postItCategoryPalette[key].label,
+    isMixed: cats.length > 1,
+  };
 }
-
-
-
-
-
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
 type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
@@ -189,7 +370,13 @@ function emptyExtras(): IdeaExtras {
 
 // ——— Clarity's clarifying questions ———
 const MIN_CLARITY_FOLLOWUPS = 5;
-const MIN_FOLLOWUP_SEQUENCE: CategoryKey[] = ["problem", "audience", "business", "concerns", "features"];
+const MIN_FOLLOWUP_SEQUENCE: CategoryKey[] = [
+  "problem",
+  "audience",
+  "business",
+  "concerns",
+  "features",
+];
 
 type ClarityQuestion = {
   id: string;
@@ -200,42 +387,145 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
   {
     id: "version-one",
     prompt: "What is version one?",
-    keywords: ["version one", "version 1", "v1", "first version", "simple version", "smallest version", "start with", "mvp"],
+    keywords: [
+      "version one",
+      "version 1",
+      "v1",
+      "first version",
+      "simple version",
+      "smallest version",
+      "start with",
+      "mvp",
+    ],
   },
   {
     id: "who-does-work",
     prompt: "Who is doing the work?",
-    keywords: ["who does", "who is doing", "human", "ai", "approve", "approval", "operator", "admin", "manager", "user does", "assistant", "review"],
+    keywords: [
+      "who does",
+      "who is doing",
+      "human",
+      "ai",
+      "approve",
+      "approval",
+      "operator",
+      "admin",
+      "manager",
+      "user does",
+      "assistant",
+      "review",
+    ],
   },
   {
     id: "trust-first",
     prompt: "What should the user trust first?",
-    keywords: ["trust", "confidence", "believe", "proof", "compare", "comparison", "review", "approve", "quality", "accurate", "reliable"],
+    keywords: [
+      "trust",
+      "confidence",
+      "believe",
+      "proof",
+      "compare",
+      "comparison",
+      "review",
+      "approve",
+      "quality",
+      "accurate",
+      "reliable",
+    ],
   },
   {
     id: "first-paid-version",
     prompt: "What is the first tiny paid version?",
-    keywords: ["paid", "pay", "price", "pricing", "subscription", "monthly", "credit", "package", "setup", "one job", "one edit", "purchase"],
+    keywords: [
+      "paid",
+      "pay",
+      "price",
+      "pricing",
+      "subscription",
+      "monthly",
+      "credit",
+      "package",
+      "setup",
+      "one job",
+      "one edit",
+      "purchase",
+    ],
   },
   {
     id: "most-important-detail",
     prompt: "What detail matters most?",
-    keywords: ["matters most", "most important", "detail", "style", "tone", "quality", "consistency", "privacy", "speed", "control", "exact"],
+    keywords: [
+      "matters most",
+      "most important",
+      "detail",
+      "style",
+      "tone",
+      "quality",
+      "consistency",
+      "privacy",
+      "speed",
+      "control",
+      "exact",
+    ],
   },
   {
     id: "problem",
     prompt: "What problem should this project solve first?",
-    keywords: ["problem", "solve", "pain", "struggle", "issue", "frustrat", "because", "hours", "faster than", "spend"],
+    keywords: [
+      "problem",
+      "solve",
+      "pain",
+      "struggle",
+      "issue",
+      "frustrat",
+      "because",
+      "hours",
+      "faster than",
+      "spend",
+    ],
   },
   {
     id: "who",
     prompt: "Who is this for? Picture one real person.",
-    keywords: [" for ", "who", "people", "user", "kid", "parent", "creator", "person", "audience", "they", "manager", "worker", "employee", "crew", "team", "owner", "supervisor"],
+    keywords: [
+      " for ",
+      "who",
+      "people",
+      "user",
+      "kid",
+      "parent",
+      "creator",
+      "person",
+      "audience",
+      "they",
+      "manager",
+      "worker",
+      "employee",
+      "crew",
+      "team",
+      "owner",
+      "supervisor",
+    ],
   },
   {
     id: "look-like",
     prompt: "If it existed today, what would it look or feel like?",
-    keywords: ["look", "feel", "like", "app", "site", "tool", "page", "screen", "card", "visual", "board", "dashboard", "draft", "published"],
+    keywords: [
+      "look",
+      "feel",
+      "like",
+      "app",
+      "site",
+      "tool",
+      "page",
+      "screen",
+      "card",
+      "visual",
+      "board",
+      "dashboard",
+      "draft",
+      "published",
+    ],
   },
 ];
 
@@ -280,10 +570,9 @@ function requiredFollowupQuestionFor(
   const skipped = new Set(skippedQuestions);
   const startingStep = Math.min(answeredCount, MIN_FOLLOWUP_SEQUENCE.length - 1);
   const cat =
-    MIN_FOLLOWUP_SEQUENCE
-      .slice(startingStep)
-      .find((candidate) => !skipped.has(`required-${answeredCount + 1}-${candidate}`))
-    ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
+    MIN_FOLLOWUP_SEQUENCE.slice(startingStep).find(
+      (candidate) => !skipped.has(`required-${answeredCount + 1}-${candidate}`),
+    ) ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
   return {
     id: `required-${answeredCount + 1}-${cat}`,
     prompt: `${requiredFollowupTextFor(cat, idea)} Follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS}.`,
@@ -380,11 +669,13 @@ function categoryStatus(value: string | undefined) {
   return { pct: 100, label: "Ready" };
 }
 
-
 // ——— Title generator ———
 const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
   { match: /\b(construction|jobsite|job site|crew|contractor)\b/i, name: "Construction Crew" },
-  { match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i, name: "Photo Editing" },
+  {
+    match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i,
+    name: "Photo Editing",
+  },
   { match: /\brecipe|cook|kitchen\b/i, name: "Family Recipe" },
   { match: /\bpet|dog|cat\b/i, name: "Pet Care" },
   { match: /\bplant|garden\b/i, name: "Garden" },
@@ -409,7 +700,10 @@ function titleCase(s: string) {
 function generateTitle(text: string, ideaType?: string): string {
   const t = text.trim();
   if (!t) return "Untitled Idea";
-  if (/\bwedding\b/i.test(t) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(t)) {
+  if (
+    /\bwedding\b/i.test(t) &&
+    /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(t)
+  ) {
     return "Wedding Photo Approval App";
   }
   const domain = TITLE_DOMAINS.find((d) => d.match.test(t))?.name;
@@ -418,8 +712,37 @@ function generateTitle(text: string, ideaType?: string): string {
     (ideaType && ideaType !== "Undecided" ? ideaType : "App");
   if (domain) return `${domain} ${suffix}`;
   const stop = new Set([
-    "a","an","the","to","for","of","and","or","with","this","that","want","wants","need","needs",
-    "i","we","you","they","it","is","are","my","new","app","tool","build","make","using","help","helps",
+    "a",
+    "an",
+    "the",
+    "to",
+    "for",
+    "of",
+    "and",
+    "or",
+    "with",
+    "this",
+    "that",
+    "want",
+    "wants",
+    "need",
+    "needs",
+    "i",
+    "we",
+    "you",
+    "they",
+    "it",
+    "is",
+    "are",
+    "my",
+    "new",
+    "app",
+    "tool",
+    "build",
+    "make",
+    "using",
+    "help",
+    "helps",
   ]);
   const firstSentence = t.split(/[.!?]/)[0] ?? t;
   const words = firstSentence
@@ -434,8 +757,15 @@ function generateTitle(text: string, ideaType?: string): string {
 // nine category folders. Each clause can land in multiple folders.
 // Empty folders get a "Missing…" prompt instead of fabricated content.
 const CATEGORY_ORDER: CategoryKey[] = [
-  "core-idea", "clarity", "problem", "audience", "features",
-  "workflow", "design", "business", "concerns",
+  "core-idea",
+  "clarity",
+  "problem",
+  "audience",
+  "features",
+  "workflow",
+  "design",
+  "business",
+  "concerns",
 ];
 
 const QUESTION_PRIORITY: CategoryKey[] = [
@@ -458,31 +788,45 @@ const QUESTION_PRIORITY_RANK = QUESTION_PRIORITY.reduce(
 // Categories that participate in semantic sorting of pasted prompts.
 // "clarity" is synthesized separately (overall readout).
 const SORTABLE_CATEGORIES: CategoryKey[] = [
-  "core-idea", "problem", "audience", "features",
-  "workflow", "design", "business", "concerns",
+  "core-idea",
+  "problem",
+  "audience",
+  "features",
+  "workflow",
+  "design",
+  "business",
+  "concerns",
 ];
 
 const CAT_PATTERNS: Record<CategoryKey, RegExp> = {
-  "core-idea": /\b(this (?:app|tool|product|project|platform|idea|system)|is an? (?:app|tool|platform|product|system)|i want to (?:build|make|create)|helps? .* (?:organize|turn|move|build|create|track|manage)|main purpose|concept is|core idea|idea is|in short|basically|essentially|the goal is)\b/i,
-  clarity:     /\b(clarity|readout|understood|direction|fuzzy|90%|so far|overall|summary)\b/i,
-  problem:     /\b(problem|pain|painful|need|opportunity|solve[sd]?|struggle|struggling|frustrat|because|wastes? (?:time|hours)|takes? too long|spend(?:ing)? hours|messy|hard to|difficult to|confusing|broken|missing tool|gap|inefficien|currently (?:no|nothing|hard)|don't have|doesn't exist|can't)\b/i,
-  audience:    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|photographer|editor|persona|target|for (?:small|new|busy|solo|independent|creators?|users?|teams?|owners?|managers?|workers?|customers?|photographers?)|aimed at|built for|designed for|who (?:it'?s|this is) for)\b/i,
-  features:    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?|me)|should (?:have|include|show|ask|save|sort|create|generate|track)|needs? to (?:have|include|show|ask|save|sort|create|generate|track)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template|question(?:s)?|upload|save|generate|photo|photos|camera|wi-?fi|photoshop|edit|editing|raw-vs-edited|ai tool)\b/i,
-  workflow:    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|go(?:es)? to|come(?:s)? to|land(?:s)? on|journey|onboard|pipeline|owner|approval|approve|human review|turn approval on|turn approval off|automatically)\b/i,
-  design:      /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|header|logo|tree|treehouse|earthly|earthy|sticky note|post-it|post it|desired feeling|same color tone|same cropping|same style|consistency|lighting|skin)\b/i,
-  business:    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin|saves? (?:time|money|hours)|faster|cheap|valuable|worth (?:paying|money)|commercial|positioning|package|packaged)\b/i,
-  concerns:    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|not sure|don't know|should not|must not|do not|watch|validate|fix later|assumption|weak spot|edge case|later phase|might break|unclear|fuzzy)\b/i,
+  "core-idea":
+    /\b(this (?:app|tool|product|project|platform|idea|system)|is an? (?:app|tool|platform|product|system)|i want to (?:build|make|create)|helps? .* (?:organize|turn|move|build|create|track|manage)|main purpose|concept is|core idea|idea is|in short|basically|essentially|the goal is)\b/i,
+  clarity: /\b(clarity|readout|understood|direction|fuzzy|90%|so far|overall|summary)\b/i,
+  problem:
+    /\b(problem|pain|painful|need|opportunity|solve[sd]?|struggle|struggling|frustrat|because|wastes? (?:time|hours)|takes? too long|spend(?:ing)? hours|messy|hard to|difficult to|confusing|broken|missing tool|gap|inefficien|currently (?:no|nothing|hard)|don't have|doesn't exist|can't)\b/i,
+  audience:
+    /\b(creator|maker|manager|crew|worker|employee|user|users|customer|buyer|audience|people|team|role|supervisor|owner|client|contractor|operator|staff|lead|foreman|photographer|editor|persona|target|for (?:small|new|busy|solo|independent|creators?|users?|teams?|owners?|managers?|workers?|customers?|photographers?)|aimed at|built for|designed for|who (?:it'?s|this is) for)\b/i,
+  features:
+    /\b(feature|function|ability|capabilit|screen|button|form|field|input|output|action|support(?:s)?|allows?|lets? (?:you|them|users?|me)|should (?:have|include|show|ask|save|sort|create|generate|track)|needs? to (?:have|include|show|ask|save|sort|create|generate|track)|tracks?|notif|integrat|api|drag|drop|export|import|tagging|search|filter|folder(?:s|-based)?|organize|automation|reminder|dashboard|template|question(?:s)?|upload|save|generate|photo|photos|camera|wi-?fi|photoshop|edit|editing|raw-vs-edited|ai tool)\b/i,
+  workflow:
+    /\b(workflow|process|step(?:s)?|flow|stage|schedul|assign|sequence|pipeline|handoff|next step|then|after|before|once|first .* then|move(?:s)? (?:to|through)|go(?:es)? to|come(?:s)? to|land(?:s)? on|journey|onboard|pipeline|owner|approval|approve|human review|turn approval on|turn approval off|automatically)\b/i,
+  design:
+    /\b(design|layout|ui|ux|look|feel|color|style|interface|interaction|drag|tap|swipe|view|visual|board|usabilit|simple|clean|tone|aesthetic|responsive|mobile|desktop|header|logo|tree|treehouse|earthly|earthy|sticky note|post-it|post it|desired feeling|same color tone|same cropping|same style|consistency|lighting|skin)\b/i,
+  business:
+    /\b(price|pricing|cost|revenue|subscri|payment|monetiz|sell|\$|buyer|business model|free tier|tier|charge|paid|willingness to pay|market value|margin|saves? (?:time|money|hours)|faster|cheap|valuable|worth (?:paying|money)|commercial|positioning|package|packaged)\b/i,
+  concerns:
+    /\b(avoid|risk|fail|legal|compli|privacy|out of scope|boundary|guardrail|concern|worry|danger|liabil|not sure|don't know|should not|must not|do not|watch|validate|fix later|assumption|weak spot|edge case|later phase|might break|unclear|fuzzy)\b/i,
 };
 
 const CATEGORY_HEADING_ALIASES: Record<string, CategoryKey> = {
   "core idea": "core-idea",
-  "idea": "core-idea",
-  "concept": "core-idea",
+  idea: "core-idea",
+  concept: "core-idea",
   "raw idea": "core-idea",
   "what makes it interesting": "core-idea",
   "existing assets context": "core-idea",
-  "clarity": "clarity",
-  "summary": "clarity",
+  clarity: "clarity",
+  summary: "clarity",
   "mode lightbulb receipt": "clarity",
   "mode capture": "clarity",
   "mode 0 capture": "clarity",
@@ -493,71 +837,71 @@ const CATEGORY_HEADING_ALIASES: Record<string, CategoryKey> = {
   "version one": "features",
   "new piece version one": "features",
   "first version": "features",
-  "v": "features",
-  "v1": "features",
+  v: "features",
+  v1: "features",
   "editing owner": "workflow",
   "work owner": "workflow",
-  "owner": "workflow",
-  "approval": "workflow",
+  owner: "workflow",
+  approval: "workflow",
   "human approval": "workflow",
   "first trust builder": "clarity",
   "trust builder": "clarity",
-  "proof": "clarity",
+  proof: "clarity",
   "paid version": "business",
   "first paid version": "business",
   "tiny paid version": "business",
   "core desired feeling": "design",
   "desired feeling": "design",
-  "feeling": "design",
+  feeling: "design",
   "trust problem youre solving": "problem",
   "trust problem": "problem",
-  "problem": "problem",
+  problem: "problem",
   "problem or desire": "problem",
   "why it matters": "problem",
-  "pain": "problem",
-  "need": "problem",
-  "audience": "audience",
-  "who": "audience",
+  pain: "problem",
+  need: "problem",
+  audience: "audience",
+  who: "audience",
   "who it is for": "audience",
-  "users": "audience",
-  "customer": "audience",
-  "customers": "audience",
-  "features": "features",
-  "feature": "features",
+  users: "audience",
+  customer: "audience",
+  customers: "audience",
+  features: "features",
+  feature: "features",
   "first simple version": "features",
-  "functions": "features",
-  "capabilities": "features",
-  "workflow": "workflow",
-  "process": "workflow",
-  "flow": "workflow",
-  "steps": "workflow",
-  "design": "design",
+  functions: "features",
+  capabilities: "features",
+  workflow: "workflow",
+  process: "workflow",
+  flow: "workflow",
+  steps: "workflow",
+  design: "design",
   "design ux": "design",
-  "ux": "design",
-  "ui": "design",
-  "business": "business",
-  "money": "business",
-  "pricing": "business",
+  ux: "design",
+  ui: "design",
+  business: "business",
+  money: "business",
+  pricing: "business",
   "value or money path": "business",
-  "concerns": "concerns",
-  "concern": "concerns",
-  "risks": "concerns",
+  concerns: "concerns",
+  concern: "concerns",
+  risks: "concerns",
   "missing pieces": "concerns",
   "not decided yet items": "concerns",
-  "watchouts": "concerns",
+  watchouts: "concerns",
   "watch outs": "concerns",
 };
 
 const CATEGORY_MISSING: Record<CategoryKey, string> = {
   "core-idea": "Missing: a one-line summary of what this is and its main purpose.",
-  clarity:     "Missing: an overall readout of what's understood and where it's still fuzzy.",
-  problem:     "Missing: the pain point, need, or opportunity this exists to address.",
-  audience:    "Missing: who exactly this is for and the role they play.",
-  features:    "Missing: tools, screens, actions, and capabilities this needs.",
-  workflow:    "Missing: how the process moves from step to step.",
-  design:      "Missing: layout, visual feel, and interaction style.",
-  business:    "Missing: pricing, buyer logic, and revenue model.",
-  concerns:    "Missing: things to watch, validate, or revisit later.",
+  clarity: "Missing: an overall readout of what's understood and where it's still fuzzy.",
+  problem: "Missing: the pain point, need, or opportunity this exists to address.",
+  audience: "Missing: who exactly this is for and the role they play.",
+  features: "Missing: tools, screens, actions, and capabilities this needs.",
+  workflow: "Missing: how the process moves from step to step.",
+  design: "Missing: layout, visual feel, and interaction style.",
+  business: "Missing: pricing, buyer logic, and revenue model.",
+  concerns: "Missing: things to watch, validate, or revisit later.",
 };
 
 function splitSentences(text: string): string[] {
@@ -574,7 +918,9 @@ function splitSentences(text: string): string[] {
 // can each land in a different folder.
 function splitClauses(sentence: string): string[] {
   return sentence
-    .split(/\s*(?:;|,(?=\s+(?:and|but|so|then|after|before|once)\b)|\s+(?:so that|so|because|but|and then|and also|while|whereas|in order to)\s+)\s*/i)
+    .split(
+      /\s*(?:;|,(?=\s+(?:and|but|so|then|after|before|once)\b)|\s+(?:so that|so|because|but|and then|and also|while|whereas|in order to)\s+)\s*/i,
+    )
     .map((c) => c.replace(/^[,;\s]+|[,;\s]+$/g, "").trim())
     .filter((c) => c.length >= 6);
 }
@@ -618,7 +964,9 @@ function splitReceiptHeadingLine(line: string): { cat: CategoryKey; body?: strin
 }
 
 function splitLabeledCategoryLine(line: string): { cat: CategoryKey; body: string } | null {
-  const match = line.match(/^\s*(?:[-•*]\s*)?(?:\d+\.\s*)?([A-Za-z][A-Za-z /_-]{1,42})\s*[:\-–—]\s*(.+)$/);
+  const match = line.match(
+    /^\s*(?:[-•*]\s*)?(?:\d+\.\s*)?([A-Za-z][A-Za-z /_-]{1,42})\s*[:\-–—]\s*(.+)$/,
+  );
   if (!match) return null;
   const cat = normalizeCategoryHeading(stripReceiptHeadingStatus(match[1]));
   const body = stripReceiptHeadingStatus(match[2] ?? "");
@@ -641,8 +989,15 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
     return labeled?.body ?? sentence;
   });
   const out: Record<CategoryKey, string[]> = {
-    "core-idea": [], clarity: [], problem: [], audience: [], features: [],
-    workflow: [], design: [], business: [], concerns: [],
+    "core-idea": [],
+    clarity: [],
+    problem: [],
+    audience: [],
+    features: [],
+    workflow: [],
+    design: [],
+    business: [],
+    concerns: [],
   };
 
   const lines = text.replace(/\r\n/g, "\n").split("\n");
@@ -672,8 +1027,7 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
 
   // Seed Core Idea with the first descriptive sentence (a plain concept line).
   const firstPlainSentence =
-    sentences.find((sentence) => !splitLabeledCategoryLine(sentence))
-    ?? semanticSentences[0];
+    sentences.find((sentence) => !splitLabeledCategoryLine(sentence)) ?? semanticSentences[0];
   if (firstPlainSentence) pushUnique(out, "core-idea", firstPlainSentence);
 
   for (const sentence of semanticSentences) {
@@ -717,9 +1071,7 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
     readoutLines.push(`Direction reads ~90% on: ${strong.join(", ")}.`);
   }
   if (missing.length) {
-    readoutLines.push(
-      `Still fuzzy on: ${missing.map(labelOf).join(", ")}. Ask Clarity next.`,
-    );
+    readoutLines.push(`Still fuzzy on: ${missing.map(labelOf).join(", ")}. Ask Clarity next.`);
   } else {
     readoutLines.push("All folders have something to work with.");
   }
@@ -743,10 +1095,7 @@ function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
       kind: "idea-notes",
       text: postItCategoryPalette[cat].label,
       // Raw pasted prompt lives only in Clarity's detail view as background context.
-      fullText:
-        cat === "clarity"
-          ? `${body}\n\n— Source Notes (raw paste) —\n${text}`
-          : body,
+      fullText: cat === "clarity" ? `${body}\n\n— Source Notes (raw paste) —\n${text}` : body,
       ts: ts - i,
       categories: [cat],
       source: "generated-folder",
@@ -773,7 +1122,10 @@ function appendUniqueLines(existing: string, addition: string): string {
     .filter(Boolean);
   const seen = new Set(existingLines.map((line) => line.toLowerCase()));
   const nextLines = [...existingLines];
-  for (const line of addition.split("\n").map((item) => item.trim()).filter(Boolean)) {
+  for (const line of addition
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean)) {
     if (!seen.has(line.toLowerCase())) {
       nextLines.push(line);
       seen.add(line.toLowerCase());
@@ -819,22 +1171,29 @@ function mergeCategoryFolderPosts(existing: PostIt[], text: string, ts: number):
 }
 
 function isGeneratedCategoryFolderPost(post: PostIt, cat: CategoryKey) {
-  return post.source === "generated-folder"
-    || (post.kind === "idea-notes"
-      && post.text === postItCategoryPalette[cat].label
-      && (post.categories ?? []).length === 1
-      && post.categories?.[0] === cat);
+  return (
+    post.source === "generated-folder" ||
+    (post.kind === "idea-notes" &&
+      post.text === postItCategoryPalette[cat].label &&
+      (post.categories ?? []).length === 1 &&
+      post.categories?.[0] === cat)
+  );
 }
 
-function categoryProgressTextFor(idea: LightbulbIdea | undefined, extras: IdeaExtras, key: CategoryKey): string {
+function categoryProgressTextFor(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+  key: CategoryKey,
+): string {
   if (!idea) return "";
   const ideaPosts = extras.posts
     .filter((p) => p.kind === "idea-notes")
     .map((p) => p.text)
     .join("\n");
-  const rawValue = key === "core-idea"
-    ? [idea.messy, ideaPosts].filter(Boolean).join("\n")
-    : extras.notes[key] ?? "";
+  const rawValue =
+    key === "core-idea"
+      ? [idea.messy, ideaPosts].filter(Boolean).join("\n")
+      : (extras.notes[key] ?? "");
   const missingPlaceholder = CATEGORY_MISSING[key];
   const realPosts = extras.posts.filter((p) => {
     if (!(p.categories ?? []).includes(key)) return false;
@@ -846,13 +1205,9 @@ function categoryProgressTextFor(idea: LightbulbIdea | undefined, extras: IdeaEx
     if (body.startsWith(missingPlaceholder)) return false;
     return true;
   });
-  const ratingAggregated = realPosts
-    .map((p) => p.fullText ?? p.text)
-    .join("\n\n");
-  const ratingValue = key === "core-idea" ? rawValue : extras.notes[key] ?? "";
-  return [ratingValue, ratingAggregated]
-    .filter((s) => s && s.trim().length > 0)
-    .join("\n\n");
+  const ratingAggregated = realPosts.map((p) => p.fullText ?? p.text).join("\n\n");
+  const ratingValue = key === "core-idea" ? rawValue : (extras.notes[key] ?? "");
+  return [ratingValue, ratingAggregated].filter((s) => s && s.trim().length > 0).join("\n\n");
 }
 
 function weakestCategoryQuestionFor(
@@ -860,8 +1215,7 @@ function weakestCategoryQuestionFor(
   extras: IdeaExtras,
 ): { category: CategoryKey; pct: number; prompt: string } | undefined {
   const skipped = new Set(extras.skippedQuestions);
-  const candidates = CATEGORY_ORDER
-    .filter((cat) => !skipped.has(`weak-${cat}`))
+  const candidates = CATEGORY_ORDER.filter((cat) => !skipped.has(`weak-${cat}`))
     .map((cat) => ({
       category: cat,
       pct: categoryStatus(categoryProgressTextFor(idea, extras, cat)).pct,
@@ -882,7 +1236,6 @@ function weakestCategoryQuestionFor(
     prompt: categoryQuestionFor(weakest.category, idea),
   };
 }
-
 
 function mainSummaryFrom(text: string, fallbackTitle?: string): string {
   const buckets = parsePromptIntoCategories(text);
@@ -916,15 +1269,24 @@ function firstBucketLine(items: string[]): string | undefined {
 
 function isGeneratedReadoutLine(value: string | undefined): boolean {
   const cleaned = (value ?? "").trim();
-  return /^(captured a .* prompt covering|direction reads|still fuzzy on:|all folders have something to work with|ask clarity next)\b/i.test(cleaned);
+  return /^(captured a .* prompt covering|direction reads|still fuzzy on:|all folders have something to work with|ask clarity next)\b/i.test(
+    cleaned,
+  );
 }
 
 function inferAudience(text: string): string | undefined {
-  if (/\bwedding\b/i.test(text) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)) {
+  if (
+    /\bwedding\b/i.test(text) &&
+    /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)
+  ) {
     return "Wedding photographers";
   }
   if (/\bphotographers?\b/i.test(text)) return "Photographers";
-  if (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text)) {
+  if (
+    /\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(
+      text,
+    )
+  ) {
     return "Neighbors who share or borrow tools";
   }
   if (/\bneighborhood|community|block\b/i.test(text)) return "Local community members";
@@ -936,15 +1298,24 @@ function inferIdeaType(text: string, fallback?: string): string | undefined {
   if (existing && isBroadIdeaType(existing)) return existing;
   if (/\btv\s*show|television show|series\b/i.test(text)) return "TV show";
   if (/\bwebsite|web\s*site|site\b/i.test(text)) {
-    return /\bapp|application|program\s*\/\s*site|site\s*\/\s*program|web app\b/i.test(text) ? "App / website" : "Website";
+    return /\bapp|application|program\s*\/\s*site|site\s*\/\s*program|web app\b/i.test(text)
+      ? "App / website"
+      : "Website";
   }
   if (/\bweb app|app|application|program\b/i.test(text)) {
     return "App";
   }
-  if (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text)) {
+  if (
+    /\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(
+      text,
+    )
+  ) {
     return "App";
   }
-  if (/\bneighborhood|community|block\b/i.test(text) && /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)) {
+  if (
+    /\bneighborhood|community|block\b/i.test(text) &&
+    /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)
+  ) {
     return "App";
   }
   if (/\bservice\b/i.test(text)) return "Service";
@@ -959,17 +1330,29 @@ function isPlaceholderIdeaType(value: string | undefined): boolean {
 }
 
 function isBroadIdeaType(value: string | undefined): boolean {
-  return /^(app|website|app\s*\/\s*(?:site|website)|tv show|book|course|game|service)$/i.test((value ?? "").trim());
+  return /^(app|website|app\s*\/\s*(?:site|website)|tv show|book|course|game|service)$/i.test(
+    (value ?? "").trim(),
+  );
 }
 
 function inferIndustry(text: string): string | undefined {
-  if (/\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(text)) {
+  if (
+    /\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(
+      text,
+    )
+  ) {
     return "Community tool sharing";
   }
-  if (/\bneighborhood|community|block\b/i.test(text) && /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)) {
+  if (
+    /\bneighborhood|community|block\b/i.test(text) &&
+    /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)
+  ) {
     return "Community resources";
   }
-  if (/\bwedding\b/i.test(text) && /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)) {
+  if (
+    /\bwedding\b/i.test(text) &&
+    /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(text)
+  ) {
     return "Wedding photography";
   }
   if (/\b(photo|photos|photographer|photography|camera|photoshop|editing)\b/i.test(text)) {
@@ -981,11 +1364,12 @@ function inferIndustry(text: string): string | undefined {
   return undefined;
 }
 
-function ideaMetadataFromText(text: string, ideaTypeFallback?: string): Pick<LightbulbIdea, "audience" | "industry" | "ideaType" | "description"> {
+function ideaMetadataFromText(
+  text: string,
+  ideaTypeFallback?: string,
+): Pick<LightbulbIdea, "audience" | "industry" | "ideaType" | "description"> {
   const buckets = parsePromptIntoCategories(text);
-  const audience =
-    inferAudience(text)
-    ?? firstBucketLine(buckets.audience);
+  const audience = inferAudience(text) ?? firstBucketLine(buckets.audience);
   return {
     audience,
     industry: inferIndustry(text),
@@ -995,7 +1379,9 @@ function ideaMetadataFromText(text: string, ideaTypeFallback?: string): Pick<Lig
 }
 
 function isWeakGeneratedTitle(title: string): boolean {
-  return /^(might create|program\s*\/\s*site|new (?:app|tool|idea|project)|untitled idea)\b/i.test(title.trim());
+  return /^(might create|program\s*\/\s*site|new (?:app|tool|idea|project)|untitled idea)\b/i.test(
+    title.trim(),
+  );
 }
 
 function ideaContextText(idea: LightbulbIdea, posts: PostIt[]): string {
@@ -1008,7 +1394,6 @@ function ideaContextText(idea: LightbulbIdea, posts: PostIt[]): string {
     .filter(Boolean)
     .join("\n");
 }
-
 
 function lightbulbSummaryFrom(text: string): string {
   const first = splitSentences(text)[0] ?? text.trim();
@@ -1061,13 +1446,25 @@ function answeredQuestionsFromFolders(posts: PostIt[]): string[] {
   if (/\b(version one|version 1|v1|first version|smallest useful version|mvp)\b/.test(folderText)) {
     answered.add("version-one");
   }
-  if (/\b(owner|approval|approve|human helper|ai|operator|reviewer|who is doing|who does)\b/.test(folderText)) {
+  if (
+    /\b(owner|approval|approve|human helper|ai|operator|reviewer|who is doing|who does)\b/.test(
+      folderText,
+    )
+  ) {
     answered.add("who-does-work");
   }
-  if (/\b(trust|proof|confidence|comparison|approve|approval|quality|reliable|accurate)\b/.test(folderText)) {
+  if (
+    /\b(trust|proof|confidence|comparison|approve|approval|quality|reliable|accurate)\b/.test(
+      folderText,
+    )
+  ) {
     answered.add("trust-first");
   }
-  if (/\b(detail|style|tone|feel|feeling|privacy|speed|control|consistent|consistency|exact result)\b/.test(folderText)) {
+  if (
+    /\b(detail|style|tone|feel|feeling|privacy|speed|control|consistent|consistency|exact result)\b/.test(
+      folderText,
+    )
+  ) {
     answered.add("most-important-detail");
   }
 
@@ -1075,12 +1472,10 @@ function answeredQuestionsFromFolders(posts: PostIt[]): string[] {
 }
 
 function answeredQuestionsFromClarityDigest(text: string, posts: PostIt[]): string[] {
-  return Array.from(new Set([...clarityAnsweredFrom(text), ...answeredQuestionsFromFolders(posts)]));
+  return Array.from(
+    new Set([...clarityAnsweredFrom(text), ...answeredQuestionsFromFolders(posts)]),
+  );
 }
-
-
-
-
 
 // ——— book spine palettes (rich leather tones) ———
 const spinePalettes: Array<[string, string, string]> = [
@@ -1098,11 +1493,17 @@ function Dashboard() {
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [selectedId, setSelectedId] = useState<string>(seedIdeas[0]?.id ?? "");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
-  const [activeCategory, setActiveCategory] =
-    useState<CategoryKey>("core-idea");
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [descending, setDescending] = useState(false);
+  const [libraryReportOpen, setLibraryReportOpen] = useState(false);
+  const [libraryReportTier, setLibraryReportTier] = useState<ReportTier>(() => readReportTier());
+  const [activeLibraryDoor, setActiveLibraryDoor] = useState<LibraryDoorId | null>(null);
+  const [libraryDoorAnswers, setLibraryDoorAnswers] = useState<
+    Partial<Record<LibraryDoorId, string>>
+  >({});
+  const [libraryRedoUsed, setLibraryRedoUsed] = useState(false);
 
   // Pull draft from front-page intake
   useEffect(() => {
@@ -1112,6 +1513,7 @@ function Dashboard() {
     try {
       draft = sessionStorage.getItem("dabottree:draftIdea") ?? "";
       draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";
+      setLibraryReportTier(readReportTier());
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
@@ -1159,15 +1561,13 @@ function Dashboard() {
   );
 
   const selectedExtras: IdeaExtras = selected
-    ? extras[selected.id] ?? emptyExtras()
+    ? (extras[selected.id] ?? emptyExtras())
     : emptyExtras();
 
   const updateSelected = (patch: Partial<LightbulbIdea>) => {
     if (!selected) return;
     setIdeas((prev) =>
-      prev.map((i) =>
-        i.id === selected.id ? { ...i, ...patch, updatedAt: Date.now() } : i,
-      ),
+      prev.map((i) => (i.id === selected.id ? { ...i, ...patch, updatedAt: Date.now() } : i)),
     );
   };
 
@@ -1181,12 +1581,9 @@ function Dashboard() {
           notes: { ...current.notes, ...(patch.notes ?? {}) },
           attachments: patch.attachments ?? current.attachments,
           posts: patch.posts ?? current.posts,
-          answeredQuestions:
-            patch.answeredQuestions ?? current.answeredQuestions,
-          skippedQuestions:
-            patch.skippedQuestions ?? current.skippedQuestions,
-          clarityFollowupCount:
-            patch.clarityFollowupCount ?? current.clarityFollowupCount ?? 0,
+          answeredQuestions: patch.answeredQuestions ?? current.answeredQuestions,
+          skippedQuestions: patch.skippedQuestions ?? current.skippedQuestions,
+          clarityFollowupCount: patch.clarityFollowupCount ?? current.clarityFollowupCount ?? 0,
         },
       };
     });
@@ -1198,9 +1595,16 @@ function Dashboard() {
     if (!context.trim()) return;
     const metadata = ideaMetadataFromText(context, selected.ideaType);
     const patch: Partial<LightbulbIdea> = {};
-    if ((!selected.audience || isGeneratedReadoutLine(selected.audience)) && metadata.audience) patch.audience = metadata.audience;
+    if ((!selected.audience || isGeneratedReadoutLine(selected.audience)) && metadata.audience)
+      patch.audience = metadata.audience;
     if (!selected.industry && metadata.industry) patch.industry = metadata.industry;
-    if ((!selected.ideaType || isPlaceholderIdeaType(selected.ideaType) || !isBroadIdeaType(selected.ideaType)) && metadata.ideaType) patch.ideaType = metadata.ideaType;
+    if (
+      (!selected.ideaType ||
+        isPlaceholderIdeaType(selected.ideaType) ||
+        !isBroadIdeaType(selected.ideaType)) &&
+      metadata.ideaType
+    )
+      patch.ideaType = metadata.ideaType;
     if (!selected.description && metadata.description) patch.description = metadata.description;
 
     const betterTitle = generateTitle(context, metadata.ideaType ?? selected.ideaType);
@@ -1300,22 +1704,20 @@ function Dashboard() {
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
     updateExtras({
       posts: nextPosts,
-      answeredQuestions:
-        Array.from(new Set([
+      answeredQuestions: Array.from(
+        new Set([
           ...selectedExtras.answeredQuestions,
           ...newAnswered,
           ...(answeredCurrent && currentQuestion ? [currentQuestion.id] : []),
-        ])),
+        ]),
+      ),
       clarityFollowupCount: Math.min(
         MIN_CLARITY_FOLLOWUPS,
         (selectedExtras.clarityFollowupCount ?? 0) + (currentQuestion ? 1 : 0),
       ),
     });
     updateSelected({
-      shelfReadiness: Math.min(
-        100,
-        selected.shelfReadiness + (answeredCurrent ? 7 : 4),
-      ),
+      shelfReadiness: Math.min(100, selected.shelfReadiness + (answeredCurrent ? 7 : 4)),
     });
     if (categoryAsk) setCategoryAsk(null);
   };
@@ -1329,23 +1731,15 @@ function Dashboard() {
     if (currentQuestion.id.startsWith("weak-") || currentQuestion.id.startsWith("required-")) {
       if (selectedExtras.skippedQuestions.includes(currentQuestion.id)) return;
       updateExtras({
-        skippedQuestions: [
-          ...selectedExtras.skippedQuestions,
-          currentQuestion.id,
-        ],
+        skippedQuestions: [...selectedExtras.skippedQuestions, currentQuestion.id],
       });
       return;
     }
     if (selectedExtras.answeredQuestions.includes(currentQuestion.id)) return;
     updateExtras({
-      answeredQuestions: [
-        ...selectedExtras.answeredQuestions,
-        currentQuestion.id,
-      ],
+      answeredQuestions: [...selectedExtras.answeredQuestions, currentQuestion.id],
     });
   };
-
-
 
   const addIdea = (ideaType?: string) => {
     // New ideas always start on the front tree page so the user can
@@ -1360,7 +1754,6 @@ function Dashboard() {
     } catch {}
     navigate({ to: "/" });
   };
-
 
   const moveToPreClarity = (id: string) => {
     setIdeas((prev) =>
@@ -1380,6 +1773,36 @@ function Dashboard() {
     setActiveCategory("core-idea");
   };
 
+  const saveLibraryDoorAnswer = (doorId: LibraryDoorId, answer: string) => {
+    setLibraryDoorAnswers((prev) => ({ ...prev, [doorId]: answer }));
+  };
+
+  const redoLibraryWithDoorAnswers = () => {
+    if (!selected || libraryRedoUsed) return;
+    const answerText = (Object.entries(libraryDoorAnswers) as Array<[LibraryDoorId, string]>)
+      .filter(([, answer]) => answer.trim())
+      .map(
+        ([doorId, answer]) =>
+          `${doorId === "door1" ? "Door 1" : "Door 2"} answers:\n${answer.trim()}`,
+      )
+      .join("\n\n");
+
+    if (answerText) {
+      addPostIt(`Library opportunity answers for updated report:\n\n${answerText}`, "idea-notes");
+    }
+    setLibraryRedoUsed(true);
+    updateSelected({
+      shelfReadiness: Math.min(100, Math.max(selected.shelfReadiness, 96)),
+      nextAction: "Review the updated Library report",
+    });
+  };
+
+  const moveFromLibraryReportToNextLevel = () => {
+    if (!selected) return;
+    setLibraryReportOpen(false);
+    setDescending(true);
+  };
+
   // Demo Fill — instantly populate the Library/Clarity intake with realistic
   // sample content so testers can jump straight to Next Step without typing
   // through the five-question intake.
@@ -1389,7 +1812,8 @@ function Dashboard() {
       "A small neighborhood tool-sharing app where neighbors list tools they own (drills, ladders, saws) and borrow from each other. Members get reminders to return items, see who is nearby, and build trust through simple reviews. The goal is to reduce duplicate purchases, build community, and make weekend projects cheaper and friendlier across a single block or building.";
     updateSelected({
       messy: sampleMessy,
-      title: selected.title && selected.title.length > 3 ? selected.title : "Neighborhood Tool Share",
+      title:
+        selected.title && selected.title.length > 3 ? selected.title : "Neighborhood Tool Share",
       audience: "Homeowners and renters on a single block or apartment building",
       industry: "Community / sharing economy",
       ideaType: selected.ideaType || "App",
@@ -1422,19 +1846,15 @@ function Dashboard() {
     });
   };
 
-
-
   const getCategoryValue = (key: CategoryKey): string => {
     if (!selected) return "";
     const ideaPosts = selectedExtras.posts
       .filter((p) => p.kind === "idea-notes")
       .map((p) => p.text)
       .join("\n");
-    if (key === "core-idea")
-      return [selected.messy, ideaPosts].filter(Boolean).join("\n");
+    if (key === "core-idea") return [selected.messy, ideaPosts].filter(Boolean).join("\n");
     return selectedExtras.notes[key] ?? "";
   };
-
 
   const setCategoryValue = (key: CategoryKey, value: string) => {
     if (!selected) return;
@@ -1489,14 +1909,9 @@ function Dashboard() {
             />
           ))}
           {row.length < 3 &&
-            Array.from({ length: 3 - row.length }).map((_, i) => (
-              <BookGhost key={`g-${i}`} />
-            ))}
+            Array.from({ length: 3 - row.length }).map((_, i) => <BookGhost key={`g-${i}`} />)}
         </Shelf>
       ))}
-
-
-
 
       <div className="relative flex justify-center pt-2">
         <button
@@ -1561,8 +1976,7 @@ function Dashboard() {
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 opacity-40"
         style={{
-          backgroundImage:
-            "radial-gradient(rgba(255,230,170,0.6) 1px, transparent 1.5px)",
+          backgroundImage: "radial-gradient(rgba(255,230,170,0.6) 1px, transparent 1.5px)",
           backgroundSize: "120px 120px",
           backgroundPosition: "0 0, 60px 60px",
         }}
@@ -1572,8 +1986,7 @@ function Dashboard() {
           Swaps to the "ready" pose when the Next Step button unlocks. */}
       {(() => {
         const nextStepUnlocked =
-          overallPct >= 90 &&
-          (selectedExtras.clarityFollowupCount ?? 0) >= MIN_CLARITY_FOLLOWUPS;
+          overallPct >= 90 && (selectedExtras.clarityFollowupCount ?? 0) >= MIN_CLARITY_FOLLOWUPS;
         return (
           <img
             src={nextStepUnlocked ? claritySquirrelReady : claritySquirrel}
@@ -1593,16 +2006,16 @@ function Dashboard() {
         );
       })()}
 
-
-
-
-
       {/* Header — laid-down book controls floating over the library scene */}
       <header className="relative z-30 flex flex-wrap items-center justify-center gap-1.5 px-2 pt-1.5 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
         {/* LEFT: Logo + Progress book */}
         <div className="order-1 flex items-center gap-2 sm:gap-3">
           <Link to="/" className="hidden shrink-0 items-center gap-1.5 sm:flex" title="Home">
-            <img src={logo} alt="DaBotTree" className="h-8 w-8 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] sm:h-9 sm:w-9" />
+            <img
+              src={logo}
+              alt="DaBotTree"
+              className="h-8 w-8 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] sm:h-9 sm:w-9"
+            />
           </Link>
           <ProgressPopover
             disabled={!selected}
@@ -1623,7 +2036,6 @@ function Dashboard() {
             onSelect={(id) => setSelectedId(id)}
           />
           <NewLightbulbPopover onCreate={(type) => addIdea(type)} />
-
         </div>
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
@@ -1635,21 +2047,16 @@ function Dashboard() {
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             onClick={() => {
               if (!selected) return;
-              setDescending(true);
+              setLibraryReportOpen(true);
             }}
           />
         </div>
       </header>
 
-
-
       {/* Active idea bookplate — compact carved label, centered */}
       {selected && (
         <div className="relative z-20 mx-auto mt-1 flex w-full justify-center px-2 sm:mt-3 sm:px-3">
-          <IdeaBookplate
-            idea={selected}
-            onUpdate={(patch) => updateSelected(patch)}
-          />
+          <IdeaBookplate idea={selected} onUpdate={(patch) => updateSelected(patch)} />
         </div>
       )}
 
@@ -1684,8 +2091,7 @@ function Dashboard() {
         aria-hidden
         className="pointer-events-none fixed inset-x-0 bottom-0 h-24 -z-10"
         style={{
-          background:
-            "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
+          background: "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
         }}
       />
       {descending && (
@@ -1698,10 +2104,33 @@ function Dashboard() {
           }}
         />
       )}
+      {selected && libraryReportOpen && (
+        <LibraryLevelReportModal
+          idea={selected}
+          tier={libraryReportTier}
+          doorAnswers={libraryDoorAnswers}
+          redoUsed={libraryRedoUsed}
+          onClose={() => setLibraryReportOpen(false)}
+          onOpenDoor={(doorId) => setActiveLibraryDoor(doorId)}
+          onRedo={redoLibraryWithDoorAnswers}
+          onNext={moveFromLibraryReportToNextLevel}
+        />
+      )}
+      {activeLibraryDoor && (
+        <LibraryDoorQuestionModal
+          doorId={activeLibraryDoor}
+          questions={LIBRARY_DOOR_QUESTIONS[activeLibraryDoor]}
+          initialAnswer={libraryDoorAnswers[activeLibraryDoor] ?? ""}
+          onClose={() => setActiveLibraryDoor(null)}
+          onSubmit={(answer) => {
+            saveLibraryDoorAnswer(activeLibraryDoor, answer);
+            setActiveLibraryDoor(null);
+          }}
+        />
+      )}
     </main>
   );
 }
-
 
 // ============================================================
 // Top bar controls — popovers & organize button
@@ -1717,32 +2146,28 @@ const laidBookPalette: Record<
   { cover: string; edge: string; stroke: string; text: string; spine: string }
 > = {
   leather: {
-    cover:
-      "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
+    cover: "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
     edge: "linear-gradient(180deg, #f5d99a 0%, #c89a52 100%)",
     stroke: "rgba(20,10,2,0.85)",
     text: "#fbe6b8",
     spine: "#3a1f08",
   },
   gold: {
-    cover:
-      "linear-gradient(180deg, #8b5a18 0%, #5a3208 55%, #2d1605 100%)",
+    cover: "linear-gradient(180deg, #8b5a18 0%, #5a3208 55%, #2d1605 100%)",
     edge: "linear-gradient(180deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
     stroke: "rgba(20,10,2,0.85)",
     text: "#ffe9b8",
     spine: "#4a280a",
   },
   emerald: {
-    cover:
-      "linear-gradient(180deg, #1f5a3a 0%, #133a25 55%, #061f10 100%)",
+    cover: "linear-gradient(180deg, #1f5a3a 0%, #133a25 55%, #061f10 100%)",
     edge: "linear-gradient(180deg, #c8f5d4 0%, #5fc27a 100%)",
     stroke: "rgba(5,20,10,0.85)",
     text: "#dff5e2",
     spine: "#0c2e1a",
   },
   ember: {
-    cover:
-      "linear-gradient(180deg, #7a2a14 0%, #4a1408 55%, #2a0805 100%)",
+    cover: "linear-gradient(180deg, #7a2a14 0%, #4a1408 55%, #2a0805 100%)",
     edge: "linear-gradient(180deg, #ffd2a3 0%, #e88040 100%)",
     stroke: "rgba(20,5,2,0.85)",
     text: "#fde0c8",
@@ -1849,8 +2274,7 @@ function LaidBook({
               style={{
                 width: `${fillPct}%`,
                 background: pal.edge,
-                boxShadow:
-                  "0 0 10px 2px rgba(255,220,140,0.7), 0 0 2px rgba(255,255,200,0.9)",
+                boxShadow: "0 0 10px 2px rgba(255,220,140,0.7), 0 0 2px rgba(255,255,200,0.9)",
                 transition: "width 600ms ease",
               }}
             />
@@ -1875,8 +2299,7 @@ function LaidBook({
           aria-hidden
           className="absolute inset-y-1 left-1 w-[3px] rounded-sm"
           style={{
-            background:
-              "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            background: "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
             boxShadow: "0 0 4px rgba(255,210,130,0.5)",
           }}
         />
@@ -1885,8 +2308,7 @@ function LaidBook({
           aria-hidden
           className="absolute inset-y-1 right-1 w-[3px] rounded-sm"
           style={{
-            background:
-              "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
+            background: "linear-gradient(180deg, #f0d28a 0%, #a87420 100%)",
             boxShadow: "0 0 4px rgba(255,210,130,0.5)",
           }}
         />
@@ -1915,10 +2337,7 @@ function LaidBook({
   );
 }
 
-function overallProgress(
-  cats: { key: CategoryKey }[],
-  getValue: (k: CategoryKey) => string,
-) {
+function overallProgress(cats: { key: CategoryKey }[], getValue: (k: CategoryKey) => string) {
   if (cats.length === 0) return 0;
   const sum = cats.reduce((acc, c) => acc + categoryStatus(getValue(c.key)).pct, 0);
   return Math.round(sum / cats.length);
@@ -1940,9 +2359,7 @@ function MiniLaidBook({
   categoryKey?: CategoryKey;
 }) {
   const palette = categoryKey ? postItCategoryPalette[categoryKey] : undefined;
-  const bookBg = palette
-    ? palette.bg
-    : "linear-gradient(180deg, #5a3110 0%, #361a06 100%)";
+  const bookBg = palette ? palette.bg : "linear-gradient(180deg, #5a3110 0%, #361a06 100%)";
   const labelBg = palette
     ? `linear-gradient(180deg, ${palette.chip} 0%, rgba(245,230,190,0.88) 100%)`
     : "linear-gradient(180deg, #f3dca3 0%, #d8b06a 100%)";
@@ -1979,8 +2396,7 @@ function MiniLaidBook({
         className="pointer-events-none absolute inset-y-0 left-0"
         style={{
           width: `${pct}%`,
-          background:
-            "linear-gradient(90deg, rgba(255,220,140,0.22), transparent)",
+          background: "linear-gradient(90deg, rgba(255,220,140,0.22), transparent)",
           transition: "width 600ms ease",
         }}
       />
@@ -1997,10 +2413,7 @@ function MiniLaidBook({
                 : pct > 0
                   ? "linear-gradient(90deg, #c8f5d4, #5fc27a)"
                   : "transparent",
-          boxShadow:
-            pct > 0
-              ? "0 0 8px 1px rgba(180,240,140,0.7)"
-              : "none",
+          boxShadow: pct > 0 ? "0 0 8px 1px rgba(180,240,140,0.7)" : "none",
           transition: "width 600ms ease",
         }}
       />
@@ -2092,8 +2505,7 @@ function ProgressPopover({
         sideOffset={10}
         className="z-40 w-[min(92vw,420px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
         style={{
-          background:
-            "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
+          background: "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
           borderRadius: 6,
         }}
       >
@@ -2145,7 +2557,16 @@ function ProfileAvatarButton() {
     } catch {}
   }, []);
 
-  const initials = (name.trim() ? name.trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join("") : "").toUpperCase();
+  const initials = (
+    name.trim()
+      ? name
+          .trim()
+          .split(/\s+/)
+          .map((s) => s[0])
+          .slice(0, 2)
+          .join("")
+      : ""
+  ).toUpperCase();
 
   const onPick = (file: File | null) => {
     if (!file) return;
@@ -2153,7 +2574,9 @@ function ProfileAvatarButton() {
     reader.onload = () => {
       const url = String(reader.result || "");
       setPhoto(url);
-      try { localStorage.setItem("dabottree.profile.photo", url); } catch {}
+      try {
+        localStorage.setItem("dabottree.profile.photo", url);
+      } catch {}
     };
     reader.readAsDataURL(file);
   };
@@ -2201,7 +2624,9 @@ function ProfileAvatarButton() {
             value={name}
             onChange={(e) => {
               setName(e.target.value);
-              try { localStorage.setItem("dabottree.profile.name", e.target.value); } catch {}
+              try {
+                localStorage.setItem("dabottree.profile.name", e.target.value);
+              } catch {}
             }}
             placeholder="Your name"
             className="flex-1 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-1 font-serif text-[12px] text-amber-950 outline-none focus:border-amber-950"
@@ -2227,7 +2652,9 @@ function ProfileAvatarButton() {
               type="button"
               onClick={() => {
                 setPhoto(null);
-                try { localStorage.removeItem("dabottree.profile.photo"); } catch {}
+                try {
+                  localStorage.removeItem("dabottree.profile.photo");
+                } catch {}
               }}
               className="rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
             >
@@ -2239,7 +2666,6 @@ function ProfileAvatarButton() {
     </Popover>
   );
 }
-
 
 function LibraryPopover({
   ideas,
@@ -2269,8 +2695,7 @@ function LibraryPopover({
         sideOffset={10}
         className="z-40 w-[min(92vw,420px)] border-amber-950/80 p-3 text-amber-50 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
         style={{
-          background:
-            "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
+          background: "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)",
           borderRadius: 6,
         }}
       >
@@ -2299,14 +2724,11 @@ function LibraryPopover({
                     style={{
                       background:
                         spinePalettes[
-                          (idea.title.length + idea.id.length) %
-                            spinePalettes.length
+                          (idea.title.length + idea.id.length) % spinePalettes.length
                         ][1],
                     }}
                   />
-                  <span className="min-w-0 flex-1 truncate">
-                    {idea.title || "Untitled"}
-                  </span>
+                  <span className="min-w-0 flex-1 truncate">{idea.title || "Untitled"}</span>
                   <span className="shrink-0 text-[10px] italic text-amber-900/70">
                     {stageLabels[idea.stage]}
                   </span>
@@ -2376,8 +2798,7 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
           onClick={() => create()}
           className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-950 shadow-md transition hover:brightness-110"
           style={{
-            background:
-              "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+            background: "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
           }}
         >
           <Plus className="h-3.5 w-3.5" /> Blank Idea
@@ -2403,7 +2824,6 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
   );
 }
 
-
 function OrganizeButton({
   overall,
   stage,
@@ -2418,7 +2838,7 @@ function OrganizeButton({
   const remainingFollowups = Math.max(0, MIN_CLARITY_FOLLOWUPS - followupsAnswered);
   const unlocked = overall >= 90 && remainingFollowups === 0;
   const stageAdvanced = stage !== "lightbulb";
-  const label = "Next Step";
+  const label = unlocked ? "View Report" : "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
 
   const handleClick = () => {
@@ -2451,24 +2871,19 @@ function OrganizeButton({
             stageAdvanced
               ? "Already organized"
               : unlocked
-                ? `Ready! Move forward (${overall}%)`
+                ? `Ready! View the Library report (${overall}%)`
                 : remainingFollowups > 0
                   ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
                   : `Asleep — unlocks at 90% (currently ${overall}%)`
           }
-          trailing={
-            unlocked ? (
-              <ArrowRight className="h-3 w-3 opacity-90" />
-            ) : null
-          }
+          trailing={unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null}
         />
       </div>
       {showLockMsg && (
         <div
           className="absolute right-0 top-full z-50 mt-2 w-[240px] rounded-md border border-amber-950/70 px-3 py-2 font-serif text-[11px] italic text-amber-950 shadow-[0_12px_28px_-12px_rgba(20,8,2,0.7)] animate-fade-in"
           style={{
-            background:
-              "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+            background: "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
           }}
         >
           {remainingFollowups > 0 ? (
@@ -2483,6 +2898,268 @@ function OrganizeButton({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function LibraryLevelReportModal({
+  idea,
+  tier,
+  doorAnswers,
+  redoUsed,
+  onClose,
+  onOpenDoor,
+  onRedo,
+  onNext,
+}: {
+  idea: LightbulbIdea;
+  tier: ReportTier;
+  doorAnswers: Partial<Record<LibraryDoorId, string>>;
+  redoUsed: boolean;
+  onClose: () => void;
+  onOpenDoor: (doorId: LibraryDoorId) => void;
+  onRedo: () => void;
+  onNext: () => void;
+}) {
+  const answeredDoors = (Object.keys(doorAnswers) as LibraryDoorId[]).filter((doorId) =>
+    doorAnswers[doorId]?.trim(),
+  );
+  const hasAnswers = answeredDoors.length > 0;
+  const canOpenDoor = (doorId: LibraryDoorId) => {
+    if (redoUsed) return false;
+    if (tier === "good") return false;
+    if (tier === "best") return true;
+    return answeredDoors.length === 0 || Boolean(doorAnswers[doorId]?.trim());
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Library report"
+    >
+      <button
+        type="button"
+        aria-label="Close report"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+      />
+      <div className="relative max-h-[92vh] w-full max-w-[860px] overflow-y-auto rounded-[18px] border border-amber-200/60 bg-[rgba(45,24,7,0.96)] px-6 py-7 text-amber-50 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9),0_0_70px_-10px_rgba(255,190,90,0.55)] sm:px-8">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
+        >
+          x
+        </button>
+        <p className="text-center text-[11px] uppercase tracking-[0.34em] text-amber-100/80">
+          Library Report
+        </p>
+        <h2 className="mt-2 text-center font-serif text-[28px] leading-tight text-amber-50">
+          {redoUsed ? "Updated Library report" : "Your Library level is ready"}
+        </h2>
+        <div className="mx-auto mt-4 max-w-2xl rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
+          <p>
+            <strong>{idea.title}</strong> now has enough Library clarity to move forward. This
+            summary captures the idea direction, the strongest early shape, and the opportunity
+            questions that can deepen the final project report.
+          </p>
+          <p className="mt-3 text-amber-100/75">
+            Report path: <span className="font-semibold uppercase">{tier}</span>.{" "}
+            {tier === "good"
+              ? "Opportunity doors are visible but locked on this path."
+              : tier === "better"
+                ? "You can open one opportunity door for this level."
+                : "Both opportunity doors are available for this level."}
+          </p>
+        </div>
+
+        {!redoUsed && (
+          <>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {(["door1", "door2"] as const).map((doorId) => {
+                const enabled = canOpenDoor(doorId);
+                const saved = Boolean(doorAnswers[doorId]?.trim());
+                return (
+                  <button
+                    key={doorId}
+                    type="button"
+                    disabled={!enabled}
+                    onClick={() => onOpenDoor(doorId)}
+                    className={
+                      "relative min-h-[190px] rounded-xl border p-4 text-center transition " +
+                      (enabled
+                        ? "border-amber-200/65 bg-gradient-to-b from-amber-900/40 to-black/55 text-amber-50 shadow-[0_0_26px_-10px_rgba(255,210,120,0.85)] hover:-translate-y-0.5"
+                        : "cursor-not-allowed border-amber-200/15 bg-black/40 text-amber-100/35 saturate-50")
+                    }
+                  >
+                    <span className="mx-auto flex h-28 w-20 items-center justify-center rounded-t-full border border-amber-200/45 bg-gradient-to-b from-amber-700 to-amber-950 shadow-inner">
+                      <span className="text-sm uppercase tracking-[0.18em]">
+                        {doorId === "door1" ? "Door 1" : "Door 2"}
+                      </span>
+                    </span>
+                    <span className="mt-3 block text-sm">
+                      {saved ? "Saved" : enabled ? "Open questions" : "Locked"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              disabled={!hasAnswers}
+              onClick={onRedo}
+              className={
+                "mt-6 w-full rounded-full border px-4 py-3 text-sm font-semibold transition " +
+                (hasAnswers
+                  ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
+                  : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/40")
+              }
+            >
+              Redo Library level with new information
+            </button>
+          </>
+        )}
+
+        {redoUsed && (
+          <button
+            type="button"
+            onClick={onNext}
+            className="mt-6 w-full rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-3 text-sm font-semibold text-amber-950 transition hover:from-amber-200 hover:to-amber-400"
+          >
+            I'm ready for the next level
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LibraryDoorQuestionModal({
+  doorId,
+  questions,
+  initialAnswer,
+  onClose,
+  onSubmit,
+}: {
+  doorId: LibraryDoorId;
+  questions: string[];
+  initialAnswer: string;
+  onClose: () => void;
+  onSubmit: (answer: string) => void;
+}) {
+  const [answer, setAnswer] = useState(initialAnswer);
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setVoiceSupported(
+      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
+    );
+  }, []);
+
+  const startVoice = useCallback(() => {
+    if (!voiceSupported) return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    const baseText = answer ? answer.replace(/\s+$/, "") + " " : "";
+    let finalText = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const result = e.results[i];
+        if (result.isFinal) finalText += result[0].transcript;
+        else interim += result[0].transcript;
+      }
+      setAnswer(baseText + finalText + interim);
+    };
+    rec.onerror = () => setVoiceState("idle");
+    rec.onend = () => {
+      setVoiceState((state) => (state === "listening" ? "processing" : state));
+      setTimeout(() => setVoiceState("idle"), 350);
+    };
+    recognitionRef.current = rec;
+    setVoiceState("listening");
+    try {
+      rec.start();
+    } catch {
+      setVoiceState("idle");
+    }
+  }, [answer, voiceSupported]);
+
+  const stopVoice = useCallback(() => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+    setVoiceState("processing");
+  }, []);
+
+  useEffect(
+    () => () => {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+    },
+    [],
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Opportunity questions"
+    >
+      <button
+        type="button"
+        aria-label="Close questions"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/75 backdrop-blur-sm"
+      />
+      <div className="relative max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[18px] border border-amber-200/60 bg-[rgba(45,24,7,0.98)] p-6 text-amber-50 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9)]">
+        <h3 className="font-serif text-2xl">
+          {doorId === "door1" ? "Door 1" : "Door 2"} questions
+        </h3>
+        <ol className="mt-4 space-y-3 text-sm leading-relaxed text-amber-50/90">
+          {questions.map((question, index) => (
+            <li key={question}>
+              <span className="font-semibold text-amber-200">{index + 1}. </span>
+              {question}
+            </li>
+          ))}
+        </ol>
+        <div className="mt-5 rounded-xl border border-amber-200/25 bg-black/30 p-3">
+          <textarea
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            rows={7}
+            placeholder="Answer the questions in your own words..."
+            className="w-full resize-none bg-transparent text-sm leading-relaxed text-amber-50 placeholder:text-amber-100/40 focus:outline-none"
+          />
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-amber-200/10 pt-3">
+            <MicButton
+              state={voiceState}
+              onStart={startVoice}
+              onStop={stopVoice}
+              supported={voiceSupported}
+            />
+            <button
+              type="button"
+              onClick={() => onSubmit(answer)}
+              className="rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-5 py-2 text-sm font-semibold text-amber-950 transition hover:from-amber-200 hover:to-amber-400"
+            >
+              Submit answers
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2505,8 +3182,7 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
       <span
         className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
         style={{
-          background:
-            "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
+          background: "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
           border: "1px solid rgba(20,10,2,0.85)",
           boxShadow:
             "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
@@ -2539,10 +3215,8 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
           className="pointer-events-none absolute bottom-0 left-0 h-[6px]"
           style={{
             width: `${fillPct}%`,
-            background:
-              "linear-gradient(90deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
-            boxShadow:
-              "0 0 14px 3px rgba(255,220,140,0.85), 0 0 4px rgba(255,255,200,0.95)",
+            background: "linear-gradient(90deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
+            boxShadow: "0 0 14px 3px rgba(255,220,140,0.85), 0 0 4px rgba(255,255,200,0.95)",
             transition: "width 700ms ease",
           }}
         />
@@ -2603,7 +3277,13 @@ function ProgressBook({ pct, open }: { pct: number; open: boolean }) {
               className="font-serif text-[8px] italic sm:text-[10px]"
               style={{ color: "rgba(251,230,184,0.75)" }}
             >
-              {fillPct >= 90 ? "Ready" : fillPct >= 50 ? "Growing" : fillPct > 0 ? "Started" : "Empty"}
+              {fillPct >= 90
+                ? "Ready"
+                : fillPct >= 50
+                  ? "Growing"
+                  : fillPct > 0
+                    ? "Started"
+                    : "Empty"}
             </span>
           </span>
         </span>
@@ -2630,8 +3310,7 @@ function IdeaBookplate({
         title="Edit idea details"
         className="group relative inline-flex max-w-[min(94vw,520px)] items-center gap-1.5 rounded-[4px] border px-3 py-1 font-serif shadow-[0_10px_26px_-12px_rgba(20,8,2,0.8)] transition hover:-translate-y-[1px] sm:gap-2.5 sm:px-5 sm:py-2"
         style={{
-          background:
-            "linear-gradient(180deg, #fbf6e7 0%, #efe3c4 100%)",
+          background: "linear-gradient(180deg, #fbf6e7 0%, #efe3c4 100%)",
           borderColor: "rgba(60,30,8,0.7)",
           boxShadow:
             "inset 0 1px 0 rgba(255,250,235,0.95), inset 0 -2px 0 rgba(120,70,20,0.28), 0 8px 18px -8px rgba(20,8,2,0.6)",
@@ -2668,8 +3347,7 @@ function IdeaBookplate({
         <DialogContent
           className="max-w-md border-amber-950/70 p-5 text-amber-950"
           style={{
-            background:
-              "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
+            background: "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
           }}
         >
           <DialogHeader>
@@ -2718,8 +3396,7 @@ function IdeaBookplate({
               onClick={() => setEditOpen(false)}
               className="rounded-sm border border-amber-950/60 px-4 py-1.5 font-serif text-[12px] font-semibold text-amber-950 shadow-sm transition hover:brightness-105"
               style={{
-                background:
-                  "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+                background: "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
               }}
             >
               Done
@@ -2763,10 +3440,6 @@ function BookplateField({
   );
 }
 
-
-
-
-
 // Wood / shelf primitives
 // ============================================================
 
@@ -2798,7 +3471,6 @@ function ShelfWall({
 }) {
   return (
     <aside className={`relative ${className ?? ""}`}>
-
       {/* hanging lantern */}
       <div
         aria-hidden
@@ -2808,8 +3480,7 @@ function ShelfWall({
         <div
           className="mx-auto h-3.5 w-3.5 rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, #ffe6a3 0%, #e09a32 55%, #6b2f08 100%)",
+            background: "radial-gradient(circle, #ffe6a3 0%, #e09a32 55%, #6b2f08 100%)",
             boxShadow: "0 0 22px 8px rgba(255,196,110,0.55)",
           }}
         />
@@ -2823,8 +3494,7 @@ function ShelfWall({
         <div
           className="relative mx-auto rounded-[2px] border border-amber-950/60 px-3 py-2 text-center shadow-[0_6px_14px_-6px_rgba(0,0,0,0.7)]"
           style={{
-            background:
-              "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+            background: "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
           }}
         >
           <WoodGrain />
@@ -2832,9 +3502,7 @@ function ShelfWall({
             {title}
           </h2>
           {subtitle && (
-            <p className="relative font-serif text-[11px] italic text-amber-100/75">
-              {subtitle}
-            </p>
+            <p className="relative font-serif text-[11px] italic text-amber-100/75">{subtitle}</p>
           )}
         </div>
       </header>
@@ -2871,7 +3539,6 @@ function Ivy({ side }: { side: "left" | "right" }) {
   );
 }
 
-
 function Shelf({
   children,
   widthPct = 100,
@@ -2881,26 +3548,18 @@ function Shelf({
   widthPct?: number;
   align?: "left" | "right" | "center";
 }) {
-  const marginClass =
-    align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto";
+  const marginClass = align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto";
   return (
-    <div
-      className={`relative ${marginClass}`}
-      style={{ width: `${widthPct}%` }}
-    >
+    <div className={`relative ${marginClass}`} style={{ width: `${widthPct}%` }}>
       {/* books sitting on the plank */}
-      <div className="flex items-end justify-center gap-1.5 px-2">
-        {children}
-      </div>
+      <div className="flex items-end justify-center gap-1.5 px-2">{children}</div>
       {/* plank */}
       <div
         aria-hidden
         className="relative mt-0 h-3 rounded-sm"
         style={{
-          background:
-            "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
-          boxShadow:
-            "0 6px 12px -4px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,210,150,0.25)",
+          background: "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+          boxShadow: "0 6px 12px -4px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,210,150,0.25)",
         }}
       >
         <div
@@ -2916,29 +3575,21 @@ function Shelf({
         aria-hidden
         className="h-2 -mt-1 rounded-b-sm opacity-70"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.55), transparent)",
+          background: "linear-gradient(180deg, rgba(0,0,0,0.55), transparent)",
         }}
       />
     </div>
   );
 }
 
-function ShelfAction({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
+function ShelfAction({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <div className="relative px-2 pb-1">
       <button
         onClick={onClick}
         className="w-full rounded-sm border border-amber-300/60 px-3 py-2 font-serif text-xs font-medium text-amber-950 shadow-md transition hover:brightness-110"
         style={{
-          background:
-            "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+          background: "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
         }}
       >
         {label}
@@ -3043,16 +3694,26 @@ type ObjectKind =
 
 function objectKindFor(label: string): ObjectKind {
   switch (label) {
-    case "Idea Notes": return "ink-bottle";
-    case "Info Gathered": return "book-stack";
-    case "Clarity": return "vial";
-    case "Audience": return "lantern";
-    case "Design": return "paint-vial";
-    case "Money": return "coin-gauge";
-    case "Risks": return "warning-marker";
-    case "Build Plan": return "blueprint-spine";
-    case "Ready": return "ready-tome";
-    default: return "vial";
+    case "Idea Notes":
+      return "ink-bottle";
+    case "Info Gathered":
+      return "book-stack";
+    case "Clarity":
+      return "vial";
+    case "Audience":
+      return "lantern";
+    case "Design":
+      return "paint-vial";
+    case "Money":
+      return "coin-gauge";
+    case "Risks":
+      return "warning-marker";
+    case "Build Plan":
+      return "blueprint-spine";
+    case "Ready":
+      return "ready-tome";
+    default:
+      return "vial";
   }
 }
 
@@ -3076,7 +3737,11 @@ function CategoryBook({
   // glow palette: empty parchment-amber, growing green, full gold
   const fill =
     pct === 0
-      ? { core: "rgba(180,140,80,0.25)", glow: "rgba(220,180,110,0.35)", top: "rgba(255,230,170,0.4)" }
+      ? {
+          core: "rgba(180,140,80,0.25)",
+          glow: "rgba(220,180,110,0.35)",
+          top: "rgba(255,230,170,0.4)",
+        }
       : full
         ? { core: "#f5d27a", glow: "rgba(255,210,120,0.85)", top: "#fff4c0" }
         : pct < 50
@@ -3101,7 +3766,10 @@ function CategoryBook({
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-xl"
-          style={{ background: "radial-gradient(circle at 50% 60%, rgba(255,220,150,0.55), transparent 70%)" }}
+          style={{
+            background:
+              "radial-gradient(circle at 50% 60%, rgba(255,220,150,0.55), transparent 70%)",
+          }}
         />
       )}
       {/* underglow puddle on the shelf */}
@@ -3143,19 +3811,31 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
 
   // Outline path per kind
   const paths: Record<ObjectKind, string> = {
-    "ink-bottle": "M18 6 H46 V14 C46 16 48 16 48 20 V30 C56 34 58 44 58 56 V92 C58 100 52 104 44 104 H20 C12 104 6 100 6 92 V56 C6 44 8 34 16 30 V20 C16 16 18 16 18 14 Z",
-    "book-stack": "M6 14 H58 V28 H6 Z M4 30 H60 V46 H4 Z M6 48 H58 V64 H6 Z M4 66 H60 V84 H4 Z M6 86 H58 V102 H6 Z",
-    "vial": "M22 6 H42 V12 H40 V28 L52 92 C53 100 47 104 40 104 H24 C17 104 11 100 12 92 L24 28 V12 H22 Z",
-    "lantern": "M20 6 H44 V12 H46 L52 18 V24 H12 V18 L18 12 H20 Z M14 26 H50 V90 H14 Z M16 92 H48 V100 H16 Z",
-    "paint-vial": "M16 6 H48 V14 H44 V26 C52 30 56 38 56 50 V94 C56 100 52 104 46 104 H18 C12 104 8 100 8 94 V50 C8 38 12 30 20 26 V14 H16 Z",
-    "coin-gauge": "M10 14 C10 8 18 6 32 6 C46 6 54 8 54 14 V94 C54 100 46 104 32 104 C18 104 10 100 10 94 Z",
+    "ink-bottle":
+      "M18 6 H46 V14 C46 16 48 16 48 20 V30 C56 34 58 44 58 56 V92 C58 100 52 104 44 104 H20 C12 104 6 100 6 92 V56 C6 44 8 34 16 30 V20 C16 16 18 16 18 14 Z",
+    "book-stack":
+      "M6 14 H58 V28 H6 Z M4 30 H60 V46 H4 Z M6 48 H58 V64 H6 Z M4 66 H60 V84 H4 Z M6 86 H58 V102 H6 Z",
+    vial: "M22 6 H42 V12 H40 V28 L52 92 C53 100 47 104 40 104 H24 C17 104 11 100 12 92 L24 28 V12 H22 Z",
+    lantern:
+      "M20 6 H44 V12 H46 L52 18 V24 H12 V18 L18 12 H20 Z M14 26 H50 V90 H14 Z M16 92 H48 V100 H16 Z",
+    "paint-vial":
+      "M16 6 H48 V14 H44 V26 C52 30 56 38 56 50 V94 C56 100 52 104 46 104 H18 C12 104 8 100 8 94 V50 C8 38 12 30 20 26 V14 H16 Z",
+    "coin-gauge":
+      "M10 14 C10 8 18 6 32 6 C46 6 54 8 54 14 V94 C54 100 46 104 32 104 C18 104 10 100 10 94 Z",
     "warning-marker": "M32 4 L60 100 H4 Z",
-    "blueprint-spine": "M10 6 H54 C56 6 58 8 58 10 V100 C58 102 56 104 54 104 H10 C8 104 6 102 6 100 V10 C6 8 8 6 10 6 Z",
-    "ready-tome": "M8 8 H56 C58 8 60 10 60 12 V100 C60 102 58 104 56 104 H8 C6 104 4 102 4 100 V12 C4 10 6 8 8 8 Z",
+    "blueprint-spine":
+      "M10 6 H54 C56 6 58 8 58 10 V100 C58 102 56 104 54 104 H10 C8 104 6 102 6 100 V10 C6 8 8 6 10 6 Z",
+    "ready-tome":
+      "M8 8 H56 C58 8 60 10 60 12 V100 C60 102 58 104 56 104 H8 C6 104 4 102 4 100 V12 C4 10 6 8 8 8 Z",
   };
 
   return (
-    <svg width={W} height={H} viewBox="0 0 64 110" className="relative drop-shadow-[0_4px_6px_rgba(0,0,0,0.55)]">
+    <svg
+      width={W}
+      height={H}
+      viewBox="0 0 64 110"
+      className="relative drop-shadow-[0_4px_6px_rgba(0,0,0,0.55)]"
+    >
       <defs>
         {/* clip to vessel shape so fill stays inside */}
         <clipPath id={vesselId}>
@@ -3213,18 +3893,16 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
           />
         )}
         {/* inner highlight for glass kinds */}
-        {(kind === "vial" || kind === "paint-vial" || kind === "ink-bottle" || kind === "lantern") && (
+        {(kind === "vial" ||
+          kind === "paint-vial" ||
+          kind === "ink-bottle" ||
+          kind === "lantern") && (
           <rect x="0" y="0" width="64" height="110" fill={`url(#glass-${vesselId})`} />
         )}
       </g>
 
       {/* outline / glass rim re-stroked on top */}
-      <path
-        d={paths[kind]}
-        fill="none"
-        stroke="rgba(0,0,0,0.85)"
-        strokeWidth="1.3"
-      />
+      <path d={paths[kind]} fill="none" stroke="rgba(0,0,0,0.85)" strokeWidth="1.3" />
       {/* shine streak */}
       <path
         d="M14 26 Q18 60 16 92"
@@ -3232,7 +3910,9 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
-        opacity={kind === "book-stack" || kind === "blueprint-spine" || kind === "ready-tome" ? 0 : 0.5}
+        opacity={
+          kind === "book-stack" || kind === "blueprint-spine" || kind === "ready-tome" ? 0 : 0.5
+        }
       />
 
       {/* kind-specific accents */}
@@ -3248,7 +3928,17 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
         </g>
       )}
       {kind === "warning-marker" && (
-        <text x="32" y="78" textAnchor="middle" fontSize="22" fontWeight="800" fill={pct < 50 ? "#fff" : "#fff8dc"} opacity="0.85">!</text>
+        <text
+          x="32"
+          y="78"
+          textAnchor="middle"
+          fontSize="22"
+          fontWeight="800"
+          fill={pct < 50 ? "#fff" : "#fff8dc"}
+          opacity="0.85"
+        >
+          !
+        </text>
       )}
       {kind === "blueprint-spine" && (
         <g stroke="rgba(255,255,255,0.25)" strokeWidth="0.6" fill="none">
@@ -3259,12 +3949,13 @@ function ShelfObject({ kind, pct, fill }: { kind: ObjectKind; pct: number; fill:
         </g>
       )}
       {kind === "ready-tome" && pct >= 100 && (
-        <text x="32" y="62" textAnchor="middle" fontSize="22" fill="#fff4c0" opacity="0.95">★</text>
+        <text x="32" y="62" textAnchor="middle" fontSize="22" fill="#fff4c0" opacity="0.95">
+          ★
+        </text>
       )}
     </svg>
   );
 }
-
 
 // ============================================================
 // Journal (center)
@@ -3338,15 +4029,28 @@ function Journal(props: {
     };
     recognitionRef.current = rec;
     setVoiceState("listening");
-    try { rec.start(); } catch { setVoiceState("idle"); }
+    try {
+      rec.start();
+    } catch {
+      setVoiceState("idle");
+    }
   }, [voiceSupported, value, activeCategory, setCategoryValue]);
 
   const stopVoice = useCallback(() => {
-    try { recognitionRef.current?.stop(); } catch {}
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
     setVoiceState("processing");
   }, []);
 
-  useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
+  useEffect(
+    () => () => {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+    },
+    [],
+  );
 
   return (
     <div className="relative mx-auto w-full max-w-[760px]">
@@ -3390,16 +4094,25 @@ function Journal(props: {
         <CornerOrnament position="br" />
 
         {/* leather edges left/right (thin) */}
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-2"
-          style={{ background: "linear-gradient(90deg, #3a1d08, rgba(60,30,8,0))" }} />
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-2"
-          style={{ background: "linear-gradient(270deg, #3a1d08, rgba(60,30,8,0))" }} />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-2"
+          style={{ background: "linear-gradient(90deg, #3a1d08, rgba(60,30,8,0))" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-2"
+          style={{ background: "linear-gradient(270deg, #3a1d08, rgba(60,30,8,0))" }}
+        />
         {/* parchment grain */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-25"
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-25"
           style={{
             backgroundImage: "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
             backgroundSize: "12px 12px",
-          }} />
+          }}
+        />
 
         <div className="relative px-5 py-3">
           {/* compact header row */}
@@ -3422,7 +4135,9 @@ function Journal(props: {
               <button
                 onClick={() => moveToPreClarity(selected.id)}
                 className="shrink-0 rounded-sm border border-emerald-900/60 px-3 py-1.5 font-serif text-[11px] font-medium text-emerald-50 shadow"
-                style={{ background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)" }}
+                style={{
+                  background: "linear-gradient(180deg, #3f9c63 0%, #1f6a3a 60%, #0f3a20 100%)",
+                }}
               >
                 Organize This Idea →
               </button>
@@ -3568,16 +4283,26 @@ function MicButton({
           style={{ animation: "pulse 1.2s ease-in-out infinite" }}
         />
       )}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <rect x="9" y="2" width="6" height="12" rx="3" />
         <path d="M5 11a7 7 0 0 0 14 0" />
         <line x1="12" y1="18" x2="12" y2="22" />
       </svg>
-      <span>
-        {listening ? "Stop" : processing ? "…" : "Speak Note"}
-      </span>
+      <span>{listening ? "Stop" : processing ? "…" : "Speak Note"}</span>
       {listening && (
-        <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-red-200" style={{ animation: "pulse 0.9s ease-in-out infinite" }} />
+        <span
+          className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-red-200"
+          style={{ animation: "pulse 0.9s ease-in-out infinite" }}
+        />
       )}
     </button>
   );
@@ -3607,20 +4332,13 @@ function DeskIconButton({
   );
 }
 
-function DeskButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
+function DeskButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
       className="rounded-sm border border-amber-900/40 px-3 py-1.5 font-serif text-xs text-amber-950 shadow-sm transition hover:brightness-105"
       style={{
-        background:
-          "linear-gradient(180deg, #f3dca3 0%, #d8b06a 60%, #a87a2a 100%)",
+        background: "linear-gradient(180deg, #f3dca3 0%, #d8b06a 60%, #a87a2a 100%)",
       }}
     >
       {label}
@@ -3628,11 +4346,7 @@ function DeskButton({
   );
 }
 
-function CornerOrnament({
-  position,
-}: {
-  position: "tl" | "tr" | "bl" | "br";
-}) {
+function CornerOrnament({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
   const pos: Record<string, string> = {
     tl: "top-1 left-1",
     tr: "top-1 right-1 rotate-90",
@@ -3658,15 +4372,7 @@ function CornerOrnament({
 }
 
 function Dot({ pct }: { pct: number }) {
-
-  const color =
-    pct === 0
-      ? "#c9b18a"
-      : pct < 50
-        ? "#d97a3b"
-        : pct < 100
-          ? "#caa14a"
-          : "#3f9c63";
+  const color = pct === 0 ? "#c9b18a" : pct < 50 ? "#d97a3b" : pct < 100 ? "#caa14a" : "#3f9c63";
   return (
     <span
       className="inline-block h-1.5 w-1.5 rounded-full"
@@ -3741,8 +4447,7 @@ function ClarityGuide({
           <div
             className="relative w-[min(92vw,26rem)] rounded-2xl border border-amber-950/60 p-3 shadow-2xl lg:w-[24rem]"
             style={{
-              background:
-                "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
+              background: "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
               animation: "clarity-float 5s ease-in-out infinite",
             }}
           >
@@ -3797,8 +4502,7 @@ function ClarityGuide({
             aria-label="Show Clarity's question"
             className="rounded-full border border-amber-950/60 px-3 py-1.5 font-serif text-[11px] uppercase tracking-[0.18em] text-amber-950 shadow-lg transition hover:brightness-105"
             style={{
-              background:
-                "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
+              background: "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
               animation: "clarity-float 5s ease-in-out infinite",
             }}
           >
@@ -3809,7 +4513,6 @@ function ClarityGuide({
     </div>
   );
 }
-
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -3833,13 +4536,32 @@ function formatSignals(idea: LightbulbIdea): string {
 // ============================================================
 
 const postItPalettes: Array<{ bg: string; edge: string; tape: string }> = [
-  { bg: "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)", edge: "#b08840", tape: "rgba(120,80,30,0.55)" },
-  { bg: "linear-gradient(180deg, #f4dcae 0%, #e2c084 100%)", edge: "#9c6b28", tape: "rgba(120,80,30,0.55)" },
-  { bg: "linear-gradient(180deg, #efe1c0 0%, #d8c290 100%)", edge: "#8a6020", tape: "rgba(120,80,30,0.55)" },
-  { bg: "linear-gradient(180deg, #e8d3a0 0%, #c9ad6e 100%)", edge: "#7a5018", tape: "rgba(120,80,30,0.55)" },
-  { bg: "linear-gradient(180deg, #ead7ab 0%, #cdb47a 100%)", edge: "#8a5e22", tape: "rgba(120,80,30,0.55)" },
+  {
+    bg: "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)",
+    edge: "#b08840",
+    tape: "rgba(120,80,30,0.55)",
+  },
+  {
+    bg: "linear-gradient(180deg, #f4dcae 0%, #e2c084 100%)",
+    edge: "#9c6b28",
+    tape: "rgba(120,80,30,0.55)",
+  },
+  {
+    bg: "linear-gradient(180deg, #efe1c0 0%, #d8c290 100%)",
+    edge: "#8a6020",
+    tape: "rgba(120,80,30,0.55)",
+  },
+  {
+    bg: "linear-gradient(180deg, #e8d3a0 0%, #c9ad6e 100%)",
+    edge: "#7a5018",
+    tape: "rgba(120,80,30,0.55)",
+  },
+  {
+    bg: "linear-gradient(180deg, #ead7ab 0%, #cdb47a 100%)",
+    edge: "#8a5e22",
+    tape: "rgba(120,80,30,0.55)",
+  },
 ];
-
 
 function NoteDesk(props: {
   selected: LightbulbIdea;
@@ -3914,15 +4636,28 @@ function NoteDesk(props: {
     };
     recognitionRef.current = rec;
     setVoiceState("listening");
-    try { rec.start(); } catch { setVoiceState("idle"); }
+    try {
+      rec.start();
+    } catch {
+      setVoiceState("idle");
+    }
   }, [voiceSupported]);
 
   const stopVoice = useCallback(() => {
-    try { recognitionRef.current?.stop(); } catch {}
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
     setVoiceState("processing");
   }, []);
 
-  useEffect(() => () => { try { recognitionRef.current?.stop(); } catch {} }, []);
+  useEffect(
+    () => () => {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+    },
+    [],
+  );
 
   const submit = () => {
     if (!draft.trim()) return;
@@ -3942,18 +4677,22 @@ function NoteDesk(props: {
       {/* Notes collection — parchment slips on the desk */}
       <div className="relative z-10 mx-auto mt-1 w-full max-w-[440px]">
         <div className="grid grid-cols-2 gap-3 pb-2 md:grid-cols-2 md:gap-3">
-          {([
-            "clarity", "problem",
-            "audience", "features",
-            "workflow", "design",
-            "business", "concerns",
-            "core-idea",
-          ] as CategoryKey[]).map((cat, i) => {
+          {(
+            [
+              "clarity",
+              "problem",
+              "audience",
+              "features",
+              "workflow",
+              "design",
+              "business",
+              "concerns",
+              "core-idea",
+            ] as CategoryKey[]
+          ).map((cat, i) => {
             // Aggregate any posts the user has captured for this category so
             // the detail view shows everything in one place.
-            const postsForCat = extras.posts.filter((p) =>
-              (p.categories ?? []).includes(cat),
-            );
+            const postsForCat = extras.posts.filter((p) => (p.categories ?? []).includes(cat));
             const missingPlaceholder = CATEGORY_MISSING[cat];
             // Count useful Clarity-digested folder summaries and captured notes
             // toward stars, while missing placeholders stay empty.
@@ -3966,24 +4705,19 @@ function NoteDesk(props: {
               if (body.startsWith(missingPlaceholder)) return false;
               return true;
             });
-            const ratingAggregated = realPosts
-              .map((p) => p.fullText ?? p.text)
-              .join("\n\n");
+            const ratingAggregated = realPosts.map((p) => p.fullText ?? p.text).join("\n\n");
             // For star strength on most categories, only count developed notes.
             // Core idea is special: the user's initial messy dump counts toward
             // its strength so the first star lights up as soon as there's a seed.
             const rawValue = getCategoryValue(cat);
-            const ratingValue =
-              cat === "core-idea" ? rawValue : extras.notes[cat] ?? "";
+            const ratingValue = cat === "core-idea" ? rawValue : (extras.notes[cat] ?? "");
             const ratingCombined = [ratingValue, ratingAggregated]
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
             const pct = categoryStatus(ratingCombined).pct;
             // Display still shows everything the user has captured so the
             // detail view is complete, even though stars are stricter.
-            const displayAggregated = postsForCat
-              .map((p) => p.fullText ?? p.text)
-              .join("\n\n");
+            const displayAggregated = postsForCat.map((p) => p.fullText ?? p.text).join("\n\n");
             const displayCombined = [rawValue, displayAggregated]
               .filter((s) => s && s.trim().length > 0)
               .join("\n\n");
@@ -4019,7 +4753,6 @@ function NoteDesk(props: {
           className="mx-auto w-full max-w-[760px] px-2 pb-3 lg:translate-x-8"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
-
           {/* wood tray under the parchment */}
           <div className="relative">
             <ClarityGuide
@@ -4034,8 +4767,7 @@ function NoteDesk(props: {
               aria-hidden
               className="pointer-events-none absolute -inset-x-2 -inset-y-1 rounded-[14px]"
               style={{
-                background:
-                  "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
+                background: "linear-gradient(180deg, #6b3f1a 0%, #4a2810 60%, #2a1505 100%)",
                 boxShadow:
                   "0 14px 30px -12px rgba(20,8,2,0.8), inset 0 1px 0 rgba(255,210,150,0.2)",
               }}
@@ -4043,8 +4775,7 @@ function NoteDesk(props: {
             <div
               className="relative overflow-hidden rounded-[10px] border border-amber-950/70 shadow-inner"
               style={{
-                background:
-                  "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)",
+                background: "linear-gradient(180deg, #f8e8c2 0%, #ecd29a 100%)",
               }}
             >
               {/* parchment grain */}
@@ -4052,8 +4783,7 @@ function NoteDesk(props: {
                 aria-hidden
                 className="pointer-events-none absolute inset-0 opacity-20"
                 style={{
-                  backgroundImage:
-                    "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
+                  backgroundImage: "radial-gradient(rgba(120,72,20,0.18) 1px, transparent 1px)",
                   backgroundSize: "12px 12px",
                 }}
               />
@@ -4090,7 +4820,6 @@ function NoteDesk(props: {
                       ? "Transcribing…"
                       : `${extras.posts.length} ${extras.posts.length === 1 ? "note" : "notes"}`}
                 </span>
-
               </div>
               <div className="relative flex items-end gap-2 px-3 py-2">
                 <textarea
@@ -4106,8 +4835,7 @@ function NoteDesk(props: {
                   disabled={!draft.trim()}
                   className="shrink-0 rounded-md border border-amber-900/60 px-3 py-2 font-serif text-[12px] font-semibold text-amber-50 shadow transition disabled:opacity-50"
                   style={{
-                    background:
-                      "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)",
+                    background: "linear-gradient(180deg, #5a3a18 0%, #3a230d 100%)",
                   }}
                 >
                   Add
@@ -4166,7 +4894,6 @@ function NoteDesk(props: {
     </div>
   );
 }
-
 
 function PostItCard({
   text,
@@ -4227,10 +4954,8 @@ function PostItCard({
           aria-hidden
           className="pointer-events-none absolute -top-1 left-1/2 h-1.5 w-10 -translate-x-1/2"
           style={{
-            background:
-              "linear-gradient(180deg, #8a5a22 0%, #5a3410 60%, #2d1808 100%)",
-            boxShadow:
-              "0 1px 2px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,210,150,0.25)",
+            background: "linear-gradient(180deg, #8a5a22 0%, #5a3410 60%, #2d1808 100%)",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,210,150,0.25)",
             borderRadius: "2px 2px 1px 1px",
           }}
         />
@@ -4250,8 +4975,7 @@ function PostItCard({
           aria-hidden
           className="pointer-events-none absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full"
           style={{
-            background:
-              "radial-gradient(circle at 30% 30%, #f5d27a 0%, #a86614 55%, #4a2808 100%)",
+            background: "radial-gradient(circle at 30% 30%, #f5d27a 0%, #a86614 55%, #4a2808 100%)",
             boxShadow: "0 1px 2px rgba(0,0,0,0.5)",
           }}
         />
@@ -4274,38 +4998,42 @@ function PostItCard({
           >
             {isMixed ? "Mixed" : label}
           </span>
-          {!pinned && (() => {
-            const stars = pct >= 100 ? 4 : pct >= 80 ? 3 : pct >= 55 ? 2 : pct >= 25 ? 1 : 0;
-            return (
-              <span
-                className="inline-flex items-center gap-[2px] text-[11px] leading-none"
-                aria-label={`Strength ${stars} of 4`}
-                title={`Strength ${stars} of 4`}
-                style={{ textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}
-              >
-                {[0, 1, 2, 3].map((i) => (
-                  <span
-                    key={i}
-                    aria-hidden
-                    style={{
-                      color: i < stars ? "#f5d27a" : "#7b5a2a",
-                      WebkitTextStroke: "0",
-                      textShadow: i < stars
-                        ? "0 0 6px rgba(245,210,122,0.85), 0 1px 0 rgba(74,40,8,0.6), 0 0 1px rgba(168,102,20,0.9)"
-                        : "0 1px 0 rgba(245,223,184,0.35), 0 -1px 0 rgba(73,43,16,0.22)",
-                    }}
-
-                  >
-                    ★
-                  </span>
-                ))}
-              </span>
-            );
-          })()}
+          {!pinned &&
+            (() => {
+              const stars = pct >= 100 ? 4 : pct >= 80 ? 3 : pct >= 55 ? 2 : pct >= 25 ? 1 : 0;
+              return (
+                <span
+                  className="inline-flex items-center gap-[2px] text-[11px] leading-none"
+                  aria-label={`Strength ${stars} of 4`}
+                  title={`Strength ${stars} of 4`}
+                  style={{ textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}
+                >
+                  {[0, 1, 2, 3].map((i) => (
+                    <span
+                      key={i}
+                      aria-hidden
+                      style={{
+                        color: i < stars ? "#f5d27a" : "#7b5a2a",
+                        WebkitTextStroke: "0",
+                        textShadow:
+                          i < stars
+                            ? "0 0 6px rgba(245,210,122,0.85), 0 1px 0 rgba(74,40,8,0.6), 0 0 1px rgba(168,102,20,0.9)"
+                            : "0 1px 0 rgba(245,223,184,0.35), 0 -1px 0 rgba(73,43,16,0.22)",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </span>
+              );
+            })()}
         </div>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md border-amber-950/80 text-amber-950" style={{ background: palette.bg }}>
+        <DialogContent
+          className="max-w-md border-amber-950/80 text-amber-950"
+          style={{ background: palette.bg }}
+        >
           <DialogHeader>
             <DialogTitle className="font-serif text-amber-950">
               {isMixed ? "Mixed note" : label}
