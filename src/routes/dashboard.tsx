@@ -2083,6 +2083,7 @@ function Dashboard() {
             onClick={() => {
               if (!selected) return;
               setLibraryReportOpen(true);
+              void sendLibraryWebhook(libraryRedoUsed ? 2 : 1);
             }}
           />
         </div>
