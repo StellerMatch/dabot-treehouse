@@ -226,8 +226,8 @@ function TrunkPage() {
           animation: trunk-compass-stand-kf 4s ease-in-out infinite;
         }
         @keyframes trunk-compass-stand-kf {
-          0%, 100% { transform: translateX(-50%) scale(0.70) translateX(0); }
-          50%      { transform: translateX(-50%) scale(0.70) translateX(5px); }
+          0%, 100% { transform: translateX(-50%) scale(0.735) translateX(0); }
+          50%      { transform: translateX(-50%) scale(0.735) translateX(5px); }
         }
         .trunk-guide-pink {
           left: 17%;
@@ -242,14 +242,14 @@ function TrunkPage() {
         .trunk-guide-gold {
           right: 10%;
           bottom: 9%;
-          height: 61.2vh;
+          height: 58.14vh;
           filter: drop-shadow(0 22px 18px rgba(0,0,0,0.75)) drop-shadow(0 0 32px rgba(255,190,70,0.35)) drop-shadow(0 -8px 18px rgba(255,200,90,0.22));
         }
         .trunk-guide-gold-shadow {
           right: 8%;
           bottom: 7%;
-          width: 28vh;
-          height: 5vh;
+          width: 26.6vh;
+          height: 4.75vh;
           border-radius: 50%;
           background: radial-gradient(ellipse at center, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 55%, transparent 80%);
           filter: blur(10px);
