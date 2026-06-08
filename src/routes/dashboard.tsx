@@ -1522,7 +1522,7 @@ function Dashboard() {
             source: "lovable-library-test",
             page: "/library",
             level: "library",
-            action: "run_level_chunk",
+            action: "auto_run_level_chunk",
             runScope: "level_chunk_only",
             userIdea: selected.title || selected.messy || "",
             qualityPath: readReportTier(),
