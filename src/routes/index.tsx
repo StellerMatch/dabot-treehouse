@@ -371,7 +371,7 @@ function getPathConfirmation(tier: PackageTier) {
   return "Thank you for your idea. We're opening the full Best report path for this project.";
 }
 
-function ChoosePathModal({
+export function ChoosePathModal({
   onClose,
   onChoose,
 }: {
