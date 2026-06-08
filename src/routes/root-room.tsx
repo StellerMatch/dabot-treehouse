@@ -384,9 +384,40 @@ function RootRoom() {
             }}
           />
 
+          {/* Organic root tendrils — apply to every panel state */}
+          <div className="rr-root-deco" aria-hidden="true">
+            <svg viewBox="0 0 460 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="rr-root-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#e9c089" stopOpacity="0.85" />
+                  <stop offset="60%" stopColor="#a06a32" stopOpacity="0.7" />
+                  <stop offset="100%" stopColor="#3a2208" stopOpacity="0.6" />
+                </linearGradient>
+              </defs>
+              {/* top-left root tendrils wrapping the corner */}
+              <path d="M2,30 C 20,18 38,14 60,22 C 78,28 88,42 110,40" strokeWidth="1.6" />
+              <path d="M8,8 C 22,22 30,40 28,62 C 26,80 14,92 4,96" strokeWidth="1.4" />
+              <path d="M30,4 C 44,10 54,22 60,36" strokeWidth="1" opacity="0.5" />
+              {/* top-right */}
+              <path d="M458,28 C 440,16 420,14 398,24 C 380,32 372,46 352,42" strokeWidth="1.6" />
+              <path d="M452,6 C 438,22 432,42 436,64 C 440,82 452,92 458,96" strokeWidth="1.3" />
+              {/* bottom-left wrapping lower edge */}
+              <path d="M2,170 C 24,178 50,180 78,176 C 110,172 140,182 170,184 C 210,186 250,178 290,182 C 330,186 370,184 410,176 C 436,172 452,178 458,190" strokeWidth="1.8" />
+              <path d="M14,196 C 40,188 70,194 96,190" strokeWidth="1.1" opacity="0.55" />
+              {/* bottom corners curl-up */}
+              <path d="M6,198 C 18,180 22,160 18,140" strokeWidth="1.3" />
+              <path d="M454,198 C 442,180 438,160 444,138" strokeWidth="1.3" />
+              {/* a few small leaves */}
+              <ellipse className="rr-leaf" cx="58" cy="22" rx="4" ry="2.2" transform="rotate(-25 58 22)" />
+              <ellipse className="rr-leaf" cx="402" cy="24" rx="4" ry="2.2" transform="rotate(25 402 24)" />
+              <ellipse className="rr-leaf" cx="170" cy="184" rx="3.5" ry="2" />
+              <ellipse className="rr-leaf" cx="300" cy="182" rx="3.5" ry="2" />
+            </svg>
+          </div>
+
           {showActiveStepText ? (
             <>
-              <h2 className="relative text-center text-[22px] font-bold tracking-wide text-amber-50">
+              <h2 className="rr-intro-title relative text-center text-[22px] leading-tight">
                 {activeStepCopy.panelTitle}
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
@@ -405,7 +436,7 @@ function RootRoom() {
                   Complete
                 </span>
               </div>
-              <h2 className="relative mt-1 text-center text-[22px] font-bold tracking-wide text-amber-50">
+              <h2 className="rr-intro-title relative mt-1 text-center text-[22px] leading-tight">
                 Root Room Complete
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
@@ -414,37 +445,6 @@ function RootRoom() {
             </>
           ) : (
             <>
-              {phase === "intro" && (
-                <div className="rr-root-deco" aria-hidden="true">
-                  <svg viewBox="0 0 460 200" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="rr-root-grad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#e9c089" stopOpacity="0.85" />
-                        <stop offset="60%" stopColor="#a06a32" stopOpacity="0.7" />
-                        <stop offset="100%" stopColor="#3a2208" stopOpacity="0.6" />
-                      </linearGradient>
-                    </defs>
-                    {/* top-left root tendrils wrapping the corner */}
-                    <path d="M2,30 C 20,18 38,14 60,22 C 78,28 88,42 110,40" strokeWidth="1.6" />
-                    <path d="M8,8 C 22,22 30,40 28,62 C 26,80 14,92 4,96" strokeWidth="1.4" />
-                    <path d="M30,4 C 44,10 54,22 60,36" strokeWidth="1" opacity="0.5" />
-                    {/* top-right */}
-                    <path d="M458,28 C 440,16 420,14 398,24 C 380,32 372,46 352,42" strokeWidth="1.6" />
-                    <path d="M452,6 C 438,22 432,42 436,64 C 440,82 452,92 458,96" strokeWidth="1.3" />
-                    {/* bottom-left wrapping lower edge */}
-                    <path d="M2,170 C 24,178 50,180 78,176 C 110,172 140,182 170,184 C 210,186 250,178 290,182 C 330,186 370,184 410,176 C 436,172 452,178 458,190" strokeWidth="1.8" />
-                    <path d="M14,196 C 40,188 70,194 96,190" strokeWidth="1.1" opacity="0.55" />
-                    {/* bottom corners curl-up */}
-                    <path d="M6,198 C 18,180 22,160 18,140" strokeWidth="1.3" />
-                    <path d="M454,198 C 442,180 438,160 444,138" strokeWidth="1.3" />
-                    {/* a few small leaves */}
-                    <ellipse className="rr-leaf" cx="58" cy="22" rx="4" ry="2.2" transform="rotate(-25 58 22)" />
-                    <ellipse className="rr-leaf" cx="402" cy="24" rx="4" ry="2.2" transform="rotate(25 402 24)" />
-                    <ellipse className="rr-leaf" cx="170" cy="184" rx="3.5" ry="2" />
-                    <ellipse className="rr-leaf" cx="300" cy="182" rx="3.5" ry="2" />
-                  </svg>
-                </div>
-              )}
               <h2 className="rr-intro-title relative text-center text-[28px] leading-tight">
                 Root Room
               </h2>
