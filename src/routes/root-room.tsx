@@ -421,9 +421,7 @@ function RootRoom() {
                 {activeStepCopy.panelTitle}
               </h2>
               <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-                <span className="font-bold tracking-[0.12em] text-amber-100">
-                  {activeStepCopy.character}
-                </span>{" "}
+                <span className="rr-bot-name">{activeStepCopy.character}</span>{" "}
                 {activeStepCopy.message}
               </p>
               <StepActivity phase={phase} />
