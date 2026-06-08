@@ -7,18 +7,29 @@
 .rr-intro-title {
   font-family: "Cinzel Decorative", "Cormorant Garamond", serif;
   font-weight: 900;
-  letter-spacing: 0.06em;
-  background: linear-gradient(180deg, #fff8e2 0%, #f3c97a 55%, #b87a2e 100%);
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #ffe9a8 0%, #f0b441 50%, #8a4a13 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-shadow:
-    0 0 14px rgba(255, 245, 220, 0.6),
-    0 0 28px rgba(255, 235, 200, 0.35),
-    0 1px 0 rgba(60, 30, 5, 0.45);
+    0 1px 0 rgba(40, 18, 4, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.6);
   filter:
-    drop-shadow(0 0 6px rgba(255, 248, 230, 0.5))
-    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+    drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 0 10px rgba(255, 170, 70, 0.35));
+}
+.rr-bot-name {
+  font-family: "Cinzel Decorative", "Cormorant Garamond", serif;
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.14em;
+  background: linear-gradient(180deg, #f9d27a 0%, #d98f3a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(40, 18, 4, 0.55);
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.55));
 }
 .rr-root-deco {
   position: absolute;
