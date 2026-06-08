@@ -84,6 +84,7 @@ function TrunkPage() {
           draggable={false}
         />
 
+        <div className="pointer-events-none absolute z-[5] trunk-guide-gold-shadow" aria-hidden />
         <img
           src={goldGuardianAsset.url}
           alt=""
