@@ -2203,6 +2203,22 @@ function Dashboard() {
           }}
         />
       )}
+      {selected && tierPickerOpen && (
+        <ChoosePathModal
+          onClose={() => setTierPickerOpen(false)}
+          onChoose={(tier) => {
+            try {
+              sessionStorage.setItem("dabottree:packageTier", tier);
+              sessionStorage.setItem("dabottree:reportPath", tier);
+              sessionStorage.setItem(`dabottree:reportPath:${selected.id}`, tier);
+            } catch {}
+            setLibraryReportTier(tier);
+            setTierPickerOpen(false);
+            void sendLibraryWebhook(1);
+            setLibraryReportOpen(true);
+          }}
+        />
+      )}
     </main>
   );
 }
