@@ -270,14 +270,14 @@ function TrunkPage() {
           .trunk-guide-gold {
             right: -3%;
             bottom: 12%;
-            height: 47vh;
+            height: 44.65vh;
             filter: drop-shadow(0 18px 16px rgba(0,0,0,0.72)) drop-shadow(0 0 26px rgba(255,190,70,0.30)) drop-shadow(0 -6px 14px rgba(255,200,90,0.18));
           }
           .trunk-guide-gold-shadow {
             right: -1%;
             bottom: 10%;
-            width: 22vh;
-            height: 4vh;
+            width: 20.9vh;
+            height: 3.8vh;
           }
         }
         @media (max-width: 640px) {
@@ -298,14 +298,14 @@ function TrunkPage() {
           .trunk-guide-gold {
             right: -8%;
             bottom: 18%;
-            height: 39vh;
+            height: 37.05vh;
             filter: drop-shadow(0 14px 12px rgba(0,0,0,0.68)) drop-shadow(0 0 20px rgba(255,190,70,0.25)) drop-shadow(0 -4px 10px rgba(255,200,90,0.14));
           }
           .trunk-guide-gold-shadow {
             right: -6%;
             bottom: 16%;
-            width: 18vh;
-            height: 3.5vh;
+            width: 17.1vh;
+            height: 3.325vh;
           }
         }
       `}</style>
