@@ -159,7 +159,7 @@ function TrunkPage() {
         @keyframes trunk-book-arriving-kf {
           0%   { top: -8%;  transform: translateX(-50%) scale(0.35); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
           20%  { opacity: 1; }
-          100% { top: 58%;  transform: translateX(-50%) scale(1);    opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
+          100% { top: 52%;  transform: translateX(-50%) scale(1);    opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
         .trunk-book-arriving {
           top: -8%;
@@ -173,7 +173,7 @@ function TrunkPage() {
           50%      { transform: translateX(-50%) scale(1) translateY(-2px); }
         }
         .trunk-book-resting {
-          top: 58%;
+          top: 52%;
           height: 18vh; width: auto;
           transform-origin: 50% 90%;
           filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.9));
@@ -196,7 +196,7 @@ function TrunkPage() {
         @keyframes trunk-compass-walking-kf {
           0%   { left: 50%; bottom: 44%; transform: translateX(-50%) scale(0.05); opacity: 0; filter: brightness(0.5) drop-shadow(0 0 8px rgba(255,200,120,0.4)); }
           15%  { opacity: 1; }
-          100% { left: 50%; bottom: 30%; transform: translateX(-50%) scale(0.66); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
+          100% { left: 50%; bottom: 30%; transform: translateX(-50%) scale(0.53); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
         }
         .trunk-compass-walking {
           height: 78vh; width: auto;
@@ -205,8 +205,8 @@ function TrunkPage() {
           will-change: left, bottom, transform, opacity;
         }
         @keyframes trunk-compass-stand-kf {
-          0%, 100% { transform: translateX(-50%) scale(0.66) translateY(0); }
-          50%      { transform: translateX(-50%) scale(0.66) translateY(-3px); }
+          0%, 100% { transform: translateX(-50%) scale(0.53) translateY(0); }
+          50%      { transform: translateX(-50%) scale(0.53) translateY(-3px); }
         }
         .trunk-compass-standing {
           left: 50%; bottom: 30%;
