@@ -1097,3 +1097,329 @@ function SmokeColumn({
     </div>
   );
 }
+
+// ============= Root Room — Completion Report Modal =============
+
+type PackageTier = "good" | "better" | "best";
+
+const ROOT_ROOM_REPORT_SUMMARY =
+  "Your packet completed all five root checks — Foundation, Possibilities, Safety, Record, and Da Stamp. Below are the opportunity doors the roots surfaced before the packet rises to the Trunk.";
+
+const DOOR_QUESTIONS: { door1: string[]; door2: string[] } = {
+  door1: [
+    "Is the core problem stated in one clear sentence?",
+    "Who is the very first person this serves?",
+    "What single outcome do they get on day one?",
+    "What is the cleanest first action you offer them?",
+    "What can be removed without losing the point?",
+    "Is the language plain enough for a first-time reader?",
+    "Where does the packet quietly repeat itself?",
+    "Which promise should be tested before anything else?",
+    "Where does the packet still feel too big?",
+    "What is the smallest version you could ship this week?",
+  ],
+  door2: [
+    "Who else could quietly benefit from this idea?",
+    "What adjacent need keeps showing up nearby?",
+    "Which partner could carry this further than you alone?",
+    "What channel hasn't been tried yet?",
+    "What would a 10× version of this look like?",
+    "Where could a small tool become a product line?",
+    "What seasonal or recurring moment fits this idea?",
+    "What price would feel obvious to your first buyer?",
+    "What feedback loop is missing today?",
+    "Which signal would tell you to invest more here?",
+  ],
+};
+
+function RootRoomReport({
+  tier,
+  onTierChange,
+  onClose,
+  onComplete,
+}: {
+  tier: PackageTier;
+  onTierChange: (t: PackageTier) => void;
+  onClose: () => void;
+  onComplete: () => void;
+}) {
+  // Cap to 20 questions total (10 per door). Filter empty/whitespace to honor "no filler".
+  const door1Qs = DOOR_QUESTIONS.door1.filter((q) => q.trim().length > 0).slice(0, 10);
+  const door2Qs = DOOR_QUESTIONS.door2.filter((q) => q.trim().length > 0).slice(0, 10);
+
+  // Per-tier door behavior
+  // good: both locked
+  // better: one key — user picks which door to unlock; the other stays locked
+  // best: both cracked open, both can open fully
+  const [openedDoors, setOpenedDoors] = useState<Record<"door1" | "door2", boolean>>({
+    door1: tier === "best",
+    door2: tier === "best",
+  });
+  const [keyUsedOn, setKeyUsedOn] = useState<"door1" | "door2" | null>(null);
+
+  useEffect(() => {
+    setOpenedDoors({ door1: tier === "best", door2: tier === "best" });
+    setKeyUsedOn(null);
+  }, [tier]);
+
+  const canOpen = (id: "door1" | "door2") => {
+    if (tier === "best") return true;
+    if (tier === "better") return keyUsedOn === null || keyUsedOn === id;
+    return false;
+  };
+
+  const handleDoorClick = (id: "door1" | "door2") => {
+    if (tier === "good") return;
+    if (tier === "better") {
+      if (keyUsedOn && keyUsedOn !== id) return;
+      setKeyUsedOn(id);
+      setOpenedDoors((prev) => ({ ...prev, [id]: !prev[id] }));
+      return;
+    }
+    setOpenedDoors((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Root Room completion report"
+    >
+      <button
+        type="button"
+        aria-label="Close report"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(20,10,2,0.7) 0%, rgba(5,2,0,0.92) 70%)",
+          backdropFilter: "blur(4px)",
+        }}
+      />
+      <div
+        className="relative w-full max-w-[820px] max-h-[90vh] overflow-y-auto rounded-[18px] px-6 py-7 sm:px-9 sm:py-8 text-amber-50 rr-report-modal"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(150,100,30,0.92) 0%, rgba(85,52,12,0.96) 60%, rgba(45,26,6,0.98) 100%)",
+          border: "1px solid rgba(240,195,110,0.65)",
+          boxShadow:
+            "0 30px 90px -20px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,225,160,0.28), 0 0 70px -10px rgba(255,190,90,0.5)",
+        }}
+      >
+        {/* corner root tendrils — match library style */}
+        <div className="pointer-events-none absolute inset-0 rounded-[18px] opacity-50">
+          <svg viewBox="0 0 460 200" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" fill="none" stroke="url(#rr-report-grad)">
+            <defs>
+              <linearGradient id="rr-report-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#e9c089" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#3a2208" stopOpacity="0.5" />
+              </linearGradient>
+            </defs>
+            <path d="M2,30 C 20,18 38,14 60,22 C 78,28 88,42 110,40" strokeWidth="1.4" />
+            <path d="M458,28 C 440,16 420,14 398,24 C 380,32 372,46 352,42" strokeWidth="1.4" />
+            <path d="M6,198 C 18,180 22,160 18,140" strokeWidth="1.2" />
+            <path d="M454,198 C 442,180 438,160 444,138" strokeWidth="1.2" />
+          </svg>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
+        >
+          ✕
+        </button>
+
+        <div className="relative flex items-center justify-center gap-2">
+          <CheckCircle2 className="h-4 w-4 text-emerald-200" />
+          <span className="text-[11px] uppercase tracking-[0.34em] text-amber-100/90">
+            Library Report
+          </span>
+        </div>
+        <h2 className="rr-intro-title relative mt-1 text-center text-[26px] leading-tight">
+          Root Room Complete
+        </h2>
+        <p className="relative mx-auto mt-3 max-w-[560px] text-center text-[13px] leading-relaxed text-amber-50/95">
+          {ROOT_ROOM_REPORT_SUMMARY}
+        </p>
+
+        {/* Tier indicator (small, on-brand) */}
+        <div className="relative mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-amber-100/80">
+          <span>Package:</span>
+          {(["good", "better", "best"] as PackageTier[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onTierChange(t)}
+              className={`rounded-full border px-2 py-0.5 transition ${
+                tier === t
+                  ? "border-amber-200/80 bg-amber-200/15 text-amber-50"
+                  : "border-amber-200/25 text-amber-100/60 hover:border-amber-200/50"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {tier === "better" && (
+          <div className="relative mt-3 flex items-center justify-center gap-2 text-[11px] text-amber-100/90">
+            <span aria-hidden>🗝️</span>
+            <span>
+              {keyUsedOn
+                ? "You used your key. The other door stays sealed."
+                : "You hold one key — pick a door to unlock."}
+            </span>
+          </div>
+        )}
+
+        {/* Two doors */}
+        <div className="relative mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {(["door1", "door2"] as const).map((doorId) => {
+            const open = openedDoors[doorId];
+            const enabled = canOpen(doorId);
+            const cracked = tier === "best" && !open;
+            const questions = doorId === "door1" ? door1Qs : door2Qs;
+            return (
+              <div key={doorId} className="rr-door-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleDoorClick(doorId)}
+                  disabled={!enabled}
+                  className={`rr-door ${open ? "is-open" : ""} ${cracked ? "is-cracked" : ""} ${
+                    enabled ? "is-enabled" : "is-locked"
+                  }`}
+                  aria-pressed={open}
+                  aria-label={`${doorId === "door1" ? "Door 1" : "Door 2"} — ${
+                    enabled ? (open ? "opened" : "tap to open") : "locked"
+                  }`}
+                >
+                  <span className="rr-door-frame" aria-hidden />
+                  <span className="rr-door-leaf rr-door-leaf-left" aria-hidden />
+                  <span className="rr-door-leaf rr-door-leaf-right" aria-hidden />
+                  <span className="rr-door-light" aria-hidden />
+                  <span className="rr-door-label">
+                    {doorId === "door1" ? "Door 1" : "Door 2"}
+                  </span>
+                  {!enabled && (
+                    <span className="rr-door-lock" aria-hidden>
+                      🔒
+                    </span>
+                  )}
+                </button>
+
+                {open && questions.length > 0 && (
+                  <ul className="mt-3 space-y-1.5 rounded-[10px] border border-amber-200/30 bg-black/30 p-3 text-[12.5px] leading-snug text-amber-50/95">
+                    {questions.map((q, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="mt-[2px] text-amber-200/80">•</span>
+                        <span>{q}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="relative mt-7 flex justify-center">
+          <button
+            type="button"
+            onClick={onComplete}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-6 py-2.5 text-sm font-semibold text-amber-950 shadow-[0_4px_22px_-4px_rgba(255,180,80,0.8)] transition hover:from-amber-200 hover:to-amber-400"
+          >
+            <Sparkles className="h-4 w-4" />
+            Report Complete — Move to Next Step
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        .rr-door-wrap { display: flex; flex-direction: column; }
+        .rr-door {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 3 / 4.2;
+          border-radius: 14px 14px 6px 6px;
+          overflow: hidden;
+          background:
+            radial-gradient(ellipse at top, rgba(120,75,20,0.85) 0%, rgba(60,32,8,0.95) 65%, rgba(30,16,4,1) 100%);
+          border: 1px solid rgba(240,195,110,0.55);
+          box-shadow:
+            inset 0 1px 0 rgba(255,220,160,0.18),
+            inset 0 -3px 0 rgba(0,0,0,0.55),
+            0 12px 30px -10px rgba(0,0,0,0.7);
+          cursor: pointer;
+          transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+        }
+        .rr-door.is-locked { cursor: not-allowed; filter: saturate(0.55) brightness(0.7); }
+        .rr-door.is-enabled:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -14px rgba(0,0,0,0.85), 0 0 24px rgba(255,200,110,0.35); }
+        .rr-door-frame {
+          position: absolute; inset: 6px;
+          border-radius: 10px 10px 4px 4px;
+          border: 1px solid rgba(240,200,120,0.45);
+          background: linear-gradient(180deg, rgba(80,45,12,0.6), rgba(40,22,6,0.7));
+        }
+        .rr-door-leaf {
+          position: absolute;
+          top: 10px;
+          bottom: 10px;
+          width: calc(50% - 12px);
+          background:
+            linear-gradient(180deg, rgba(110,68,20,0.95) 0%, rgba(70,40,12,0.95) 60%, rgba(40,22,6,1) 100%);
+          border: 1px solid rgba(0,0,0,0.55);
+          box-shadow: inset 0 0 0 1px rgba(255,210,140,0.12);
+          transition: transform 600ms cubic-bezier(.2,.7,.2,1), opacity 400ms ease;
+          transform-style: preserve-3d;
+        }
+        .rr-door-leaf::before, .rr-door-leaf::after {
+          content: ""; position: absolute; left: 10%; right: 10%; height: 22%;
+          border: 1px solid rgba(240,200,120,0.35); border-radius: 3px;
+        }
+        .rr-door-leaf::before { top: 8%; }
+        .rr-door-leaf::after { bottom: 8%; }
+        .rr-door-leaf-left { left: 10px; transform-origin: left center; }
+        .rr-door-leaf-right { right: 10px; transform-origin: right center; }
+        .rr-door.is-open .rr-door-leaf-left { transform: perspective(700px) rotateY(-72deg); }
+        .rr-door.is-open .rr-door-leaf-right { transform: perspective(700px) rotateY(72deg); }
+        .rr-door.is-cracked .rr-door-leaf-left { transform: perspective(700px) rotateY(-14deg); }
+        .rr-door.is-cracked .rr-door-leaf-right { transform: perspective(700px) rotateY(14deg); }
+        .rr-door-light {
+          position: absolute; left: 50%; top: 50%;
+          width: 70%; height: 70%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background:
+            radial-gradient(ellipse at center, rgba(255,225,150,0.95) 0%, rgba(255,190,90,0.55) 35%, transparent 70%);
+          filter: blur(8px);
+          opacity: 0;
+          transition: opacity 500ms ease;
+          pointer-events: none;
+        }
+        .rr-door.is-cracked .rr-door-light { opacity: 0.55; }
+        .rr-door.is-open .rr-door-light { opacity: 0.95; }
+        .rr-door-label {
+          position: absolute; left: 0; right: 0; bottom: 10px;
+          text-align: center;
+          font-family: ui-serif, Georgia, "Times New Roman", serif;
+          font-size: 14px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: #fde7b6;
+          text-shadow: 0 1px 0 rgba(0,0,0,0.7), 0 0 8px rgba(255,200,110,0.45);
+          z-index: 2;
+        }
+        .rr-door-lock {
+          position: absolute; right: 10px; top: 10px;
+          font-size: 14px;
+          opacity: 0.85;
+          z-index: 2;
+        }
+      `}</style>
+    </div>
+  );
+}
