@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
+import { ChoosePathModal } from "@/routes/index";
 
 type ReportTier = "good" | "better" | "best";
 type LibraryDoorId = "door1" | "door2";
@@ -1507,7 +1508,7 @@ function Dashboard() {
   const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
     { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
   >({ kind: "idle" });
-  const libraryAutoSentRef = useRef(false);
+  
 
   const sendLibraryWebhook = async (attemptNumber: number) => {
     if (!selected) return;
@@ -1596,14 +1597,11 @@ function Dashboard() {
     [ideas, selectedId],
   );
 
-  // Auto-send Library webhook once when the page loads and an idea is available
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!selected) return;
-    if (libraryAutoSentRef.current) return;
-    libraryAutoSentRef.current = true;
-    void sendLibraryWebhook(1);
-  }, [selected]);
+  // Good/Better/Best is chosen when the user intentionally starts/continues
+  // a saved project from their library. The Library n8n test webhook fires
+  // only after that selection — not automatically on page load.
+  const [tierPickerOpen, setTierPickerOpen] = useState(false);
+
 
   const selectedExtras: IdeaExtras = selected
     ? (extras[selected.id] ?? emptyExtras())
@@ -2093,6 +2091,19 @@ function Dashboard() {
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             onClick={() => {
               if (!selected) return;
+              // Gate: ask Good / Better / Best the first time the user moves
+              // forward with this saved project. Once chosen, fire the Library
+              // n8n test webhook and open the report.
+              let existingTier: string | null = null;
+              try {
+                existingTier =
+                  sessionStorage.getItem(`dabottree:reportPath:${selected.id}`) ??
+                  sessionStorage.getItem("dabottree:reportPath");
+              } catch {}
+              if (!existingTier) {
+                setTierPickerOpen(true);
+                return;
+              }
               setLibraryReportOpen(true);
             }}
           />
@@ -2189,6 +2200,22 @@ function Dashboard() {
           onSubmit={(answer) => {
             saveLibraryDoorAnswer(activeLibraryDoor, answer);
             setActiveLibraryDoor(null);
+          }}
+        />
+      )}
+      {selected && tierPickerOpen && (
+        <ChoosePathModal
+          onClose={() => setTierPickerOpen(false)}
+          onChoose={(tier) => {
+            try {
+              sessionStorage.setItem("dabottree:packageTier", tier);
+              sessionStorage.setItem("dabottree:reportPath", tier);
+              sessionStorage.setItem(`dabottree:reportPath:${selected.id}`, tier);
+            } catch {}
+            setLibraryReportTier(tier);
+            setTierPickerOpen(false);
+            void sendLibraryWebhook(1);
+            setLibraryReportOpen(true);
           }}
         />
       )}
