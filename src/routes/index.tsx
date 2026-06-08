@@ -429,7 +429,13 @@ function ChoosePathModal({
                         Opportunity doors stay sealed
                       </span>
                     )}
-                    {opt.id === "better" && <FantasyDoor state="cracked" />}
+                    {opt.id === "better" && (
+                      <>
+                        <FantasyDoor state="locked" />
+                        <FantasyDoor state="locked" />
+                        <KeyIcon />
+                      </>
+                    )}
                     {opt.id === "best" && (
                       <>
                         <FantasyDoor state="open" />
@@ -437,6 +443,7 @@ function ChoosePathModal({
                       </>
                     )}
                   </div>
+
 
 
                   <span
