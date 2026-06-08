@@ -234,7 +234,7 @@ function TrunkPage() {
           height: 52.2vh;
         }
         .trunk-guide-green {
-          left: 52%;
+          left: 54%;
           bottom: 19%;
           height: 44.55vh;
         }
