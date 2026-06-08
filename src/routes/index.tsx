@@ -423,26 +423,28 @@ function ChoosePathModal({
                   </ul>
 
                   {/* Door preview — keep the same vertical footprint for every tier */}
-                  <div className="relative mt-5 flex h-[140px] items-end justify-center gap-4">
+                  <div className="relative mt-5 flex h-[140px] items-end justify-center gap-3">
                     {opt.id === "good" && (
-                      <span className="text-[11px] italic text-amber-100/55">
-                        Opportunity doors stay sealed
+                      <span className="flex h-full items-center">
+                        <KeyIcon disabled />
                       </span>
                     )}
                     {opt.id === "better" && (
                       <>
                         <FantasyDoor state="locked" />
-                        <FantasyDoor state="locked" />
-                        <KeyIcon />
+                        <span className="flex h-full items-center">
+                          <KeyIcon />
+                        </span>
                       </>
                     )}
                     {opt.id === "best" && (
                       <>
-                        <FantasyDoor state="open" />
-                        <FantasyDoor state="open" />
+                        <FantasyDoor state="cracked" unlocked />
+                        <FantasyDoor state="cracked" unlocked />
                       </>
                     )}
                   </div>
+
 
 
 
