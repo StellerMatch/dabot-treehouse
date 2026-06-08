@@ -2131,6 +2131,24 @@ function Dashboard() {
           background: "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
         }}
       />
+      {libraryWebhookStatus.kind !== "idle" && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed bottom-4 right-4 z-50 max-w-xs rounded-md px-3 py-2 text-xs font-medium shadow-lg backdrop-blur ${
+            libraryWebhookStatus.kind === "ok"
+              ? "border border-emerald-500/40 bg-emerald-950/85 text-emerald-100"
+              : libraryWebhookStatus.kind === "error"
+                ? "border border-red-500/40 bg-red-950/85 text-red-100"
+                : "border border-amber-500/40 bg-amber-950/85 text-amber-100"
+          }`}
+        >
+          {libraryWebhookStatus.kind === "sending" && "Starting Library level chunk…"}
+          {libraryWebhookStatus.kind === "ok" && "Library level chunk started (n8n test webhook)."}
+          {libraryWebhookStatus.kind === "error" &&
+            `Library webhook failed: ${libraryWebhookStatus.message}`}
+        </div>
+      )}
       {descending && (
         <RootDescentTransition
           onComplete={() => {
