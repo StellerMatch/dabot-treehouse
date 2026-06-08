@@ -47,7 +47,7 @@ const LEVELS: LevelDoor[] = levelSystem.levels.map((level) => {
     source: level.report_source_key,
     status: door?.status === "ready" ? "ready" : "waiting",
     background: visual?.background_reference_summary ?? door?.background_reference ?? "current level background",
-    summary: level.report_summary || level.purpose || "Prepared internal level report is ready for inspection.",
+    summary: level.report_summary || (level as { purpose?: string }).purpose || "Prepared internal level report is ready for inspection.",
   };
 });
 

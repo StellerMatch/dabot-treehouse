@@ -1504,6 +1504,41 @@ function Dashboard() {
     Partial<Record<LibraryDoorId, string>>
   >({});
   const [libraryRedoUsed, setLibraryRedoUsed] = useState(false);
+  const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
+    { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
+  >({ kind: "idle" });
+
+  const sendLibraryWebhook = async (attemptNumber: number) => {
+    if (!selected) return;
+    setLibraryWebhookStatus({ kind: "sending" });
+    try {
+      const res = await fetch(
+        "https://dabottree.app.n8n.cloud/webhook-test/dabottree-level-system-test",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "lovable-library-test",
+            page: "/library",
+            level: "library",
+            action: "run_level_chunk",
+            runScope: "level_chunk_only",
+            userIdea: selected.title || selected.messy || "",
+            qualityPath: readReportTier(),
+            attemptNumber,
+            timestamp: new Date().toISOString(),
+          }),
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setLibraryWebhookStatus({ kind: "ok", at: Date.now() });
+    } catch (err) {
+      setLibraryWebhookStatus({
+        kind: "error",
+        message: err instanceof Error ? err.message : "Request failed",
+      });
+    }
+  };
 
   // Pull draft from front-page intake
   useEffect(() => {
@@ -1791,6 +1826,7 @@ function Dashboard() {
       addPostIt(`Library opportunity answers for updated report:\n\n${answerText}`, "idea-notes");
     }
     setLibraryRedoUsed(true);
+    void sendLibraryWebhook(2);
     updateSelected({
       shelfReadiness: Math.min(100, Math.max(selected.shelfReadiness, 96)),
       nextAction: "Review the updated Library report",
@@ -2048,6 +2084,7 @@ function Dashboard() {
             onClick={() => {
               if (!selected) return;
               setLibraryReportOpen(true);
+              void sendLibraryWebhook(libraryRedoUsed ? 2 : 1);
             }}
           />
         </div>
@@ -2094,6 +2131,24 @@ function Dashboard() {
           background: "linear-gradient(180deg, transparent, rgba(20,10,2,0.55))",
         }}
       />
+      {libraryWebhookStatus.kind !== "idle" && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed bottom-4 right-4 z-50 max-w-xs rounded-md px-3 py-2 text-xs font-medium shadow-lg backdrop-blur ${
+            libraryWebhookStatus.kind === "ok"
+              ? "border border-emerald-500/40 bg-emerald-950/85 text-emerald-100"
+              : libraryWebhookStatus.kind === "error"
+                ? "border border-red-500/40 bg-red-950/85 text-red-100"
+                : "border border-amber-500/40 bg-amber-950/85 text-amber-100"
+          }`}
+        >
+          {libraryWebhookStatus.kind === "sending" && "Starting Library level chunk…"}
+          {libraryWebhookStatus.kind === "ok" && "Library level chunk started (n8n test webhook)."}
+          {libraryWebhookStatus.kind === "error" &&
+            `Library webhook failed: ${libraryWebhookStatus.message}`}
+        </div>
+      )}
       {descending && (
         <RootDescentTransition
           onComplete={() => {
