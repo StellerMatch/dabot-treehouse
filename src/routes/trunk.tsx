@@ -215,17 +215,17 @@ function TrunkPage() {
         .trunk-guide-pink {
           left: 14%;
           bottom: 6%;
-          height: 58vh;
+          height: 52.2vh;
         }
         .trunk-guide-green {
           left: 55.8%;
-          bottom: 22%;
-          height: 55vh;
+          bottom: 15%;
+          height: 49.5vh;
         }
         .trunk-guide-gold {
           right: 6.5%;
           bottom: 5%;
-          height: 72vh;
+          height: 61.2vh;
         }
         @media (max-width: 900px) {
           .trunk-guide-pink {
