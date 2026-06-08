@@ -465,9 +465,12 @@ function ChoosePathModal({
   );
 }
 
-function FantasyDoor({ state }: { state: "cracked" | "open" }) {
+function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
   const opened = state === "open";
-  const leafAngle = opened ? 72 : 16;
+  const leafAngle = state === "locked" ? 0 : opened ? 72 : 16;
+  const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.45;
+  const glowSize = opened ? 140 : 90;
+
   return (
     <span
       className="relative inline-block"
