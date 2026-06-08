@@ -163,11 +163,11 @@ function Index() {
               >
                 Add files or notes
               </button>
-              <Link
-                to="/dashboard"
-                aria-disabled={!ready}
-                onClick={(e) => {
-                  if (!ready) e.preventDefault();
+              <button
+                type="button"
+                disabled={!ready}
+                onClick={() => {
+                  if (!ready) return;
                   if (typeof window !== "undefined") {
                     try {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
@@ -175,6 +175,7 @@ function Index() {
                       else sessionStorage.removeItem("dabottree:draftIdeaType");
                     } catch {}
                   }
+                  setPathOpen(true);
                 }}
                 className={
                   "rounded-full border px-4 py-1.5 text-sm font-medium backdrop-blur-md transition " +
@@ -184,7 +185,8 @@ function Index() {
                 }
               >
                 Start shaping →
-              </Link>
+              </button>
+
             </div>
           </div>
         </div>
