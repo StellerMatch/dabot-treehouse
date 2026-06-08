@@ -1826,6 +1826,7 @@ function Dashboard() {
       addPostIt(`Library opportunity answers for updated report:\n\n${answerText}`, "idea-notes");
     }
     setLibraryRedoUsed(true);
+    void sendLibraryWebhook(2);
     updateSelected({
       shelfReadiness: Math.min(100, Math.max(selected.shelfReadiness, 96)),
       nextAction: "Review the updated Library report",
