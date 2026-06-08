@@ -214,3 +214,303 @@ function Index() {
 
   );
 }
+
+// ============= Choose Your Path Modal =============
+
+type PackageTier = "good" | "better" | "best";
+
+type PathOption = {
+  id: PackageTier;
+  name: string;
+  credits: number;
+  tagline: string;
+  perks: string[];
+  accent: string; // outer glow
+  ring: string;   // border
+};
+
+const PATH_OPTIONS: PathOption[] = [
+  {
+    id: "good",
+    name: "Good",
+    credits: 20,
+    tagline: "The starter path — steady roots, sealed doors.",
+    perks: [
+      "Basic guided build path",
+      "Level review summaries",
+      "Opportunity doors visible but locked",
+    ],
+    accent: "rgba(180,140,80,0.55)",
+    ring: "rgba(220,180,110,0.55)",
+  },
+  {
+    id: "better",
+    name: "Better",
+    credits: 40,
+    tagline: "A key in hand — one door opens at every level.",
+    perks: [
+      "Everything in Good",
+      "1 key per level",
+      "Unlock one opportunity door per level",
+    ],
+    accent: "rgba(255,190,90,0.7)",
+    ring: "rgba(255,210,130,0.75)",
+  },
+  {
+    id: "best",
+    name: "Best",
+    credits: 60,
+    tagline: "Both doors open — the full path of opportunities.",
+    perks: [
+      "Everything in Better",
+      "Both opportunity doors open per level",
+      "Full opportunity question access",
+    ],
+    accent: "rgba(255,225,150,0.95)",
+    ring: "rgba(255,235,180,0.95)",
+  },
+];
+
+function ChoosePathModal({
+  onClose,
+  onChoose,
+}: {
+  onClose: () => void;
+  onChoose: (tier: PackageTier) => void;
+}) {
+  const [hovered, setHovered] = useState<PackageTier | null>("better");
+  const availableCredits = 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choose your path"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(20,10,2,0.78) 0%, rgba(2,1,0,0.95) 70%)",
+          backdropFilter: "blur(6px)",
+        }}
+      />
+
+      <div
+        className="relative w-full max-w-[920px] max-h-[92vh] overflow-y-auto rounded-[20px] px-6 py-7 sm:px-9 sm:py-9 text-amber-50"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(150,100,30,0.92) 0%, rgba(85,52,12,0.96) 60%, rgba(40,22,5,0.98) 100%)",
+          border: "1px solid rgba(240,195,110,0.6)",
+          boxShadow:
+            "0 30px 90px -20px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,225,160,0.28), 0 0 80px -10px rgba(255,190,90,0.55)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
+        >
+          ✕
+        </button>
+
+        <div className="relative flex items-center justify-center gap-2">
+          <span className="text-amber-200/90">✦</span>
+          <span className="text-[11px] uppercase tracking-[0.36em] text-amber-100/90">
+            Choose Your Path
+          </span>
+          <span className="text-amber-200/90">✦</span>
+        </div>
+        <h2
+          className="relative mt-2 text-center text-[26px] font-semibold leading-tight sm:text-[30px]"
+          style={{
+            fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+            textShadow: "0 1px 24px rgba(255,170,80,0.4)",
+          }}
+        >
+          Three paths into the tree.
+        </h2>
+        <p className="relative mx-auto mt-2 max-w-[560px] text-center text-[13px] leading-relaxed text-amber-50/90">
+          Every path shapes your idea — they differ in how many opportunity doors
+          open along the way. Choose the one that fits this build.
+        </p>
+
+        <div className="relative mt-3 flex items-center justify-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/40 bg-black/35 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-amber-100/90">
+            <span aria-hidden>✦</span>
+            <span>Available credits: {availableCredits}</span>
+          </div>
+        </div>
+
+        <div className="relative mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {PATH_OPTIONS.map((opt) => {
+            const isHover = hovered === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onMouseEnter={() => setHovered(opt.id)}
+                onFocus={() => setHovered(opt.id)}
+                onClick={() => onChoose(opt.id)}
+                className="group relative flex flex-col items-stretch text-left transition-transform hover:-translate-y-1 focus:outline-none focus:-translate-y-1"
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-2 -z-10 rounded-[22px] blur-xl transition-opacity"
+                  style={{
+                    background: opt.accent,
+                    opacity: isHover ? 0.7 : 0.35,
+                  }}
+                />
+                <span
+                  className="relative flex h-full flex-col overflow-hidden rounded-[16px] p-5"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at top, rgba(120,75,20,0.85) 0%, rgba(60,32,8,0.95) 65%, rgba(30,16,4,1) 100%)",
+                    border: `1px solid ${opt.ring}`,
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,225,170,0.22), inset 0 -3px 0 rgba(0,0,0,0.55), 0 12px 30px -10px rgba(0,0,0,0.7)",
+                  }}
+                >
+                  {/* corner tendrils */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 opacity-40"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 15% 10%, rgba(255,220,160,0.28), transparent 45%), radial-gradient(circle at 85% 90%, rgba(255,180,90,0.22), transparent 50%)",
+                    }}
+                  />
+
+                  <div className="relative flex items-center justify-between">
+                    <span
+                      className="text-[11px] uppercase tracking-[0.32em] text-amber-100/85"
+                      style={{ fontFamily: 'ui-serif, Georgia, serif' }}
+                    >
+                      Path
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/50 bg-amber-200/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-100">
+                      <span aria-hidden>✦</span>
+                      {opt.credits} credits
+                    </span>
+                  </div>
+
+                  <h3
+                    className="relative mt-3 text-[24px] leading-tight"
+                    style={{
+                      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+                      textShadow: "0 1px 0 rgba(0,0,0,0.6), 0 0 10px rgba(255,200,110,0.35)",
+                    }}
+                  >
+                    {opt.name}
+                  </h3>
+                  <p className="relative mt-1.5 text-[12.5px] italic text-amber-100/85">
+                    {opt.tagline}
+                  </p>
+
+                  <ul className="relative mt-4 space-y-1.5 text-[12.5px] leading-snug text-amber-50/95">
+                    {opt.perks.map((p, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="mt-[2px] text-amber-200/85">✦</span>
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Door preview */}
+                  <div className="relative mt-5 flex items-end justify-center gap-2">
+                    <DoorPreview state={opt.id === "good" ? "locked" : opt.id === "better" ? "cracked" : "open"} />
+                    <DoorPreview state={opt.id === "best" ? "open" : "locked"} />
+                  </div>
+
+                  <span
+                    className="relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 text-[13px] font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition group-hover:from-amber-200 group-hover:to-amber-400"
+                  >
+                    Choose {opt.name}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="relative mt-5 text-center text-[11px] text-amber-100/65">
+          You can switch paths later — every step keeps your packet.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DoorPreview({ state }: { state: "locked" | "cracked" | "open" }) {
+  return (
+    <span
+      className="relative inline-block h-[58px] w-[34px] overflow-hidden rounded-[6px_6px_2px_2px]"
+      style={{
+        background:
+          "radial-gradient(ellipse at top, rgba(120,75,20,0.95) 0%, rgba(60,32,8,1) 65%, rgba(30,16,4,1) 100%)",
+        border: "1px solid rgba(240,200,120,0.5)",
+        boxShadow: "inset 0 -2px 0 rgba(0,0,0,0.5)",
+      }}
+      aria-hidden
+    >
+      <span
+        className="absolute left-1/2 top-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(255,225,150,0.95) 0%, rgba(255,190,90,0.55) 35%, transparent 70%)",
+          filter: "blur(4px)",
+          opacity: state === "open" ? 0.95 : state === "cracked" ? 0.5 : 0,
+          transition: "opacity 300ms ease",
+        }}
+      />
+      <span
+        className="absolute top-[5px] bottom-[5px] left-[4px]"
+        style={{
+          width: "calc(50% - 6px)",
+          background:
+            "linear-gradient(180deg, rgba(110,68,20,0.95) 0%, rgba(70,40,12,0.95) 60%, rgba(40,22,6,1) 100%)",
+          border: "1px solid rgba(0,0,0,0.55)",
+          transform:
+            state === "open"
+              ? "perspective(220px) rotateY(-65deg)"
+              : state === "cracked"
+                ? "perspective(220px) rotateY(-14deg)"
+                : "none",
+          transformOrigin: "left center",
+          transition: "transform 400ms ease",
+        }}
+      />
+      <span
+        className="absolute top-[5px] bottom-[5px] right-[4px]"
+        style={{
+          width: "calc(50% - 6px)",
+          background:
+            "linear-gradient(180deg, rgba(110,68,20,0.95) 0%, rgba(70,40,12,0.95) 60%, rgba(40,22,6,1) 100%)",
+          border: "1px solid rgba(0,0,0,0.55)",
+          transform:
+            state === "open"
+              ? "perspective(220px) rotateY(65deg)"
+              : state === "cracked"
+                ? "perspective(220px) rotateY(14deg)"
+                : "none",
+          transformOrigin: "right center",
+          transition: "transform 400ms ease",
+        }}
+      />
+      {state === "locked" && (
+        <span
+          className="absolute right-[3px] top-[3px] text-[8px]"
+          aria-hidden
+        >
+          🔒
+        </span>
+      )}
+    </span>
+  );
+}
