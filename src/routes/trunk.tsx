@@ -94,9 +94,8 @@ function TrunkPage() {
         <img
           src={compassStagAsset.url}
           alt=""
-          className="pointer-events-none absolute z-[5] trunk-compass"
+          className="pointer-events-none absolute z-[5] trunk-compass trunk-compass-standing"
           draggable={false}
-          style={{ left: "50%", bottom: "38%", transform: "translateX(-50%) scale(0.53)", height: "auto", width: "auto", maxHeight: "44vh", filter: "drop-shadow(0 14px 22px rgba(0,0,0,0.7))" }}
         />
 
         <img
@@ -211,6 +210,23 @@ function TrunkPage() {
           width: auto;
           max-width: none;
           filter: drop-shadow(0 18px 26px rgba(0,0,0,0.72)) drop-shadow(0 0 24px rgba(255,205,120,0.18));
+        }
+        .trunk-compass {
+          left: 50%;
+          height: auto;
+          width: auto;
+          max-height: 60vh;
+          transform-origin: 50% 100%;
+          filter: drop-shadow(0 18px 24px rgba(0,0,0,0.75)) drop-shadow(0 0 22px rgba(255,210,140,0.25));
+          clip-path: inset(0 0 10% 0);
+        }
+        .trunk-compass-standing {
+          bottom: 38%;
+          animation: trunk-compass-stand-kf 4s ease-in-out infinite;
+        }
+        @keyframes trunk-compass-stand-kf {
+          0%, 100% { transform: translateX(-50%) scale(0.53) translateX(0); }
+          50%      { transform: translateX(-50%) scale(0.53) translateX(5px); }
         }
         .trunk-guide-pink {
           left: 14%;
