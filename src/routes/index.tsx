@@ -481,12 +481,13 @@ function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
       <span
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          width: opened ? 140 : 90,
-          height: opened ? 140 : 90,
+          width: glowSize,
+          height: glowSize,
           background:
             "radial-gradient(ellipse at center, rgba(255,225,150,0.95) 0%, rgba(255,180,80,0.55) 35%, transparent 72%)",
           filter: "blur(10px)",
-          opacity: opened ? 0.9 : 0.45,
+          opacity: glowOpacity,
+
           transition: "all 400ms ease",
         }}
       />
