@@ -458,70 +458,185 @@ function ChoosePathModal({
   );
 }
 
-function DoorPreview({ state }: { state: "locked" | "cracked" | "open" }) {
+function FantasyDoor({ state }: { state: "cracked" | "open" }) {
+  const opened = state === "open";
+  const leafAngle = opened ? 72 : 16;
   return (
     <span
-      className="relative inline-block h-[58px] w-[34px] overflow-hidden rounded-[6px_6px_2px_2px]"
-      style={{
-        background:
-          "radial-gradient(ellipse at top, rgba(120,75,20,0.95) 0%, rgba(60,32,8,1) 65%, rgba(30,16,4,1) 100%)",
-        border: "1px solid rgba(240,200,120,0.5)",
-        boxShadow: "inset 0 -2px 0 rgba(0,0,0,0.5)",
-      }}
+      className="relative inline-block"
+      style={{ width: 92, height: 140 }}
       aria-hidden
     >
+      {/* warm glow spill behind the door */}
       <span
-        className="absolute left-1/2 top-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
+          width: opened ? 140 : 90,
+          height: opened ? 140 : 90,
           background:
-            "radial-gradient(ellipse at center, rgba(255,225,150,0.95) 0%, rgba(255,190,90,0.55) 35%, transparent 70%)",
-          filter: "blur(4px)",
-          opacity: state === "open" ? 0.95 : state === "cracked" ? 0.5 : 0,
-          transition: "opacity 300ms ease",
+            "radial-gradient(ellipse at center, rgba(255,225,150,0.95) 0%, rgba(255,180,80,0.55) 35%, transparent 72%)",
+          filter: "blur(10px)",
+          opacity: opened ? 0.9 : 0.45,
+          transition: "all 400ms ease",
         }}
       />
+
+      {/* stone arch frame */}
       <span
-        className="absolute top-[5px] bottom-[5px] left-[4px]"
+        className="absolute inset-0 overflow-hidden"
         style={{
-          width: "calc(50% - 6px)",
+          borderRadius: "46px 46px 6px 6px",
           background:
-            "linear-gradient(180deg, rgba(110,68,20,0.95) 0%, rgba(70,40,12,0.95) 60%, rgba(40,22,6,1) 100%)",
-          border: "1px solid rgba(0,0,0,0.55)",
-          transform:
-            state === "open"
-              ? "perspective(220px) rotateY(-65deg)"
-              : state === "cracked"
-                ? "perspective(220px) rotateY(-14deg)"
-                : "none",
-          transformOrigin: "left center",
-          transition: "transform 400ms ease",
+            "linear-gradient(180deg, #4a3318 0%, #2a1c0a 60%, #15100a 100%)",
+          border: "1px solid rgba(240,200,120,0.55)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,225,170,0.25), inset 0 -3px 0 rgba(0,0,0,0.55), 0 10px 24px -8px rgba(0,0,0,0.7)",
         }}
-      />
-      <span
-        className="absolute top-[5px] bottom-[5px] right-[4px]"
-        style={{
-          width: "calc(50% - 6px)",
-          background:
-            "linear-gradient(180deg, rgba(110,68,20,0.95) 0%, rgba(70,40,12,0.95) 60%, rgba(40,22,6,1) 100%)",
-          border: "1px solid rgba(0,0,0,0.55)",
-          transform:
-            state === "open"
-              ? "perspective(220px) rotateY(65deg)"
-              : state === "cracked"
-                ? "perspective(220px) rotateY(14deg)"
-                : "none",
-          transformOrigin: "right center",
-          transition: "transform 400ms ease",
-        }}
-      />
-      {state === "locked" && (
-        <span
-          className="absolute right-[3px] top-[3px] text-[8px]"
-          aria-hidden
+      >
+        {/* stone block highlights along the arch */}
+        <svg
+          viewBox="0 0 92 140"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          fill="none"
+          stroke="rgba(255,220,160,0.18)"
+          strokeWidth="0.8"
         >
-          🔒
-        </span>
-      )}
+          <path d="M2,46 Q46,2 90,46" />
+          <path d="M6,40 Q46,6 86,40" />
+          <line x1="46" y1="2" x2="46" y2="40" />
+          <line x1="22" y1="14" x2="30" y2="40" />
+          <line x1="70" y1="14" x2="62" y2="40" />
+        </svg>
+
+        {/* keystone */}
+        <span
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{
+            top: 2,
+            width: 14,
+            height: 12,
+            background: "linear-gradient(180deg, #8b6628 0%, #4d3410 100%)",
+            border: "1px solid rgba(0,0,0,0.55)",
+            borderRadius: "3px 3px 1px 1px",
+            boxShadow: "inset 0 1px 0 rgba(255,225,160,0.4)",
+          }}
+        />
+
+        {/* doorway opening (dark hole behind the leaves) */}
+        <span
+          className="absolute"
+          style={{
+            left: 10,
+            right: 10,
+            top: 16,
+            bottom: 8,
+            borderRadius: "40px 40px 3px 3px",
+            background:
+              "radial-gradient(ellipse at 50% 60%, rgba(255,210,130,0.55) 0%, rgba(120,60,10,0.35) 35%, rgba(10,5,0,0.95) 80%)",
+            boxShadow: "inset 0 0 18px rgba(0,0,0,0.85)",
+          }}
+        />
+
+        {/* door leaves */}
+        {(["left", "right"] as const).map((side) => {
+          const isLeft = side === "left";
+          return (
+            <span
+              key={side}
+              className="absolute"
+              style={{
+                top: 18,
+                bottom: 10,
+                [isLeft ? "left" : "right"]: 12,
+                width: "calc(50% - 14px)",
+                borderRadius: isLeft
+                  ? "34px 2px 1px 2px"
+                  : "2px 34px 2px 1px",
+                background:
+                  "repeating-linear-gradient(90deg, rgba(95,55,18,1) 0 4px, rgba(70,38,10,1) 4px 5px), linear-gradient(180deg, rgba(120,72,22,1) 0%, rgba(60,32,8,1) 100%)",
+                backgroundBlendMode: "multiply",
+                border: "1px solid rgba(0,0,0,0.6)",
+                boxShadow:
+                  "inset 0 1px 0 rgba(255,210,140,0.18), inset 0 -2px 0 rgba(0,0,0,0.55)",
+                transform: `perspective(420px) rotateY(${isLeft ? -leafAngle : leafAngle}deg)`,
+                transformOrigin: isLeft ? "left center" : "right center",
+                transition: "transform 600ms cubic-bezier(.2,.7,.2,1)",
+              }}
+            >
+              {/* iron strap top */}
+              <span
+                className="absolute left-0 right-0"
+                style={{
+                  top: "18%",
+                  height: 4,
+                  background:
+                    "linear-gradient(180deg, #5a4525 0%, #1d140a 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,220,160,0.25)",
+                }}
+              />
+              {/* iron strap bottom */}
+              <span
+                className="absolute left-0 right-0"
+                style={{
+                  bottom: "18%",
+                  height: 4,
+                  background:
+                    "linear-gradient(180deg, #5a4525 0%, #1d140a 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,220,160,0.25)",
+                }}
+              />
+              {/* rivets */}
+              <span
+                className="absolute"
+                style={{
+                  [isLeft ? "right" : "left"]: 3,
+                  top: "calc(18% - 3px)",
+                  width: 4,
+                  height: 4,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle at 35% 30%, #d8b878 0%, #3a2a10 80%)",
+                }}
+              />
+              <span
+                className="absolute"
+                style={{
+                  [isLeft ? "right" : "left"]: 3,
+                  bottom: "calc(18% - 3px)",
+                  width: 4,
+                  height: 4,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle at 35% 30%, #d8b878 0%, #3a2a10 80%)",
+                }}
+              />
+              {/* handle ring */}
+              <span
+                className="absolute"
+                style={{
+                  [isLeft ? "right" : "left"]: 4,
+                  top: "50%",
+                  width: 6,
+                  height: 6,
+                  marginTop: -3,
+                  borderRadius: "50%",
+                  border: "1.4px solid #e0c07a",
+                  background: "rgba(0,0,0,0.4)",
+                  boxShadow: "0 0 4px rgba(255,210,130,0.55)",
+                }}
+              />
+            </span>
+          );
+        })}
+      </span>
+
+      {/* threshold shadow */}
+      <span
+        className="pointer-events-none absolute -bottom-1 left-1 right-1 h-2 rounded-full blur-[3px]"
+        style={{ background: "rgba(0,0,0,0.55)" }}
+      />
     </span>
   );
 }
+
