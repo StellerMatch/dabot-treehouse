@@ -260,9 +260,19 @@ function Index() {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
                       if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
                       else sessionStorage.removeItem("dabottree:draftIdeaType");
+                      // Clear any prior tier selection — Good/Better/Best is chosen
+                      // later, only when the user opens the saved project from their library.
+                      sessionStorage.removeItem("dabottree:packageTier");
+                      sessionStorage.removeItem("dabottree:reportPath");
                     } catch {}
                   }
-                  setPathOpen(true);
+                  setPathOpen(false);
+                  setConfirmationMessage(
+                    "Idea saved to your library. Open it from your profile when you're ready to move forward.",
+                  );
+                  window.setTimeout(() => {
+                    navigate({ to: "/dashboard" });
+                  }, 1400);
                 }}
                 className={
                   "rounded-full border px-4 py-1.5 text-sm font-medium backdrop-blur-md transition " +
@@ -271,37 +281,18 @@ function Index() {
                     : "cursor-not-allowed border-amber-200/15 bg-white/[0.05] text-white/40")
                 }
               >
-                Start shaping →
+                Save to my library →
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {pathOpen && (
-        <ChoosePathModal
-          onClose={() => setPathOpen(false)}
-          onChoose={(tier) => {
-            if (typeof window !== "undefined") {
-              try {
-                sessionStorage.setItem("dabottree:packageTier", tier);
-                sessionStorage.setItem("dabottree:reportPath", tier);
-              } catch {}
-            }
-            setPathOpen(false);
-            setConfirmationMessage(getPathConfirmation(tier));
-            window.setTimeout(() => {
-              navigate({ to: "/dashboard" });
-            }, 2800);
-          }}
-        />
-      )}
-
       {confirmationMessage && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/35 px-4 backdrop-blur-sm">
           <div className="max-w-lg rounded-2xl border border-amber-200/30 bg-[rgba(24,13,7,0.95)] p-6 text-center shadow-[0_0_60px_-10px_rgba(255,178,92,0.75)]">
             <p className="text-[10px] uppercase tracking-[0.32em] text-amber-100/70">
-              Path selected
+              Idea saved
             </p>
             <p className="mt-3 text-lg leading-relaxed text-amber-50">{confirmationMessage}</p>
           </div>
