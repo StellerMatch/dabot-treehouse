@@ -867,7 +867,17 @@ function RootRoom() {
         }
 
       `}</style>
+
+      {reportOpen && (
+        <RootRoomReport
+          tier={packageTier}
+          onTierChange={setPackageTier}
+          onClose={() => setReportOpen(false)}
+          onComplete={handleAscend}
+        />
+      )}
     </main>
+
   );
 }
 
