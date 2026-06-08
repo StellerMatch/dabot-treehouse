@@ -299,6 +299,13 @@ function TrunkPage() {
             right: -8%;
             bottom: 18%;
             height: 39vh;
+            filter: drop-shadow(0 14px 12px rgba(0,0,0,0.68)) drop-shadow(0 0 20px rgba(255,190,70,0.25)) drop-shadow(0 -4px 10px rgba(255,200,90,0.14));
+          }
+          .trunk-guide-gold-shadow {
+            right: -6%;
+            bottom: 16%;
+            width: 18vh;
+            height: 3.5vh;
           }
         }
       `}</style>
