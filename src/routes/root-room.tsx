@@ -353,6 +353,11 @@ function RootRoom() {
           style={{ opacity: rootRoomComplete ? 1 : 0 }}
           aria-hidden
         />
+        <div
+          className="pointer-events-none absolute inset-0 z-[17] rr-sun-beam"
+          style={{ opacity: rootRoomComplete ? 1 : 0 }}
+          aria-hidden
+        />
       </div>
 
 
