@@ -811,8 +811,44 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
           borderRadius: "0 0 1px 1px",
         }}
       />
+      {disabled && (
+        <>
+          {/* "no" circle */}
+          <span
+            className="pointer-events-none absolute"
+            style={{
+              left: 6,
+              top: -8,
+              width: 38,
+              height: 38,
+              borderRadius: "50%",
+              border: "2.5px solid #e85a4a",
+              boxShadow: "0 0 6px rgba(232,90,74,0.55)",
+              transform: "rotate(12deg)",
+            }}
+            aria-hidden
+          />
+          {/* diagonal slash */}
+          <span
+            className="pointer-events-none absolute"
+            style={{
+              left: 4,
+              top: 9,
+              width: 42,
+              height: 3,
+              background: "#e85a4a",
+              borderRadius: 2,
+              boxShadow: "0 0 6px rgba(232,90,74,0.55)",
+              transform: "rotate(-33deg)",
+              transformOrigin: "center",
+            }}
+            aria-hidden
+          />
+        </>
+      )}
     </span>
   );
 }
+
 
 
