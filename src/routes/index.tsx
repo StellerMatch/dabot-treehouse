@@ -196,6 +196,21 @@ function Index() {
         </p>
       </section>
 
+      {pathOpen && (
+        <ChoosePathModal
+          onClose={() => setPathOpen(false)}
+          onChoose={(tier) => {
+            if (typeof window !== "undefined") {
+              try {
+                sessionStorage.setItem("dabottree:packageTier", tier);
+              } catch {}
+            }
+            setPathOpen(false);
+            navigate({ to: "/dashboard" });
+          }}
+        />
+      )}
     </main>
+
   );
 }
