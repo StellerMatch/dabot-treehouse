@@ -36,14 +36,11 @@ const TRUNK_NEXT_PALETTE = {
 
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
-  const [compassArrived, setCompassArrived] = useState(false);
 
   useEffect(() => {
     const t1 = window.setTimeout(() => setBookArrived(true), 1800);
-    const t2 = window.setTimeout(() => setCompassArrived(true), 4200);
     return () => {
       window.clearTimeout(t1);
-      window.clearTimeout(t2);
     };
   }, []);
 
