@@ -86,13 +86,11 @@ function TrunkPage() {
           />
         )}
 
-        {/* Compass — emerges from the distant doorway, walks up beside the table */}
+        {/* Compass — already standing beside the table when the scene opens */}
         <img
           src={compassStagAsset.url}
           alt=""
-          className={`pointer-events-none absolute z-[5] ${
-            compassArrived ? "trunk-compass-standing" : "trunk-compass-walking"
-          }`}
+          className="pointer-events-none absolute z-[5] trunk-compass-standing"
           draggable={false}
         />
       </div>
