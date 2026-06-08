@@ -37,7 +37,7 @@ const TRUNK_NEXT_PALETTE = {
   },
 };
 
-type TrunkStageId = "arrival" | "past" | "present" | "future" | "compass" | "ready";
+type TrunkStageId = "arrival" | "luma" | "bloom" | "vault" | "compass" | "ready";
 
 const TRUNK_STAGES: Array<{
   id: TrunkStageId;
@@ -49,37 +49,37 @@ const TRUNK_STAGES: Array<{
     id: "arrival",
     label: "Packet",
     title: "The Packet Has Arrived",
-    body: "The packet rests on the trunk table. The lantern guides are gathering Past, Present, and Future before Compass brings the path together.",
+    body: "The packet rests on the trunk table. Luma, Bloom, and Vault will each review the project's past, present, and future before Compass brings their findings together.",
   },
   {
-    id: "past",
-    label: "Past",
-    title: "Past Review",
-    body: "PAST is reading the roots of the idea and gathering where it came from.",
+    id: "luma",
+    label: "Luma",
+    title: "Luma Design Review",
+    body: "Luma is searching the design past, present, and future of projects like this, checking what has worked before, what feels right now, and what the finished experience should become.",
   },
   {
-    id: "present",
-    label: "Present",
-    title: "Present Review",
-    body: "PRESENT is checking what the idea is now and what is already clear.",
+    id: "bloom",
+    label: "Bloom",
+    title: "Bloom Growth Review",
+    body: "Bloom is studying the past, present, and future of audience growth, social media, advertising, launch paths, and how this project can reach the right people.",
   },
   {
-    id: "future",
-    label: "Future",
-    title: "Future Review",
-    body: "FUTURE is looking ahead at possible paths, risks, and opportunities.",
+    id: "vault",
+    label: "Vault",
+    title: "Vault Money Review",
+    body: "Vault is reviewing the past, present, and future of the money side: costs, funding, revenue paths, risk, and how the project can stay financially grounded.",
   },
   {
     id: "compass",
     label: "Compass",
     title: "Compass Synthesis",
-    body: "COMPASS is bringing Past, Present, and Future together into one direction.",
+    body: "Compass is taking the work from Luma, Bloom, and Vault, keeping the project pointed north, and shaping their findings into one true source of information.",
   },
   {
     id: "ready",
     label: "Ready",
     title: "Trunk Report Ready",
-    body: "The Trunk report is ready. The packet can move to the next layer.",
+    body: "The Trunk source is ready. The design, growth, and money reviews have been gathered into one direction, and the packet can move to the next layer.",
   },
 ];
 
@@ -136,34 +136,60 @@ function TrunkPage() {
           aria-hidden
         />
 
+        <div
+          className={`pointer-events-none absolute z-[4] trunk-character-spotlight trunk-spotlight-luma ${
+            activeGuide === "luma" ? "trunk-character-spotlight-active" : ""
+          }`}
+          aria-hidden
+        />
         <img
           src={pinkGuideAsset.url}
           alt=""
           className={`pointer-events-none absolute z-[6] trunk-guide-pink ${
-            activeGuide === "past" ? "trunk-guide-active" : ""
+            activeGuide === "luma" ? "trunk-guide-active" : ""
           }`}
           draggable={false}
         />
 
+        <div
+          className={`pointer-events-none absolute z-[4] trunk-character-spotlight trunk-spotlight-bloom ${
+            activeGuide === "bloom" ? "trunk-character-spotlight-active" : ""
+          }`}
+          aria-hidden
+        />
         <img
           src={greenGuideAsset.url}
           alt=""
           className={`pointer-events-none absolute z-[7] trunk-guide-green ${
-            activeGuide === "present" ? "trunk-guide-active" : ""
+            activeGuide === "bloom" ? "trunk-guide-active" : ""
           }`}
           draggable={false}
         />
 
+        <div
+          className={`pointer-events-none absolute z-[4] trunk-character-spotlight trunk-spotlight-vault ${
+            activeGuide === "vault" ? "trunk-character-spotlight-active" : ""
+          }`}
+          aria-hidden
+        />
         <div className="pointer-events-none absolute z-[5] trunk-guide-gold-shadow" aria-hidden />
         <img
           src={goldGuardianAsset.url}
           alt=""
           className={`pointer-events-none absolute z-[6] trunk-guide-gold ${
-            activeGuide === "future" ? "trunk-guide-active" : ""
+            activeGuide === "vault" ? "trunk-guide-active" : ""
           }`}
           draggable={false}
         />
 
+        <div
+          className={`pointer-events-none absolute z-[4] trunk-character-spotlight trunk-spotlight-compass ${
+            activeGuide === "compass" || activeGuide === "ready"
+              ? "trunk-character-spotlight-active"
+              : ""
+          }`}
+          aria-hidden
+        />
         <img
           src={compassStagAsset.url}
           alt=""
@@ -320,6 +346,49 @@ function TrunkPage() {
           filter: drop-shadow(0 18px 24px rgba(0,0,0,0.75)) drop-shadow(0 0 22px rgba(255,210,140,0.25));
           clip-path: inset(0 0 10% 0);
         }
+        .trunk-character-spotlight {
+          width: 22vmin;
+          height: 22vmin;
+          border-radius: 50%;
+          background:
+            radial-gradient(circle at 50% 42%, rgba(255,246,207,0.72) 0%, rgba(255,205,104,0.34) 34%, rgba(255,170,65,0.13) 58%, transparent 74%);
+          filter: blur(10px);
+          mix-blend-mode: screen;
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.65);
+          transition: opacity 0.55s ease, transform 0.55s ease;
+        }
+        .trunk-character-spotlight-active {
+          opacity: 0.96;
+          transform: translate(-50%, -50%) scale(1);
+          animation: trunk-spotlight-breathe-kf 1.8s ease-in-out infinite;
+        }
+        @keyframes trunk-spotlight-breathe-kf {
+          0%, 100% { filter: blur(10px); }
+          50% { filter: blur(13px); }
+        }
+        .trunk-spotlight-luma {
+          left: 30%;
+          top: 57%;
+        }
+        .trunk-spotlight-bloom {
+          left: 58%;
+          top: 60%;
+          width: 18vmin;
+          height: 18vmin;
+        }
+        .trunk-spotlight-vault {
+          left: 82%;
+          top: 54%;
+          width: 24vmin;
+          height: 24vmin;
+        }
+        .trunk-spotlight-compass {
+          left: 50%;
+          top: 43%;
+          width: 25vmin;
+          height: 25vmin;
+        }
         .trunk-compass-standing {
           bottom: 38%;
           animation: trunk-compass-stand-kf 4s ease-in-out infinite;
@@ -436,6 +505,30 @@ function TrunkPage() {
           text-shadow: 0 1px 0 rgba(255, 239, 176, 0.45);
         }
         @media (max-width: 900px) {
+          .trunk-spotlight-luma {
+            left: 14%;
+            top: 59%;
+            width: 20vmin;
+            height: 20vmin;
+          }
+          .trunk-spotlight-bloom {
+            left: 57%;
+            top: 51%;
+            width: 16vmin;
+            height: 16vmin;
+          }
+          .trunk-spotlight-vault {
+            left: 87%;
+            top: 58%;
+            width: 22vmin;
+            height: 22vmin;
+          }
+          .trunk-spotlight-compass {
+            left: 50%;
+            top: 43%;
+            width: 23vmin;
+            height: 23vmin;
+          }
           .trunk-guide-pink {
             left: 3%;
             bottom: 11%;
@@ -460,6 +553,30 @@ function TrunkPage() {
           }
         }
         @media (max-width: 640px) {
+          .trunk-spotlight-luma {
+            left: 10%;
+            top: 57%;
+            width: 19vmin;
+            height: 19vmin;
+          }
+          .trunk-spotlight-bloom {
+            left: 54%;
+            top: 49%;
+            width: 15vmin;
+            height: 15vmin;
+          }
+          .trunk-spotlight-vault {
+            left: 87%;
+            top: 56%;
+            width: 20vmin;
+            height: 20vmin;
+          }
+          .trunk-spotlight-compass {
+            left: 50%;
+            top: 42%;
+            width: 22vmin;
+            height: 22vmin;
+          }
           .trunk-book-arriving,
           .trunk-book-resting {
             height: 11vh;
