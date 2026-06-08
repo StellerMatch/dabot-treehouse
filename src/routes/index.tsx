@@ -429,7 +429,13 @@ function ChoosePathModal({
                         Opportunity doors stay sealed
                       </span>
                     )}
-                    {opt.id === "better" && <FantasyDoor state="cracked" />}
+                    {opt.id === "better" && (
+                      <>
+                        <FantasyDoor state="locked" />
+                        <FantasyDoor state="locked" />
+                        <KeyIcon />
+                      </>
+                    )}
                     {opt.id === "best" && (
                       <>
                         <FantasyDoor state="open" />
@@ -437,6 +443,7 @@ function ChoosePathModal({
                       </>
                     )}
                   </div>
+
 
 
                   <span
@@ -458,9 +465,12 @@ function ChoosePathModal({
   );
 }
 
-function FantasyDoor({ state }: { state: "cracked" | "open" }) {
+function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
   const opened = state === "open";
-  const leafAngle = opened ? 72 : 16;
+  const leafAngle = state === "locked" ? 0 : opened ? 72 : 16;
+  const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.45;
+  const glowSize = opened ? 140 : 90;
+
   return (
     <span
       className="relative inline-block"
@@ -471,12 +481,13 @@ function FantasyDoor({ state }: { state: "cracked" | "open" }) {
       <span
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          width: opened ? 140 : 90,
-          height: opened ? 140 : 90,
+          width: glowSize,
+          height: glowSize,
           background:
             "radial-gradient(ellipse at center, rgba(255,225,150,0.95) 0%, rgba(255,180,80,0.55) 35%, transparent 72%)",
           filter: "blur(10px)",
-          opacity: opened ? 0.9 : 0.45,
+          opacity: glowOpacity,
+
           transition: "all 400ms ease",
         }}
       />
@@ -631,6 +642,59 @@ function FantasyDoor({ state }: { state: "cracked" | "open" }) {
         })}
       </span>
 
+      {/* lock badge when locked */}
+      {state === "locked" && (
+        <span
+          className="pointer-events-none absolute left-1/2 -translate-x-1/2"
+          style={{
+            top: "52%",
+            width: 18,
+            height: 22,
+          }}
+          aria-hidden
+        >
+          {/* shackle */}
+          <span
+            className="absolute left-1/2 -translate-x-1/2"
+            style={{
+              top: 0,
+              width: 12,
+              height: 10,
+              borderRadius: "6px 6px 0 0",
+              border: "2px solid #d8b878",
+              borderBottom: "none",
+              background: "transparent",
+            }}
+          />
+          {/* body */}
+          <span
+            className="absolute left-1/2 -translate-x-1/2"
+            style={{
+              top: 8,
+              width: 18,
+              height: 14,
+              borderRadius: 3,
+              background:
+                "linear-gradient(180deg, #e6c585 0%, #8b6628 60%, #4d3410 100%)",
+              border: "1px solid rgba(0,0,0,0.6)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,235,180,0.55), 0 1px 3px rgba(0,0,0,0.6)",
+            }}
+          />
+          {/* keyhole */}
+          <span
+            className="absolute left-1/2 -translate-x-1/2"
+            style={{
+              top: 12,
+              width: 3,
+              height: 6,
+              borderRadius: "50% 50% 30% 30%",
+              background: "#1a0f04",
+            }}
+          />
+        </span>
+      )}
+
       {/* threshold shadow */}
       <span
         className="pointer-events-none absolute -bottom-1 left-1 right-1 h-2 rounded-full blur-[3px]"
@@ -639,4 +703,95 @@ function FantasyDoor({ state }: { state: "cracked" | "open" }) {
     </span>
   );
 }
+
+function KeyIcon() {
+  return (
+    <span
+      className="relative inline-block self-center"
+      style={{ width: 52, height: 22, transform: "rotate(-12deg)" }}
+      aria-hidden
+    >
+      {/* faint warm aura */}
+      <span
+        className="pointer-events-none absolute inset-0 rounded-full"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(255,220,150,0.55) 0%, transparent 70%)",
+          filter: "blur(6px)",
+          opacity: 0.85,
+        }}
+      />
+      {/* bow (head ring) */}
+      <span
+        className="absolute"
+        style={{
+          left: 0,
+          top: 1,
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          border: "3px solid #e9c684",
+          background:
+            "radial-gradient(circle at 35% 30%, rgba(255,235,180,0.4) 0%, transparent 60%)",
+          boxShadow:
+            "0 0 6px rgba(255,210,130,0.6), inset 0 0 4px rgba(0,0,0,0.45)",
+        }}
+      />
+      {/* bow inner gem */}
+      <span
+        className="absolute"
+        style={{
+          left: 7,
+          top: 8,
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle at 35% 30%, #fff4c8 0%, #c98a1c 80%)",
+          boxShadow: "0 0 4px rgba(255,210,130,0.85)",
+        }}
+      />
+      {/* shaft */}
+      <span
+        className="absolute"
+        style={{
+          left: 18,
+          top: 9,
+          width: 30,
+          height: 4,
+          background:
+            "linear-gradient(180deg, #f1d290 0%, #b0822c 55%, #5a3f12 100%)",
+          borderRadius: 1,
+          boxShadow: "inset 0 1px 0 rgba(255,240,200,0.55)",
+        }}
+      />
+      {/* teeth */}
+      <span
+        className="absolute"
+        style={{
+          left: 40,
+          top: 13,
+          width: 4,
+          height: 7,
+          background:
+            "linear-gradient(180deg, #d8a85a 0%, #6a4a14 100%)",
+          borderRadius: "0 0 1px 1px",
+        }}
+      />
+      <span
+        className="absolute"
+        style={{
+          left: 46,
+          top: 13,
+          width: 4,
+          height: 5,
+          background:
+            "linear-gradient(180deg, #d8a85a 0%, #6a4a14 100%)",
+          borderRadius: "0 0 1px 1px",
+        }}
+      />
+    </span>
+  );
+}
+
 
