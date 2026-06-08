@@ -120,10 +120,20 @@ function RootRoom() {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
-    // Optional override via URL: ?package=good|better|best
+    // Source order: URL ?package=... overrides sessionStorage selection.
     const params = new URLSearchParams(window.location.search);
-    const t = params.get("package");
-    if (t === "good" || t === "better" || t === "best") setPackageTier(t);
+    const urlTier = params.get("package");
+    if (urlTier === "good" || urlTier === "better" || urlTier === "best") {
+      setPackageTier(urlTier);
+    } else {
+      try {
+        const stored = sessionStorage.getItem("dabottree:packageTier");
+        if (stored === "good" || stored === "better" || stored === "best") {
+          setPackageTier(stored);
+        }
+      } catch {}
+    }
+
   }, []);
 
   useEffect(() => {
