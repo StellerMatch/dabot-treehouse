@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import logoImage from "@/assets/dabottree-logo.png";
 
