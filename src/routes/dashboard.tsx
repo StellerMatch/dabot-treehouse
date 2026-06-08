@@ -1507,6 +1507,7 @@ function Dashboard() {
   const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
     { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
   >({ kind: "idle" });
+  const libraryAutoSentRef = useRef(false);
 
   const sendLibraryWebhook = async (attemptNumber: number) => {
     if (!selected) return;
@@ -1521,7 +1522,7 @@ function Dashboard() {
             source: "lovable-library-test",
             page: "/library",
             level: "library",
-            action: "run_level_chunk",
+            action: "auto_run_level_chunk",
             runScope: "level_chunk_only",
             userIdea: selected.title || selected.messy || "",
             qualityPath: readReportTier(),
@@ -1594,6 +1595,15 @@ function Dashboard() {
     () => ideas.find((i) => i.id === selectedId) ?? ideas[0],
     [ideas, selectedId],
   );
+
+  // Auto-send Library webhook once when the page loads and an idea is available
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!selected) return;
+    if (libraryAutoSentRef.current) return;
+    libraryAutoSentRef.current = true;
+    void sendLibraryWebhook(1);
+  }, [selected]);
 
   const selectedExtras: IdeaExtras = selected
     ? (extras[selected.id] ?? emptyExtras())
@@ -2084,7 +2094,6 @@ function Dashboard() {
             onClick={() => {
               if (!selected) return;
               setLibraryReportOpen(true);
-              void sendLibraryWebhook(libraryRedoUsed ? 2 : 1);
             }}
           />
         </div>
