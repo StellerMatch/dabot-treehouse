@@ -3,21 +3,21 @@
 @source "../src";
 @import "tw-animate-css";
 
-/* Root Room intro title — organic, tree-like */
+/* Root Room intro title — organic, tree-like, luminous */
 .rr-intro-title {
   font-family: "Cinzel Decorative", "Cormorant Garamond", serif;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  background: linear-gradient(180deg, #ffe9a8 0%, #f0b441 50%, #8a4a13 100%);
+  letter-spacing: 0.1em;
+  background: linear-gradient(180deg, #fff9ed 0%, #ffebb8 40%, #f0c878 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-shadow:
-    0 1px 0 rgba(40, 18, 4, 0.7),
-    0 2px 4px rgba(0, 0, 0, 0.6);
-  filter:
-    drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7))
-    drop-shadow(0 0 10px rgba(255, 170, 70, 0.35));
+    0 0 6px rgba(255, 225, 160, 0.55),
+    0 0 14px rgba(255, 200, 100, 0.4),
+    0 0 26px rgba(255, 175, 70, 0.22),
+    0 -1px 0 rgba(255, 250, 230, 0.55),
+    0 2px 3px rgba(40, 20, 4, 0.25);
 }
 .rr-bot-name {
   font-family: "Cinzel Decorative", "Cormorant Garamond", serif;
