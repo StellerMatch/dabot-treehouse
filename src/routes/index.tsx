@@ -467,11 +467,19 @@ function ChoosePathModal({
   );
 }
 
-function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
+function FantasyDoor({
+  state,
+  unlocked = false,
+}: {
+  state: "cracked" | "open" | "locked";
+  unlocked?: boolean;
+}) {
   const opened = state === "open";
-  const leafAngle = state === "locked" ? 0 : opened ? 72 : 16;
-  const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.45;
-  const glowSize = opened ? 140 : 90;
+  // "cracked" should look almost-closed, barely ajar
+  const leafAngle = state === "locked" ? 0 : opened ? 72 : 10;
+  const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.35;
+  const glowSize = opened ? 140 : 70;
+
 
   return (
     <span
