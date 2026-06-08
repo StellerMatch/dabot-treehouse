@@ -422,11 +422,22 @@ function ChoosePathModal({
                     ))}
                   </ul>
 
-                  {/* Door preview */}
-                  <div className="relative mt-5 flex items-end justify-center gap-2">
-                    <DoorPreview state={opt.id === "good" ? "locked" : opt.id === "better" ? "cracked" : "open"} />
-                    <DoorPreview state={opt.id === "best" ? "open" : "locked"} />
+                  {/* Door preview — keep the same vertical footprint for every tier */}
+                  <div className="relative mt-5 flex h-[140px] items-end justify-center gap-4">
+                    {opt.id === "good" && (
+                      <span className="text-[11px] italic text-amber-100/55">
+                        Opportunity doors stay sealed
+                      </span>
+                    )}
+                    {opt.id === "better" && <FantasyDoor state="cracked" />}
+                    {opt.id === "best" && (
+                      <>
+                        <FantasyDoor state="open" />
+                        <FantasyDoor state="open" />
+                      </>
+                    )}
                   </div>
+
 
                   <span
                     className="relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 text-[13px] font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition group-hover:from-amber-200 group-hover:to-amber-400"
