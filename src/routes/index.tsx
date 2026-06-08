@@ -377,13 +377,15 @@ function ChoosePathModal({
         <div className="relative mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
           {PATH_OPTIONS.map((opt) => {
             const isHover = hovered === opt.id;
+            const canAfford = availableCredits >= opt.credits;
             return (
               <button
                 key={opt.id}
                 type="button"
                 onMouseEnter={() => setHovered(opt.id)}
                 onFocus={() => setHovered(opt.id)}
-                onClick={() => onChoose(opt.id)}
+                onClick={() => (canAfford ? onChoose(opt.id) : setAddOpen(true))}
+                aria-disabled={!canAfford}
                 className="group relative flex flex-col items-stretch text-left transition-transform hover:-translate-y-1 focus:outline-none focus:-translate-y-1"
               >
                 <span
