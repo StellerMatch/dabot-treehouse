@@ -1596,6 +1596,15 @@ function Dashboard() {
     [ideas, selectedId],
   );
 
+  // Auto-send Library webhook once when the page loads and an idea is available
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!selected) return;
+    if (libraryAutoSentRef.current) return;
+    libraryAutoSentRef.current = true;
+    void sendLibraryWebhook(1);
+  }, [selected]);
+
   const selectedExtras: IdeaExtras = selected
     ? (extras[selected.id] ?? emptyExtras())
     : emptyExtras();
