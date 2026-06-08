@@ -36,14 +36,11 @@ const TRUNK_NEXT_PALETTE = {
 
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
-  const [compassArrived, setCompassArrived] = useState(false);
 
   useEffect(() => {
     const t1 = window.setTimeout(() => setBookArrived(true), 1800);
-    const t2 = window.setTimeout(() => setCompassArrived(true), 4200);
     return () => {
       window.clearTimeout(t1);
-      window.clearTimeout(t2);
     };
   }, []);
 
@@ -89,13 +86,11 @@ function TrunkPage() {
           />
         )}
 
-        {/* Compass — emerges from the distant doorway, walks up beside the table */}
+        {/* Compass — already standing beside the table when the scene opens */}
         <img
           src={compassStagAsset.url}
           alt=""
-          className={`pointer-events-none absolute z-[5] ${
-            compassArrived ? "trunk-compass-standing" : "trunk-compass-walking"
-          }`}
+          className="pointer-events-none absolute z-[5] trunk-compass-standing"
           draggable={false}
         />
       </div>
@@ -207,7 +202,7 @@ function TrunkPage() {
           50%      { transform: translateX(-50%) scale(0.53) translateY(-3px); }
         }
         .trunk-compass-standing {
-          left: 50%; bottom: 40%;
+          left: 50%; bottom: 38%;
           height: 78vh; width: auto;
           transform-origin: 50% 100%;
           clip-path: inset(0 0 10% 0);
