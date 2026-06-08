@@ -93,7 +93,7 @@ function TrunkPage() {
         <img
           src={compassStagAsset.url}
           alt=""
-          className={`pointer-events-none absolute z-[11] ${
+          className={`pointer-events-none absolute z-[5] ${
             compassArrived ? "trunk-compass-standing" : "trunk-compass-walking"
           }`}
           draggable={false}
@@ -155,28 +155,27 @@ function TrunkPage() {
           0%, 100% { opacity: 0.65; }
           50% { opacity: 1; }
         }
-        /* Book descends from the ceiling along the light beam, then settles flat on the table */
+        /* Book descends from the ceiling along the light beam and settles fully on the table */
         @keyframes trunk-book-arriving-kf {
-          0%   { top: -8%;  transform: translateX(-50%) scale(0.35) rotateX(0deg); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
+          0%   { top: -8%;  transform: translateX(-50%) scale(0.35); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
           20%  { opacity: 1; }
-          85%  { top: 60%;  transform: translateX(-50%) scale(0.95) rotateX(68deg); opacity: 1; }
-          100% { top: 62%;  transform: translateX(-50%) scale(1)    rotateX(72deg); opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
+          100% { top: 58%;  transform: translateX(-50%) scale(1);    opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
         .trunk-book-arriving {
           top: -8%;
-          height: 22vh; width: auto;
-          transform-origin: 50% 80%;
+          height: 18vh; width: auto;
+          transform-origin: 50% 90%;
           animation: trunk-book-arriving-kf 1.8s cubic-bezier(0.4, 0.0, 0.4, 1) forwards;
           will-change: top, transform, opacity;
         }
         @keyframes trunk-book-rest-kf {
-          0%, 100% { transform: translateX(-50%) scale(1) rotateX(72deg) translateY(0); }
-          50%      { transform: translateX(-50%) scale(1) rotateX(72deg) translateY(-2px); }
+          0%, 100% { transform: translateX(-50%) scale(1) translateY(0); }
+          50%      { transform: translateX(-50%) scale(1) translateY(-2px); }
         }
         .trunk-book-resting {
-          top: 62%;
-          height: 22vh; width: auto;
-          transform-origin: 50% 80%;
+          top: 58%;
+          height: 18vh; width: auto;
+          transform-origin: 50% 90%;
           filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.9));
           animation: trunk-book-rest-kf 4s ease-in-out infinite;
         }
@@ -193,11 +192,11 @@ function TrunkPage() {
           mix-blend-mode: screen;
           animation: trunk-glow-kf 0.8s ease-out forwards;
         }
-        /* Compass — walks forward from the distant doorway, grows in scale, stops beside the table */
+        /* Compass — walks forward from deep center, stops behind the table */
         @keyframes trunk-compass-walking-kf {
-          0%   { left: 50%; bottom: 42%; transform: translateX(-50%) scale(0.05); opacity: 0; filter: brightness(0.5) drop-shadow(0 0 8px rgba(255,200,120,0.4)); }
+          0%   { left: 50%; bottom: 44%; transform: translateX(-50%) scale(0.05); opacity: 0; filter: brightness(0.5) drop-shadow(0 0 8px rgba(255,200,120,0.4)); }
           15%  { opacity: 1; }
-          100% { left: 68%; bottom: 6%;  transform: translateX(-50%) scale(0.55); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
+          100% { left: 50%; bottom: 30%; transform: translateX(-50%) scale(0.66); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
         }
         .trunk-compass-walking {
           height: 78vh; width: auto;
@@ -206,18 +205,18 @@ function TrunkPage() {
           will-change: left, bottom, transform, opacity;
         }
         @keyframes trunk-compass-stand-kf {
-          0%, 100% { transform: translateX(-50%) scale(0.55) translateY(0); }
-          50%      { transform: translateX(-50%) scale(0.55) translateY(-3px); }
+          0%, 100% { transform: translateX(-50%) scale(0.66) translateY(0); }
+          50%      { transform: translateX(-50%) scale(0.66) translateY(-3px); }
         }
         .trunk-compass-standing {
-          left: 68%; bottom: 6%;
+          left: 50%; bottom: 30%;
           height: 78vh; width: auto;
           transform-origin: 50% 100%;
           filter: drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.55));
           animation: trunk-compass-stand-kf 5s ease-in-out infinite;
         }
         @media (max-width: 640px) {
-          .trunk-book-arriving, .trunk-book-resting { height: 16vh; }
+          .trunk-book-arriving, .trunk-book-resting { height: 13vh; }
           .trunk-compass-walking, .trunk-compass-standing { height: 60vh; }
         }
       `}</style>
