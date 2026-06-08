@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import trunkBgAsset from "@/assets/trunk-room-bg.png.asset.json";
-import floatingBookAsset from "@/assets/floating-book.png.asset.json";
+import trunkBgAsset from "@/assets/trunk-room-bg-v2.png.asset.json";
+import packetBookAsset from "@/assets/trunk-packet-book.png.asset.json";
+import compassStagAsset from "@/assets/compass-stag.png.asset.json";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/trunk")({
@@ -35,10 +36,15 @@ const TRUNK_NEXT_PALETTE = {
 
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
+  const [compassArrived, setCompassArrived] = useState(false);
 
   useEffect(() => {
-    const t = window.setTimeout(() => setBookArrived(true), 1800);
-    return () => window.clearTimeout(t);
+    const t1 = window.setTimeout(() => setBookArrived(true), 1800);
+    const t2 = window.setTimeout(() => setCompassArrived(true), 4200);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, []);
 
   return (
@@ -46,7 +52,7 @@ function TrunkPage() {
       <div className="absolute inset-0">
         <img
           src={trunkBgAsset.url}
-          alt="The Trunk Layer — an open trunk chamber with a central reading table beneath a shaft of light."
+          alt="The Trunk Layer — a vast root chamber with a central reading table beneath a shaft of light."
           className="absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: "center center" }}
           draggable={false}
@@ -65,11 +71,11 @@ function TrunkPage() {
           aria-hidden
         />
 
-        {/* Arriving book — descends from light, settles onto table */}
+        {/* Arriving packet book — descends along the light beam, lands flat on the table */}
         <img
-          src={floatingBookAsset.url}
+          src={packetBookAsset.url}
           alt=""
-          className={`pointer-events-none absolute left-1/2 -translate-x-1/2 z-[10] ${
+          className={`pointer-events-none absolute left-1/2 z-[10] ${
             bookArrived ? "trunk-book-resting" : "trunk-book-arriving"
           }`}
           draggable={false}
@@ -82,6 +88,16 @@ function TrunkPage() {
             aria-hidden
           />
         )}
+
+        {/* Compass — emerges from the distant doorway, walks up beside the table */}
+        <img
+          src={compassStagAsset.url}
+          alt=""
+          className={`pointer-events-none absolute z-[11] ${
+            compassArrived ? "trunk-compass-standing" : "trunk-compass-walking"
+          }`}
+          draggable={false}
+        />
       </div>
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
