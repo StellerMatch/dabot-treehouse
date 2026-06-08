@@ -279,7 +279,27 @@ function ChoosePathModal({
   onChoose: (tier: PackageTier) => void;
 }) {
   const [hovered, setHovered] = useState<PackageTier | null>("better");
-  const availableCredits = 0;
+  const [availableCredits, setAvailableCredits] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    try {
+      const v = Number(localStorage.getItem("dabottree:credits") ?? "0");
+      return Number.isFinite(v) ? v : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [addOpen, setAddOpen] = useState(false);
+
+  const addCredits = (amount: number) => {
+    setAvailableCredits((prev) => {
+      const next = Math.max(0, prev + Math.floor(amount));
+      try {
+        localStorage.setItem("dabottree:credits", String(next));
+      } catch {}
+      return next;
+    });
+    setAddOpen(false);
+  };
 
   return (
     <div
