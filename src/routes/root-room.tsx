@@ -832,40 +832,23 @@ function RootRoom() {
           50%      { filter: blur(2.5px) brightness(1.12); }
         }
 
-        /* Sunroof beam — bright shaft of sunlight pouring from ceiling skylight */
+        /* Sunroof glow — soft, natural sunlight diffusing in from the skylight */
         .rr-sun-beam {
           background:
-            /* bright sunroof bloom at top center */
-            radial-gradient(ellipse 12% 6% at 50% 0%, rgba(255,248,210,0.95) 0%, rgba(255,235,170,0.55) 40%, transparent 75%),
-            /* main volumetric beam — trapezoid via clip-path on the layer below */
-            linear-gradient(to bottom,
-              rgba(255,245,200,0.55) 0%,
-              rgba(255,235,170,0.40) 20%,
-              rgba(255,225,150,0.28) 45%,
-              rgba(255,215,135,0.16) 70%,
-              transparent 100%);
-          -webkit-mask-image:
-            radial-gradient(ellipse 14% 8% at 50% 0%, #000 0%, #000 60%, transparent 100%),
-            linear-gradient(to bottom,
-              rgba(0,0,0,1) 0%,
-              rgba(0,0,0,0.85) 50%,
-              rgba(0,0,0,0) 100%);
-                  mask-image:
-            radial-gradient(ellipse 14% 8% at 50% 0%, #000 0%, #000 60%, transparent 100%),
-            linear-gradient(to bottom,
-              rgba(0,0,0,1) 0%,
-              rgba(0,0,0,0.85) 50%,
-              rgba(0,0,0,0) 100%);
-          -webkit-mask-composite: source-over;
-          clip-path: polygon(42% 0%, 58% 0%, 64% 60%, 36% 60%);
+            /* bright skylight bloom at top */
+            radial-gradient(ellipse 18% 10% at 50% -2%, rgba(255,250,225,0.85) 0%, rgba(255,238,185,0.45) 45%, transparent 80%),
+            /* warm haze spilling down and outward */
+            radial-gradient(ellipse 42% 38% at 50% 18%, rgba(255,240,195,0.32) 0%, rgba(255,225,160,0.16) 45%, transparent 78%),
+            /* gentle wide ambient wash */
+            radial-gradient(ellipse 65% 55% at 50% 28%, rgba(255,230,170,0.14) 0%, transparent 70%);
           mix-blend-mode: screen;
-          filter: blur(6px);
+          filter: blur(14px);
           transition: opacity 1800ms ease-in-out;
-          animation: rr-sun-beam-breathe 6.5s ease-in-out infinite;
+          animation: rr-sun-beam-breathe 7s ease-in-out infinite;
         }
         @keyframes rr-sun-beam-breathe {
-          0%, 100% { filter: blur(6px) brightness(1); opacity: 1; }
-          50%      { filter: blur(7px) brightness(1.15); }
+          0%, 100% { filter: blur(14px) brightness(1); }
+          50%      { filter: blur(16px) brightness(1.10); }
         }
 
       `}</style>
