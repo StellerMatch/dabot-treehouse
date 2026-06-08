@@ -204,19 +204,19 @@ function TrunkPage() {
           filter: drop-shadow(0 18px 26px rgba(0,0,0,0.72)) drop-shadow(0 0 24px rgba(255,205,120,0.18));
         }
         .trunk-guide-pink {
-          left: 15.5%;
+          left: 14%;
           bottom: 6%;
           height: 58vh;
         }
         .trunk-guide-green {
-          left: 54.8%;
-          bottom: 23.8%;
-          height: 46vh;
+          left: 55.8%;
+          bottom: 22%;
+          height: 55vh;
         }
         .trunk-guide-gold {
-          right: 8.5%;
-          bottom: 5.5%;
-          height: 67vh;
+          right: 6.5%;
+          bottom: 5%;
+          height: 72vh;
         }
         @media (max-width: 900px) {
           .trunk-guide-pink {
