@@ -93,7 +93,7 @@ function TrunkPage() {
         <img
           src={compassStagAsset.url}
           alt=""
-          className={`pointer-events-none absolute z-[11] ${
+          className={`pointer-events-none absolute z-[5] ${
             compassArrived ? "trunk-compass-standing" : "trunk-compass-walking"
           }`}
           draggable={false}
