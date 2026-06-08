@@ -30,6 +30,9 @@ function Index() {
   const { type } = Route.useSearch();
   const [idea, setIdea] = useState("");
   const [ideaType, setIdeaType] = useState<string>(type ?? "");
+  const [pathOpen, setPathOpen] = useState(false);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     if (type) setIdeaType(type);
