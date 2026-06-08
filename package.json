@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "sync:levels": "node scripts/sync-level-system-data.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

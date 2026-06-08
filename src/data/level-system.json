@@ -1,0 +1,460 @@
+{
+  "source_output": "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/internal-run-wedding-photographer-editing-profile-output-20260608T193839Z.json",
+  "generated_at": "2026-06-08T20:04:15.256Z",
+  "level_result_system": {
+    "system_type": "dabottree_level_reports_and_doors",
+    "status": "ready_internal_only",
+    "source_note": "Each level has a report source and a door object for front-end inspection. Doors are internal navigation/output markers, not approval gates.",
+    "level_count": 9,
+    "levels": [
+      {
+        "level_key": "library",
+        "level_name": "Library Level",
+        "order": 1,
+        "owner": "Clarity / Echo / Chief / Ledger / Shield",
+        "status": "ready_for_user_review_internal_only",
+        "report_source_key": "review_output",
+        "report_present": true,
+        "report_summary": "DaBotTree Internal Review",
+        "expected_output": null,
+        "open_questions": [
+          {
+            "shelf": "project_shape",
+            "question": "Who would this help?",
+            "weak_spot": "Needs a little more natural detail from the user."
+          },
+          {
+            "shelf": "project_shape",
+            "question": "What would a useful first version do?",
+            "weak_spot": "Needs a little more natural detail from the user."
+          },
+          {
+            "shelf": "project_shape",
+            "question": "What part are you picturing most clearly right now?",
+            "weak_spot": "Needs a little more natural detail from the user."
+          },
+          {
+            "shelf": "money",
+            "question": "If this eventually made money, what feels like the most natural way that could happen?",
+            "weak_spot": "Pricing, buyer, and package model."
+          },
+          {
+            "shelf": "proof",
+            "question": "Do you have any examples, references, notes, or past experiences that point toward this?",
+            "weak_spot": "No deep research or validated market proof in this dry run."
+          }
+        ],
+        "boundary": "Internal review only. No publishing, spending, credentials, webhooks, external accounts, backend storage, or bot authority changes.",
+        "n8n_anchor": "7. Prepare User Review Output"
+      },
+      {
+        "level_key": "trunk",
+        "level_name": "Trunk Level",
+        "order": 2,
+        "owner": "Lanterns / Compass",
+        "status": "prepared_internal_handoff",
+        "report_source_key": "trunk_level_rd_handoff",
+        "report_present": true,
+        "report_summary": "Prepare the project for R&D/product-direction work without losing the original clean packet, baseline, safety flags, or creator-control rules.",
+        "expected_output": null,
+        "open_questions": [],
+        "boundary": null,
+        "n8n_anchor": "7.6 / 7.7 Trunk and Lantern Handoffs"
+      },
+      {
+        "level_key": "the_clearing",
+        "level_name": "The Clearing",
+        "order": 3,
+        "owner": "Moniker concept / naming layer",
+        "status": "prepared_internal_name_and_url_options",
+        "report_source_key": "project_naming_options",
+        "report_present": true,
+        "report_summary": "After Trunk research, treat The Clearing like a clean piece of paper: Moniker starts the project by naming the thing and setting URL direction early enough to guide logo, colors, font, brand tone, and later design work.",
+        "expected_output": null,
+        "open_questions": [],
+        "boundary": null,
+        "n8n_anchor": "7.8. The Clearing: Prepare Project Name and URL Options"
+      },
+      {
+        "level_key": "canopy",
+        "level_name": "Canopy Level",
+        "order": 4,
+        "owner": "Rook",
+        "status": "rook_foundation_packet_prepared_internal_only",
+        "report_source_key": "canopy_foundation_packet",
+        "report_present": true,
+        "report_summary": "Turn Library, Trunk, The Clearing, Lantern, Compass, Moniker, Ledger, Shield, and Echo inputs into a clear project foundation before Branchworks explores build/design options.",
+        "expected_output": {
+          "packet_type": "rook_canopy_foundation_packet",
+          "should_include": [
+            "project definition",
+            "target user and problem",
+            "core promise and positioning",
+            "strengths, weak spots, missing decisions, and assumptions",
+            "source/canon/baseline notes where relevant",
+            "money, growth, design, and direction-continuity notes",
+            "Rook exit-gate result",
+            "Ledger staying-on-track report card",
+            "Branchworks-ready first questions and do-not-drift boundaries"
+          ]
+        },
+        "open_questions": [],
+        "boundary": "Canopy prepares internal planning only. It does not approve build, launch, spending, public claims, account actions, legal/trademark claims, domain purchase, or bot authority changes.",
+        "n8n_anchor": "8. Canopy Level: Prepare Rook Foundation Packet"
+      },
+      {
+        "level_key": "branchworks",
+        "level_name": "Branchworks Level",
+        "order": 5,
+        "owner": "Tinker / Momma / Bears",
+        "status": "tinker_experiment_packet_prepared_internal_only",
+        "report_source_key": "branchworks_experiment_packet",
+        "report_present": true,
+        "report_summary": "Turn the Rook/Canopy foundation into Bear-ready experiment directions and a three-door Lovable preview concept while preserving closed gates.",
+        "expected_output": {
+          "packet_type": "tinker_branchworks_experiment_packet",
+          "should_include": [
+            "Tinker intake summary",
+            "Squirrel build rails / development guardrails",
+            "Lantern practical build-pass notes",
+            "Echo pre-Momma memory alignment",
+            "Momma Bear neutral packet",
+            "three isolated Bear direction outputs",
+            "Momma Bear master report",
+            "Momma Bear master prompt preserving the three directions",
+            "DaBotTree Health Page context",
+            "Lovable three-door preview concept",
+            "Tinker final check result and closed-gate confirmation"
+          ]
+        },
+        "open_questions": [],
+        "boundary": "Branchworks prepares internal experiment/design direction only. It does not approve Lovable submission, build execution, deployment, public launch, spending, account access, backend setup, route/config/tool changes, final product selection, or bot authority changes.",
+        "n8n_anchor": "8.5. Branchworks Level: Prepare Tinker Experiment Packet"
+      },
+      {
+        "level_key": "crown",
+        "level_name": "Crown Level",
+        "order": 6,
+        "owner": "Weaver / Grandpa Bears",
+        "status": "crown_weaver_prototype_package_prepared_internal_only",
+        "report_source_key": "crown_weaver_packet",
+        "report_present": true,
+        "report_summary": "Turn Branchworks Bear directions and Tinker checks into one stronger prototype package, while preserving source choices and guarding against drift.",
+        "expected_output": null,
+        "open_questions": [],
+        "boundary": "Crown prepares an internal prototype package, Shield Final Boundary Pass, and next-level handoff only. It does not approve Lovable submission, build execution, deployment, public launch, spending, account access, backend setup, route/config/tool changes, live support activation, final product selection, or bot authority changes.",
+        "n8n_anchor": "8.6. Crown Level: Prepare Weaver Prototype Package"
+      },
+      {
+        "level_key": "the_sweep",
+        "level_name": "The Sweep",
+        "order": 7,
+        "owner": "Ghost",
+        "status": "ghost_simulation_report_prepared_internal_only",
+        "report_source_key": "ghost_simulation_report",
+        "report_present": true,
+        "report_summary": "Have Ghost run end-stage simulations across the near-final Crown package / Da Crown Door experience before build handoff, owner review, public use, launch planning, or operational movement.",
+        "expected_output": null,
+        "open_questions": [],
+        "boundary": "The Sweep is simulation/reporting only. It does not approve Lovable submission, browser/computer-use automation, account access, production data use, public action, spending, deployment, code fixes, auto-merge, final product approval, route/config/tool changes, or bot authority changes.",
+        "n8n_anchor": "8.7. The Sweep: Prepare Ghost Simulation Report"
+      },
+      {
+        "level_key": "nest",
+        "level_name": "Nest Level",
+        "order": 8,
+        "owner": "Ward",
+        "status": "ward_nest_home_packet_prepared_internal_only",
+        "report_source_key": "ward_nest_home_packet",
+        "report_present": true,
+        "report_summary": "Receive the swept project into its living home, define health and watch signals, keep it from going stale, and route the right helper when it needs care.",
+        "expected_output": {
+          "packet_type": "ward_nest_home_packet",
+          "should_include": [
+            "Ward intake summary",
+            "Anteater/Ant Watch Report input when available",
+            "project home/location and target surface status",
+            "health profile",
+            "growth signals",
+            "staleness signals",
+            "forward growth opportunities and proposed additions",
+            "owner decision on proposed additions",
+            "helper routing map",
+            "Boomer support/care setup notes",
+            "watch/review cadence recommendation",
+            "High Council review notes and routed fixes",
+            "version number update when meaningful changes are made",
+            "current Nest status",
+            "unresolved approvals or blockers"
+          ]
+        },
+        "open_questions": [],
+        "boundary": "Nest is project-home/watch/readiness guidance unless later approved as live operations. It does not approve cron automation, live support operations, support inboxes, public launch, spending, deployment, customer promises, production monitoring, account/channel/runtime/config changes, final product approval, or bot authority changes.",
+        "n8n_anchor": "8.8. Nest Level: Prepare Ward Living Project Home"
+      },
+      {
+        "level_key": "seed",
+        "level_name": "Seed Level",
+        "order": 9,
+        "owner": "Bloom",
+        "status": "bloom_seed_launch_packet_prepared_internal_only",
+        "report_source_key": "bloom_seed_launch_packet",
+        "report_present": true,
+        "report_summary": "Turn the Living Seed Packet into a practical Seed Launch Packet so the strongest seeds can work at their best ability after the project has a home in Nest.",
+        "expected_output": {
+          "packet_type": "bloom_seed_launch_packet",
+          "should_include": [
+            "Living Seed Packet summary",
+            "Seed type inventory",
+            "readiness ranking for each seed",
+            "ready-to-plant seeds",
+            "owner-decision seeds",
+            "proof-needed seeds",
+            "Senior Seed foundation notes for each baby seed",
+            "DaBotTree Admin Page section/tab notes",
+            "future Analytics/Stats placeholder only when clearly marked or backed by real data",
+            "Seed Admin Page sections and field notes",
+            "saved-later / future seed list",
+            "do-not-plant list with rationale",
+            "first recommended low-risk planting path",
+            "message/channel/content/trust/growth/money notes",
+            "approval needs before external movement",
+            "next external-action gate handoff"
+          ]
+        },
+        "open_questions": [],
+        "boundary": "Seed prepares launch/growth/distribution guidance plus internal/admin Seed Page and DaBotTree Admin Page concepts only. It does not approve public launch, posting, ads, spending, account access, email/message sends, customer promises, legal/commercial claims, automation, deployment, live support, final launch authority, public exposure of internal seed data, or bot authority changes.",
+        "n8n_anchor": "8.9. Seed Level: Prepare Bloom Seed Launch Packet"
+      }
+    ],
+    "doors": [
+      {
+        "door_key": "library_door",
+        "level_key": "library",
+        "level_name": "Library Level",
+        "order": 1,
+        "label": "Open Library Report",
+        "kind": "level_report_door",
+        "status": "ready",
+        "opens_report_source_key": "review_output",
+        "n8n_anchor": "7. Prepare User Review Output",
+        "background_reference": null,
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "trunk_door",
+        "level_key": "trunk",
+        "level_name": "Trunk Level",
+        "order": 2,
+        "label": "Open Trunk Report",
+        "kind": "level_report_door",
+        "status": "ready",
+        "opens_report_source_key": "trunk_level_rd_handoff",
+        "n8n_anchor": "7.6 / 7.7 Trunk and Lantern Handoffs",
+        "background_reference": null,
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "the_clearing_door",
+        "level_key": "the_clearing",
+        "level_name": "The Clearing",
+        "order": 3,
+        "label": "Open Naming Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "project_naming_options",
+        "n8n_anchor": "7.8. The Clearing: Prepare Project Name and URL Options",
+        "background_reference": "first Moniker scene reference image",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "canopy_door",
+        "level_key": "canopy",
+        "level_name": "Canopy Level",
+        "order": 4,
+        "label": "Open Canopy Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "canopy_foundation_packet",
+        "n8n_anchor": "8. Canopy Level: Prepare Rook Foundation Packet",
+        "background_reference": "later corrected Rook reference image",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "branchworks_door",
+        "level_key": "branchworks",
+        "level_name": "Branchworks Level",
+        "order": 5,
+        "label": "Open Branchworks Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "branchworks_experiment_packet",
+        "n8n_anchor": "8.5. Branchworks Level: Prepare Tinker Experiment Packet",
+        "background_reference": "Tinker stage reference image",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "crown_door",
+        "level_key": "crown",
+        "level_name": "Crown Level",
+        "order": 6,
+        "label": "Open Crown Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "crown_weaver_packet",
+        "n8n_anchor": "8.6. Crown Level: Prepare Weaver Prototype Package",
+        "background_reference": "Weaver stage reference image",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "the_sweep_door",
+        "level_key": "the_sweep",
+        "level_name": "The Sweep",
+        "order": 7,
+        "label": "Open Sweep Report",
+        "kind": "level_report_door",
+        "status": "ready",
+        "opens_report_source_key": "ghost_simulation_report",
+        "n8n_anchor": "8.7. The Sweep: Prepare Ghost Simulation Report",
+        "background_reference": "no separate background reference provided yet",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "nest_door",
+        "level_key": "nest",
+        "level_name": "Nest Level",
+        "order": 8,
+        "label": "Open Nest Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "ward_nest_home_packet",
+        "n8n_anchor": "8.8. Nest Level: Prepare Ward Living Project Home",
+        "background_reference": "earlier canopies reference image, corrected to Ward background",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
+        "door_key": "seed_door",
+        "level_key": "seed",
+        "level_name": "Seed Level",
+        "order": 9,
+        "label": "Open Seed Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "bloom_seed_launch_packet",
+        "n8n_anchor": "8.9. Seed Level: Prepare Bloom Seed Launch Packet",
+        "background_reference": "Seeds stage reference image",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      }
+    ],
+    "missing_level_reports": [],
+    "personal_project_run_readiness": {
+      "status": "ready_for_local_internal_dry_run",
+      "needs_before_real_personal_project": [
+        "current clean packet or intake payload",
+        "confirmed local run target",
+        "Boss approval before live n8n sync or Lovable submission"
+      ],
+      "visual_work_left_for_boss": [
+        "final background art per level",
+        "inside-level storytelling details",
+        "final stage names if different from current n8n/Lovable names"
+      ]
+    },
+    "authority_boundary": "Internal metadata only. Does not activate n8n, connect accounts, submit Lovable prompts, deploy, publish, spend, or change runtime/config/authority."
+  },
+  "visual_scene_map": {
+    "map_type": "lovable_frontend_background_assignment_map",
+    "status": "current_n8n_order_with_corrected_background_refs",
+    "source_note": "Boss clarified on 2026-06-08 that the spoken labels were summaries/background references, not final stage renames. Use the current n8n/Lovable stage names and order; apply corrected background assignments. Creation is not part of this active level map.",
+    "active_scene_count": 7,
+    "active_scenes": [
+      {
+        "order": 1,
+        "scene_key": "the_clearing_moniker",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "The Clearing: Prepare Project Name and URL Options",
+        "backend_source": "project_naming_options",
+        "status": "active_current_n8n_stage",
+        "background_reference_summary": "first Moniker scene reference image",
+        "purpose": "Naming and first identity direction before the project moves deeper."
+      },
+      {
+        "order": 2,
+        "scene_key": "canopy_rook",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "Canopy Level: Prepare Rook Foundation Packet",
+        "backend_source": "canopy_foundation_packet",
+        "status": "active_current_n8n_stage",
+        "background_reference_summary": "later corrected Rook reference image",
+        "purpose": "Knowledge/foundation planning and usable project direction."
+      },
+      {
+        "order": 3,
+        "scene_key": "branchworks_tinker",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "Branchworks Level: Prepare Tinker Experiment Packet",
+        "backend_source": "branchworks_experiment_packet",
+        "status": "active_current_n8n_stage",
+        "background_reference_summary": "Tinker stage reference image",
+        "purpose": "Experiment/build-shape stage for possible structures, features, and directions."
+      },
+      {
+        "order": 4,
+        "scene_key": "crown_weaver",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "Crown Level: Prepare Weaver Prototype Package",
+        "backend_source": "crown_weaver_packet",
+        "status": "active_current_n8n_stage",
+        "background_reference_summary": "Weaver stage reference image",
+        "purpose": "Prototype synthesis, polish, QA loops, and package assembly."
+      },
+      {
+        "order": 5,
+        "scene_key": "the_sweep_ghost",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "The Sweep: Prepare Ghost Simulation Report",
+        "backend_source": "ghost_simulation_report",
+        "status": "active_current_n8n_stage_no_background_ref_yet",
+        "background_reference_summary": "no separate background reference provided yet",
+        "purpose": "Post-Crown QA/simulation before the project moves into its home/care layer."
+      },
+      {
+        "order": 6,
+        "scene_key": "nest_ward",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "Nest Level: Prepare Ward Living Project Home",
+        "backend_source": "ward_nest_home_packet",
+        "status": "active_current_n8n_stage",
+        "background_reference_summary": "earlier canopies reference image, corrected to Ward background",
+        "purpose": "Project home, health, care, support readiness, and future watch surface."
+      },
+      {
+        "order": 7,
+        "scene_key": "seed_bloom",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "Seed Level: Prepare Bloom Seed Launch Packet",
+        "backend_source": "bloom_seed_launch_packet",
+        "status": "active_current_n8n_stage",
+        "background_reference_summary": "Seeds stage reference image",
+        "purpose": "Launch/growth packet, seed categories, and distribution planning."
+      }
+    ],
+    "backend_order_note": "Backend n8n execution and stage naming remain the source. Do not rename stages from background summaries. The canopies image belongs to Ward/Nest background; the later corrected image belongs to Rook/Canopy background.",
+    "corrections_locked": [
+      "n8n, not NAN",
+      "Moniker, not Monica",
+      "spoken labels are background/reference summaries, not final renames",
+      "earlier canopies image is Ward/Nest background",
+      "later corrected image is Rook/Canopy background"
+    ]
+  },
+  "run_receipt_summary": {
+    "dry_run_id": "INTERNAL-RUN-20260608T193839Z-WEDDING-PHOTOGRAPHER-EDITING-PROFILE",
+    "status": "ready_internal_only",
+    "project_name": "Wedding Photographer Editing Profile",
+    "project_slug": "wedding-photographer-editing-profile",
+    "current_shape": "ai_creative_tool",
+    "executed_node_count": 25,
+    "no_action_proof_line": "No public action, spending, account change, live n8n edit, Lovable prompt, credential use, deployment, support activation, automation activation, route/config/runtime change, or bot authority change occurred."
+  }
+}
