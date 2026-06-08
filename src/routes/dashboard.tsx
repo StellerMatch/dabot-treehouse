@@ -1596,14 +1596,11 @@ function Dashboard() {
     [ideas, selectedId],
   );
 
-  // Auto-send Library webhook once when the page loads and an idea is available
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!selected) return;
-    if (libraryAutoSentRef.current) return;
-    libraryAutoSentRef.current = true;
-    void sendLibraryWebhook(1);
-  }, [selected]);
+  // Good/Better/Best is chosen when the user intentionally starts/continues
+  // a saved project from their library. The Library n8n test webhook fires
+  // only after that selection — not automatically on page load.
+  const [tierPickerOpen, setTierPickerOpen] = useState(false);
+
 
   const selectedExtras: IdeaExtras = selected
     ? (extras[selected.id] ?? emptyExtras())
