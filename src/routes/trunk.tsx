@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import trunkBgAsset from "@/assets/trunk-room-bg-v2.png.asset.json";
 import packetBookAsset from "@/assets/trunk-packet-book.png.asset.json";
-import compassStagAsset from "@/assets/compass-stag.png.asset.json";
+import pinkGuideAsset from "@/assets/trunk-pink-guide-cutout.png.asset.json";
+import greenGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
+import goldGuardianAsset from "@/assets/trunk-gold-guardian-cutout.png.asset.json";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/trunk")({
@@ -62,13 +64,32 @@ function TrunkPage() {
           }}
         />
 
-        {/* Shaft of light over the table */}
         <div
           className="pointer-events-none absolute left-1/2 top-0 h-full -translate-x-1/2 trunk-shaft"
           aria-hidden
         />
 
-        {/* Arriving packet book — descends along the light beam, lands flat on the table */}
+        <img
+          src={pinkGuideAsset.url}
+          alt=""
+          className="pointer-events-none absolute z-[6] trunk-guide-pink"
+          draggable={false}
+        />
+
+        <img
+          src={greenGuideAsset.url}
+          alt=""
+          className="pointer-events-none absolute z-[7] trunk-guide-green"
+          draggable={false}
+        />
+
+        <img
+          src={goldGuardianAsset.url}
+          alt=""
+          className="pointer-events-none absolute z-[6] trunk-guide-gold"
+          draggable={false}
+        />
+
         <img
           src={packetBookAsset.url}
           alt=""
@@ -78,21 +99,12 @@ function TrunkPage() {
           draggable={false}
         />
 
-        {/* Soft warm glow on table when book lands */}
         {bookArrived && (
           <div
             className="pointer-events-none absolute left-1/2 -translate-x-1/2 trunk-table-glow"
             aria-hidden
           />
         )}
-
-        {/* Compass — already standing beside the table when the scene opens */}
-        <img
-          src={compassStagAsset.url}
-          alt=""
-          className="pointer-events-none absolute z-[5] trunk-compass-standing"
-          draggable={false}
-        />
       </div>
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
@@ -105,7 +117,6 @@ function TrunkPage() {
         <TrunkNextButton unlocked={false} />
       </header>
 
-      {/* Status panel */}
       <div
         className="pointer-events-none absolute left-1/2 z-10 w-[min(460px,88vw)] -translate-x-1/2 px-4"
         style={{ bottom: "6%" }}
@@ -150,22 +161,23 @@ function TrunkPage() {
           0%, 100% { opacity: 0.65; }
           50% { opacity: 1; }
         }
-        /* Book descends from the ceiling along the light beam and settles fully on the table */
         @keyframes trunk-book-arriving-kf {
           0%   { top: -8%;  transform: translateX(-50%) scale(0.35); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
           20%  { opacity: 1; }
-          100% { top: 49%;  transform: translateX(-50%) scale(0.85);    opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
+          100% { top: 49%;  transform: translateX(-50%) scale(0.85); opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
         .trunk-book-arriving {
           top: -8%;
-          height: 15.3vh; width: auto;
+          height: 15.3vh;
+          width: auto;
           transform-origin: 50% 90%;
           animation: trunk-book-arriving-kf 1.8s cubic-bezier(0.4, 0.0, 0.4, 1) forwards;
           will-change: top, transform, opacity;
         }
         .trunk-book-resting {
           top: 49%;
-          height: 15.3vh; width: auto;
+          height: 15.3vh;
+          width: auto;
           transform-origin: 50% 90%;
           transform: translateX(-50%) scale(0.85);
           filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.9));
@@ -176,45 +188,75 @@ function TrunkPage() {
         }
         .trunk-table-glow {
           bottom: 26%;
-          width: 38vmin; height: 14vmin;
+          width: 38vmin;
+          height: 14vmin;
           border-radius: 50%;
           background: radial-gradient(ellipse at center, rgba(255,225,160,0.7) 0%, rgba(255,180,80,0.3) 45%, transparent 75%);
           filter: blur(14px);
           mix-blend-mode: screen;
           animation: trunk-glow-kf 0.8s ease-out forwards;
         }
-        /* Compass — walks forward from deep center, stops behind the table.
-           clip-path crops the bottom 10% of the source image. */
-        @keyframes trunk-compass-walking-kf {
-          0%   { left: 50%; bottom: 50%; transform: translateX(-50%) scale(0.05); opacity: 0; filter: brightness(0.5) drop-shadow(0 0 8px rgba(255,200,120,0.4)); }
-          15%  { opacity: 1; }
-          100% { left: 50%; bottom: 40%; transform: translateX(-50%) scale(0.53); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
+        .trunk-guide-pink,
+        .trunk-guide-green,
+        .trunk-guide-gold {
+          width: auto;
+          max-width: none;
+          filter: drop-shadow(0 18px 26px rgba(0,0,0,0.72)) drop-shadow(0 0 24px rgba(255,205,120,0.18));
         }
-        .trunk-compass-walking {
-          height: 78vh; width: auto;
-          transform-origin: 50% 100%;
-          clip-path: inset(0 0 10% 0);
-          animation: trunk-compass-walking-kf 2.4s cubic-bezier(0.4, 0.0, 0.5, 1) forwards;
-          will-change: left, bottom, transform, opacity;
+        .trunk-guide-pink {
+          left: 15.5%;
+          bottom: 6%;
+          height: 58vh;
         }
-        @keyframes trunk-compass-stand-kf {
-          0%, 100% { transform: translateX(-50%) scale(0.53) translateX(0); }
-          50%      { transform: translateX(-50%) scale(0.53) translateX(5px); }
+        .trunk-guide-green {
+          left: 54.8%;
+          bottom: 23.8%;
+          height: 46vh;
         }
-        .trunk-compass-standing {
-          left: 50%; bottom: 38%;
-          height: 78vh; width: auto;
-          transform-origin: 50% 100%;
-          clip-path: inset(0 0 10% 0);
-          filter: drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.55));
-          animation: trunk-compass-stand-kf 5s ease-in-out infinite;
+        .trunk-guide-gold {
+          right: 8.5%;
+          bottom: 5.5%;
+          height: 67vh;
+        }
+        @media (max-width: 900px) {
+          .trunk-guide-pink {
+            left: 3%;
+            bottom: 11%;
+            height: 42vh;
+          }
+          .trunk-guide-green {
+            left: 48%;
+            bottom: 27%;
+            height: 33vh;
+          }
+          .trunk-guide-gold {
+            right: -3%;
+            bottom: 12%;
+            height: 47vh;
+          }
         }
         @media (max-width: 640px) {
-          .trunk-book-arriving, .trunk-book-resting { height: 11vh; }
-          .trunk-compass-walking, .trunk-compass-standing { height: 60vh; }
+          .trunk-book-arriving,
+          .trunk-book-resting {
+            height: 11vh;
+          }
+          .trunk-guide-pink {
+            left: -6%;
+            bottom: 18%;
+            height: 34vh;
+          }
+          .trunk-guide-green {
+            left: 45%;
+            bottom: 31%;
+            height: 25vh;
+          }
+          .trunk-guide-gold {
+            right: -8%;
+            bottom: 18%;
+            height: 39vh;
+          }
         }
       `}</style>
-
     </main>
   );
 }
