@@ -478,9 +478,14 @@ function ChoosePathModal({
 
 
                   <span
-                    className="relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 text-[13px] font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition group-hover:from-amber-200 group-hover:to-amber-400"
+                    className={
+                      "relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-[13px] font-semibold transition " +
+                      (canAfford
+                        ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] group-hover:from-amber-200 group-hover:to-amber-400"
+                        : "border-amber-200/25 bg-black/40 text-amber-100/70 group-hover:bg-black/55")
+                    }
                   >
-                    Choose {opt.name}
+                    {canAfford ? `Choose ${opt.name}` : "Add Credits to Choose"}
                   </span>
                 </span>
               </button>
