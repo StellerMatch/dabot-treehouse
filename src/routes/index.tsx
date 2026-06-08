@@ -652,8 +652,8 @@ function FantasyDoor({
         })}
       </span>
 
-      {/* lock badge: closed when locked, open shackle when cracked+unlocked */}
-      {(state === "locked" || (state === "cracked" && unlocked)) && (
+      {/* lock badge: only on locked doors */}
+      {state === "locked" && (
         <span
           className="pointer-events-none absolute left-1/2 -translate-x-1/2"
           style={{
@@ -663,13 +663,13 @@ function FantasyDoor({
           }}
           aria-hidden
         >
-          {/* shackle — rotated/lifted when unlocked */}
+          {/* shackle */}
           <span
             className="absolute"
             style={{
-              left: unlocked ? -2 : "50%",
-              top: unlocked ? -3 : 0,
-              transform: unlocked ? "rotate(-32deg)" : "translateX(-50%)",
+              left: "50%",
+              top: 0,
+              transform: "translateX(-50%)",
               width: 12,
               height: 11,
               borderRadius: "6px 6px 0 0",
@@ -726,8 +726,8 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
         width: 52,
         height: 22,
         transform: "rotate(-12deg)",
-        filter: disabled ? "grayscale(0.85) brightness(0.55)" : undefined,
-        opacity: disabled ? 0.55 : 1,
+        filter: disabled ? undefined : undefined,
+        opacity: 1,
       }}
       aria-hidden
     >
