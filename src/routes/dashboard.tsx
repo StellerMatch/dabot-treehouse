@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
+import { ChoosePathModal } from "@/routes/index";
 
 type ReportTier = "good" | "better" | "best";
 type LibraryDoorId = "door1" | "door2";
