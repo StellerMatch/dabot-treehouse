@@ -378,7 +378,12 @@ function RootRoom() {
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Library
         </Link>
-        <RootRoomNextButton unlocked={rootRoomComplete} onAscend={handleAscend} />
+        <RootRoomNextButton
+          unlocked={rootRoomComplete}
+          label={rootRoomComplete ? "View Report" : "Next Step"}
+          onClick={rootRoomComplete ? () => setReportOpen(true) : undefined}
+        />
+
       </header>
 
       {ascending && (
