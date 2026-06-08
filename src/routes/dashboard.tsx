@@ -1504,6 +1504,41 @@ function Dashboard() {
     Partial<Record<LibraryDoorId, string>>
   >({});
   const [libraryRedoUsed, setLibraryRedoUsed] = useState(false);
+  const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
+    { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
+  >({ kind: "idle" });
+
+  const sendLibraryWebhook = async (attemptNumber: number) => {
+    if (!selected) return;
+    setLibraryWebhookStatus({ kind: "sending" });
+    try {
+      const res = await fetch(
+        "https://dabottree.app.n8n.cloud/webhook-test/dabottree-level-system-test",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "lovable-library-test",
+            page: "/library",
+            level: "library",
+            action: "run_level_chunk",
+            runScope: "level_chunk_only",
+            userIdea: selected.title || selected.messy || "",
+            qualityPath: readReportTier(),
+            attemptNumber,
+            timestamp: new Date().toISOString(),
+          }),
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setLibraryWebhookStatus({ kind: "ok", at: Date.now() });
+    } catch (err) {
+      setLibraryWebhookStatus({
+        kind: "error",
+        message: err instanceof Error ? err.message : "Request failed",
+      });
+    }
+  };
 
   // Pull draft from front-page intake
   useEffect(() => {
