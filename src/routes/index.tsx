@@ -360,11 +360,18 @@ function ChoosePathModal({
           open along the way. Choose the one that fits this build.
         </p>
 
-        <div className="relative mt-3 flex items-center justify-center">
+        <div className="relative mt-3 flex flex-wrap items-center justify-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/40 bg-black/35 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-amber-100/90">
             <span aria-hidden>✦</span>
             <span>Available credits: {availableCredits}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950 shadow-[0_4px_14px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-200 hover:to-amber-400"
+          >
+            <span aria-hidden>+</span> Add Credits
+          </button>
         </div>
 
         <div className="relative mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
