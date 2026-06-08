@@ -2090,6 +2090,19 @@ function Dashboard() {
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             onClick={() => {
               if (!selected) return;
+              // Gate: ask Good / Better / Best the first time the user moves
+              // forward with this saved project. Once chosen, fire the Library
+              // n8n test webhook and open the report.
+              let existingTier: string | null = null;
+              try {
+                existingTier =
+                  sessionStorage.getItem(`dabottree:reportPath:${selected.id}`) ??
+                  sessionStorage.getItem("dabottree:reportPath");
+              } catch {}
+              if (!existingTier) {
+                setTierPickerOpen(true);
+                return;
+              }
               setLibraryReportOpen(true);
             }}
           />
