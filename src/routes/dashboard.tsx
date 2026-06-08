@@ -2961,10 +2961,13 @@ function LibraryLevelReportModal({
           {redoUsed ? "Updated Library report" : "Your Library level is ready"}
         </h2>
         <div className="mx-auto mt-4 max-w-2xl rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
+          <p className="mb-2 text-[11px] uppercase tracking-[0.22em] text-amber-100/60">
+            Summary review only
+          </p>
           <p>
             <strong>{idea.title}</strong> now has enough Library clarity to move forward. This
-            summary captures the idea direction, the strongest early shape, and the opportunity
-            questions that can deepen the final project report.
+            checkpoint gives you the short review for this level. The full detailed review will be
+            included in the final project report.
           </p>
           <p className="mt-3 text-amber-100/75">
             Report path: <span className="font-semibold uppercase">{tier}</span>.{" "}
@@ -3002,6 +3005,9 @@ function LibraryLevelReportModal({
                     </span>
                     <span className="mt-3 block text-sm">
                       {saved ? "Saved" : enabled ? "Open questions" : "Locked"}
+                    </span>
+                    <span className="mt-1 block text-[11px] text-amber-100/55">
+                      * Full review will be in the report
                     </span>
                   </button>
                 );
