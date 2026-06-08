@@ -1507,6 +1507,7 @@ function Dashboard() {
   const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
     { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
   >({ kind: "idle" });
+  const libraryAutoSentRef = useRef(false);
 
   const sendLibraryWebhook = async (attemptNumber: number) => {
     if (!selected) return;
