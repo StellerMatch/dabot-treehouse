@@ -5,6 +5,7 @@ import packetBookAsset from "@/assets/trunk-packet-book.png.asset.json";
 import pinkGuideAsset from "@/assets/trunk-pink-guide-cutout.png.asset.json";
 import greenGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import goldGuardianAsset from "@/assets/trunk-gold-guardian-cutout.png.asset.json";
+import compassStagAsset from "@/assets/compass-stag.png.asset.json";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/trunk")({
