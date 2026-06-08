@@ -803,34 +803,25 @@ function RootRoom() {
           animation: rr-ascent-flash-kf 2s ease-in forwards;
         }
 
-        /* Root Room complete — dim ambience + ceiling cone spotlight onto podium */
+        /* Root Room complete — dim ambience + ceiling spotlight onto podium */
         .rr-complete-dim {
           background:
-            radial-gradient(ellipse 32% 22% at 50% 78%, transparent 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.9) 100%);
+            radial-gradient(ellipse 32% 46% at 50% 68%, transparent 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.88) 100%);
           transition: opacity 1400ms ease-in-out;
           mix-blend-mode: multiply;
         }
         .rr-complete-spotlight {
           background:
-            linear-gradient(to bottom,
-              rgba(255,235,175,0.55) 0%,
-              rgba(255,225,160,0.40) 25%,
-              rgba(255,215,140,0.25) 55%,
-              rgba(255,205,125,0.15) 80%,
-              rgba(255,200,120,0.08) 100%),
-            radial-gradient(ellipse 70% 18% at 50% 96%, rgba(255,225,160,0.55) 0%, rgba(255,210,135,0.25) 50%, transparent 80%);
-          clip-path: polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%);
+            radial-gradient(ellipse 14% 8% at 50% 56%, rgba(255,235,180,0.55) 0%, rgba(255,210,130,0.25) 45%, transparent 75%),
+            radial-gradient(ellipse 22% 30% at 50% 64%, rgba(255,225,160,0.35) 0%, rgba(255,200,120,0.12) 45%, transparent 75%),
+            linear-gradient(to bottom, transparent 0%, transparent 6%, rgba(255,225,165,0.10) 18%, rgba(255,210,135,0.05) 45%, transparent 70%);
+          -webkit-mask-image: radial-gradient(ellipse 28% 60% at 50% 50%, #000 0%, #000 55%, transparent 90%);
+                  mask-image: radial-gradient(ellipse 28% 60% at 50% 50%, #000 0%, #000 55%, transparent 90%);
           mix-blend-mode: screen;
-          filter: blur(8px);
-          transform-origin: 50% 0%;
+          filter: blur(2px);
           transition: opacity 1600ms ease-in-out;
           animation: rr-spotlight-breathe 5.5s ease-in-out infinite;
         }
-        @keyframes rr-spotlight-breathe {
-          0%, 100% { filter: blur(8px) brightness(1); opacity: 1; }
-          50%      { filter: blur(10px) brightness(1.15); }
-        }
-
         @keyframes rr-spotlight-breathe {
           0%, 100% { filter: blur(2px) brightness(1); }
           50%      { filter: blur(2.5px) brightness(1.12); }
