@@ -423,26 +423,28 @@ function ChoosePathModal({
                   </ul>
 
                   {/* Door preview — keep the same vertical footprint for every tier */}
-                  <div className="relative mt-5 flex h-[140px] items-end justify-center gap-4">
+                  <div className="relative mt-5 flex h-[140px] items-end justify-center gap-3">
                     {opt.id === "good" && (
-                      <span className="text-[11px] italic text-amber-100/55">
-                        Opportunity doors stay sealed
+                      <span className="flex h-full items-center">
+                        <KeyIcon disabled />
                       </span>
                     )}
                     {opt.id === "better" && (
                       <>
                         <FantasyDoor state="locked" />
-                        <FantasyDoor state="locked" />
-                        <KeyIcon />
+                        <span className="flex h-full items-center">
+                          <KeyIcon />
+                        </span>
                       </>
                     )}
                     {opt.id === "best" && (
                       <>
-                        <FantasyDoor state="open" />
-                        <FantasyDoor state="open" />
+                        <FantasyDoor state="cracked" unlocked />
+                        <FantasyDoor state="cracked" unlocked />
                       </>
                     )}
                   </div>
+
 
 
 
@@ -465,11 +467,19 @@ function ChoosePathModal({
   );
 }
 
-function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
+function FantasyDoor({
+  state,
+  unlocked = false,
+}: {
+  state: "cracked" | "open" | "locked";
+  unlocked?: boolean;
+}) {
   const opened = state === "open";
-  const leafAngle = state === "locked" ? 0 : opened ? 72 : 16;
-  const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.45;
-  const glowSize = opened ? 140 : 90;
+  // "cracked" should look almost-closed, barely ajar
+  const leafAngle = state === "locked" ? 0 : opened ? 72 : 10;
+  const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.35;
+  const glowSize = opened ? 140 : 70;
+
 
   return (
     <span
@@ -642,35 +652,38 @@ function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
         })}
       </span>
 
-      {/* lock badge when locked */}
-      {state === "locked" && (
+      {/* lock badge: closed when locked, open shackle when cracked+unlocked */}
+      {(state === "locked" || (state === "cracked" && unlocked)) && (
         <span
           className="pointer-events-none absolute left-1/2 -translate-x-1/2"
           style={{
-            top: "52%",
-            width: 18,
-            height: 22,
+            top: "50%",
+            width: 20,
+            height: 24,
           }}
           aria-hidden
         >
-          {/* shackle */}
+          {/* shackle — rotated/lifted when unlocked */}
           <span
-            className="absolute left-1/2 -translate-x-1/2"
+            className="absolute"
             style={{
-              top: 0,
+              left: unlocked ? -2 : "50%",
+              top: unlocked ? -3 : 0,
+              transform: unlocked ? "rotate(-32deg)" : "translateX(-50%)",
               width: 12,
-              height: 10,
+              height: 11,
               borderRadius: "6px 6px 0 0",
-              border: "2px solid #d8b878",
+              border: "2.2px solid #f0d28a",
               borderBottom: "none",
               background: "transparent",
+              boxShadow: "0 0 4px rgba(255,210,130,0.55)",
             }}
           />
           {/* body */}
           <span
             className="absolute left-1/2 -translate-x-1/2"
             style={{
-              top: 8,
+              top: 9,
               width: 18,
               height: 14,
               borderRadius: 3,
@@ -685,7 +698,7 @@ function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
           <span
             className="absolute left-1/2 -translate-x-1/2"
             style={{
-              top: 12,
+              top: 13,
               width: 3,
               height: 6,
               borderRadius: "50% 50% 30% 30%",
@@ -694,6 +707,7 @@ function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
           />
         </span>
       )}
+
 
       {/* threshold shadow */}
       <span
@@ -704,13 +718,20 @@ function FantasyDoor({ state }: { state: "cracked" | "open" | "locked" }) {
   );
 }
 
-function KeyIcon() {
+function KeyIcon({ disabled = false }: { disabled?: boolean }) {
   return (
     <span
       className="relative inline-block self-center"
-      style={{ width: 52, height: 22, transform: "rotate(-12deg)" }}
+      style={{
+        width: 52,
+        height: 22,
+        transform: "rotate(-12deg)",
+        filter: disabled ? "grayscale(0.85) brightness(0.55)" : undefined,
+        opacity: disabled ? 0.55 : 1,
+      }}
       aria-hidden
     >
+
       {/* faint warm aura */}
       <span
         className="pointer-events-none absolute inset-0 rounded-full"
@@ -790,8 +811,44 @@ function KeyIcon() {
           borderRadius: "0 0 1px 1px",
         }}
       />
+      {disabled && (
+        <>
+          {/* "no" circle */}
+          <span
+            className="pointer-events-none absolute"
+            style={{
+              left: 6,
+              top: -8,
+              width: 38,
+              height: 38,
+              borderRadius: "50%",
+              border: "2.5px solid #e85a4a",
+              boxShadow: "0 0 6px rgba(232,90,74,0.55)",
+              transform: "rotate(12deg)",
+            }}
+            aria-hidden
+          />
+          {/* diagonal slash */}
+          <span
+            className="pointer-events-none absolute"
+            style={{
+              left: 4,
+              top: 9,
+              width: 42,
+              height: 3,
+              background: "#e85a4a",
+              borderRadius: 2,
+              boxShadow: "0 0 6px rgba(232,90,74,0.55)",
+              transform: "rotate(-33deg)",
+              transformOrigin: "center",
+            }}
+            aria-hidden
+          />
+        </>
+      )}
     </span>
   );
 }
+
 
 
