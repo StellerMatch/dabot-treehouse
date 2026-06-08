@@ -85,6 +85,7 @@ const TRUNK_STAGES: Array<{
 
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
+  const [reviewStarted, setReviewStarted] = useState(false);
   const [stageIndex, setStageIndex] = useState(0);
 
   useEffect(() => {
@@ -95,19 +96,22 @@ function TrunkPage() {
   }, []);
 
   useEffect(() => {
-    if (!bookArrived || stageIndex >= TRUNK_STAGES.length - 1) return;
-    const t = window.setTimeout(
-      () => {
-        setStageIndex((current) => Math.min(current + 1, TRUNK_STAGES.length - 1));
-      },
-      stageIndex === 0 ? 2600 : 3400,
-    );
+    if (!bookArrived || !reviewStarted || stageIndex >= TRUNK_STAGES.length - 1) return;
+    const t = window.setTimeout(() => {
+      setStageIndex((current) => Math.min(current + 1, TRUNK_STAGES.length - 1));
+    }, 3400);
     return () => window.clearTimeout(t);
-  }, [bookArrived, stageIndex]);
+  }, [bookArrived, reviewStarted, stageIndex]);
+
+  const handleStartReview = () => {
+    if (!bookArrived) return;
+    setStageIndex(1);
+    setReviewStarted(true);
+  };
 
   const activeStage = bookArrived ? TRUNK_STAGES[stageIndex] : null;
   const nextUnlocked = activeStage?.id === "ready";
-  const activeGuide = activeStage?.id;
+  const activeGuide = reviewStarted ? activeStage?.id : undefined;
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
@@ -215,10 +219,24 @@ function TrunkPage() {
           <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
             {activeStage?.body ?? "The packet is rising through the trunk on a thread of light."}
           </p>
+          {bookArrived && !reviewStarted && (
+            <div className="relative mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={handleStartReview}
+                className="trunk-start-button inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.16em] text-amber-950 transition hover:-translate-y-[1px] hover:brightness-110"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Start Trunk Review
+              </button>
+            </div>
+          )}
           <div className="relative mt-3 grid grid-cols-3 gap-1.5 sm:grid-cols-6">
             {TRUNK_STAGES.map((stage, index) => {
-              const complete = bookArrived && index < stageIndex;
-              const active = bookArrived && index === stageIndex;
+              const complete =
+                bookArrived && (index < stageIndex || (reviewStarted && index === 0));
+              const active =
+                bookArrived && index === stageIndex && (!reviewStarted ? index === 0 : true);
               return (
                 <div
                   key={stage.id}
@@ -406,6 +424,16 @@ function TrunkPage() {
         .trunk-stage-complete {
           border-color: rgba(191, 255, 188, 0.42);
           color: rgba(219, 255, 206, 0.86);
+        }
+        .trunk-start-button {
+          background: linear-gradient(180deg, #ffe8a6 0%, #e0a846 52%, #9c5f13 100%);
+          border: 1px solid rgba(69, 34, 5, 0.82);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,230,0.72),
+            inset 0 -2px 0 rgba(83, 38, 5, 0.48),
+            0 8px 18px rgba(0,0,0,0.36),
+            0 0 22px rgba(255,190,85,0.28);
+          text-shadow: 0 1px 0 rgba(255, 239, 176, 0.45);
         }
         @media (max-width: 900px) {
           .trunk-guide-pink {
