@@ -718,13 +718,20 @@ function FantasyDoor({
   );
 }
 
-function KeyIcon() {
+function KeyIcon({ disabled = false }: { disabled?: boolean }) {
   return (
     <span
       className="relative inline-block self-center"
-      style={{ width: 52, height: 22, transform: "rotate(-12deg)" }}
+      style={{
+        width: 52,
+        height: 22,
+        transform: "rotate(-12deg)",
+        filter: disabled ? "grayscale(0.85) brightness(0.55)" : undefined,
+        opacity: disabled ? 0.55 : 1,
+      }}
       aria-hidden
     >
+
       {/* faint warm aura */}
       <span
         className="pointer-events-none absolute inset-0 rounded-full"
