@@ -835,12 +835,12 @@ function RootRoom() {
         /* Sunroof glow — soft, natural sunlight diffusing in from the skylight */
         .rr-sun-beam {
           background:
-            /* bright skylight bloom at top */
-            radial-gradient(ellipse 18% 10% at 50% -2%, rgba(255,250,225,0.85) 0%, rgba(255,238,185,0.45) 45%, transparent 80%),
-            /* warm haze spilling down and outward */
-            radial-gradient(ellipse 42% 38% at 50% 18%, rgba(255,240,195,0.32) 0%, rgba(255,225,160,0.16) 45%, transparent 78%),
-            /* gentle wide ambient wash */
-            radial-gradient(ellipse 65% 55% at 50% 28%, rgba(255,230,170,0.14) 0%, transparent 70%);
+            /* bright skylight bloom at top — taller than wide */
+            radial-gradient(ellipse 10% 18% at 50% -2%, rgba(255,225,150,0.88) 0%, rgba(255,205,120,0.5) 45%, transparent 80%),
+            /* warm golden shaft spilling downward */
+            radial-gradient(ellipse 22% 55% at 50% 22%, rgba(255,210,130,0.38) 0%, rgba(255,190,100,0.18) 45%, transparent 80%),
+            /* gentle elongated ambient wash */
+            radial-gradient(ellipse 36% 75% at 50% 32%, rgba(255,200,115,0.16) 0%, transparent 72%);
           mix-blend-mode: screen;
           filter: blur(14px);
           transition: opacity 1800ms ease-in-out;
