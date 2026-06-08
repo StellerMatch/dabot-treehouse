@@ -391,11 +391,15 @@ function TrunkPage() {
         }
         .trunk-compass-standing {
           bottom: 38%;
+          transform: translateX(-50%) scale(0.735);
           animation: trunk-compass-stand-kf 4s ease-in-out infinite;
         }
         @keyframes trunk-compass-stand-kf {
           0%, 100% { transform: translateX(-50%) scale(0.735) translateX(0); }
           50%      { transform: translateX(-50%) scale(0.735) translateX(5px); }
+        }
+        .trunk-compass.trunk-guide-active {
+          animation: trunk-compass-stand-kf 4s ease-in-out infinite, trunk-guide-active-kf 1.6s ease-in-out infinite;
         }
         .trunk-guide-pink {
           left: 17%;
