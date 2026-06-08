@@ -871,14 +871,22 @@ function RootRoom() {
   );
 }
 
-function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscend?: () => void }) {
+function RootRoomNextButton({
+  unlocked,
+  label = "Next Step",
+  onClick,
+}: {
+  unlocked: boolean;
+  label?: string;
+  onClick?: () => void;
+}) {
   const palette = unlocked ? ROOT_ROOM_NEXT_PALETTE.gold : ROOT_ROOM_NEXT_PALETTE.leather;
   const content = (
     <span
       className={`group relative inline-flex h-[40px] w-[188px] shrink-0 items-center font-serif transition-transform ${
         unlocked ? "hover:-translate-y-[1px]" : "cursor-not-allowed opacity-60 saturate-[0.55]"
       }`}
-      title={unlocked ? "Ready for the Trunk" : "Complete the Root Room first"}
+      title={unlocked ? "Open the Library report" : "Complete the Root Room first"}
       aria-disabled={!unlocked}
     >
       <span
@@ -956,7 +964,7 @@ function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscen
             textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
           }}
         >
-          <span className="truncate">Next Step</span>
+          <span className="truncate">{label}</span>
           {unlocked && <ArrowRight className="h-3 w-3 opacity-90" />}
         </span>
         <span
@@ -971,7 +979,7 @@ function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscen
 
   if (unlocked) {
     return (
-      <button type="button" className="pointer-events-auto" onClick={onAscend}>
+      <button type="button" className="pointer-events-auto" onClick={onClick}>
         {content}
       </button>
     );
@@ -983,6 +991,7 @@ function RootRoomNextButton({ unlocked, onAscend }: { unlocked: boolean; onAscen
     </button>
   );
 }
+
 
 function StepActivity({ phase }: { phase: Phase }) {
   if (phase === "smoke" || phase === "flying" || phase === "working") {
