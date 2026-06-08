@@ -159,22 +159,22 @@ function TrunkPage() {
         @keyframes trunk-book-arriving-kf {
           0%   { top: -8%;  transform: translateX(-50%) scale(0.35); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
           20%  { opacity: 1; }
-          100% { top: 52%;  transform: translateX(-50%) scale(1);    opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
+          100% { top: 51%;  transform: translateX(-50%) scale(0.85);    opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
         .trunk-book-arriving {
           top: -8%;
-          height: 18vh; width: auto;
+          height: 15.3vh; width: auto;
           transform-origin: 50% 90%;
           animation: trunk-book-arriving-kf 1.8s cubic-bezier(0.4, 0.0, 0.4, 1) forwards;
           will-change: top, transform, opacity;
         }
         @keyframes trunk-book-rest-kf {
-          0%, 100% { transform: translateX(-50%) scale(1) translateY(0); }
-          50%      { transform: translateX(-50%) scale(1) translateY(-2px); }
+          0%, 100% { transform: translateX(-50%) scale(0.85) translateY(0); }
+          50%      { transform: translateX(-50%) scale(0.85) translateY(-2px); }
         }
         .trunk-book-resting {
-          top: 52%;
-          height: 18vh; width: auto;
+          top: 51%;
+          height: 15.3vh; width: auto;
           transform-origin: 50% 90%;
           filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.9));
           animation: trunk-book-rest-kf 4s ease-in-out infinite;
@@ -196,7 +196,7 @@ function TrunkPage() {
         @keyframes trunk-compass-walking-kf {
           0%   { left: 50%; bottom: 44%; transform: translateX(-50%) scale(0.05); opacity: 0; filter: brightness(0.5) drop-shadow(0 0 8px rgba(255,200,120,0.4)); }
           15%  { opacity: 1; }
-          100% { left: 50%; bottom: 30%; transform: translateX(-50%) scale(0.53); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
+          100% { left: 50%; bottom: 34%; transform: translateX(-50%) scale(0.53); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
         }
         .trunk-compass-walking {
           height: 78vh; width: auto;
@@ -209,14 +209,14 @@ function TrunkPage() {
           50%      { transform: translateX(-50%) scale(0.53) translateY(-3px); }
         }
         .trunk-compass-standing {
-          left: 50%; bottom: 30%;
+          left: 50%; bottom: 34%;
           height: 78vh; width: auto;
           transform-origin: 50% 100%;
           filter: drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.55));
           animation: trunk-compass-stand-kf 5s ease-in-out infinite;
         }
         @media (max-width: 640px) {
-          .trunk-book-arriving, .trunk-book-resting { height: 13vh; }
+          .trunk-book-arriving, .trunk-book-resting { height: 11vh; }
           .trunk-compass-walking, .trunk-compass-standing { height: 60vh; }
         }
       `}</style>
