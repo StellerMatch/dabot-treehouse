@@ -5,6 +5,7 @@ import packetBookAsset from "@/assets/trunk-packet-book.png.asset.json";
 import pinkGuideAsset from "@/assets/trunk-pink-guide-cutout.png.asset.json";
 import greenGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import goldGuardianAsset from "@/assets/trunk-gold-guardian-cutout.png.asset.json";
+import compassStagAsset from "@/assets/compass-stag.png.asset.json";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/trunk")({
@@ -88,6 +89,14 @@ function TrunkPage() {
           alt=""
           className="pointer-events-none absolute z-[6] trunk-guide-gold"
           draggable={false}
+        />
+
+        <img
+          src={compassStagAsset.url}
+          alt=""
+          className="pointer-events-none absolute z-[5] trunk-compass"
+          draggable={false}
+          style={{ left: "50%", bottom: "38%", transform: "translateX(-50%) scale(0.53)", height: "auto", width: "auto", maxHeight: "44vh", filter: "drop-shadow(0 14px 22px rgba(0,0,0,0.7))" }}
         />
 
         <img
@@ -206,17 +215,17 @@ function TrunkPage() {
         .trunk-guide-pink {
           left: 14%;
           bottom: 6%;
-          height: 58vh;
+          height: 52.2vh;
         }
         .trunk-guide-green {
           left: 55.8%;
-          bottom: 22%;
-          height: 55vh;
+          bottom: 15%;
+          height: 49.5vh;
         }
         .trunk-guide-gold {
           right: 6.5%;
           bottom: 5%;
-          height: 72vh;
+          height: 61.2vh;
         }
         @media (max-width: 900px) {
           .trunk-guide-pink {
