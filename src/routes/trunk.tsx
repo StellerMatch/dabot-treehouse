@@ -84,6 +84,7 @@ function TrunkPage() {
           draggable={false}
         />
 
+        <div className="pointer-events-none absolute z-[5] trunk-guide-gold-shadow" aria-hidden />
         <img
           src={goldGuardianAsset.url}
           alt=""
@@ -242,6 +243,18 @@ function TrunkPage() {
           right: 10%;
           bottom: 9%;
           height: 61.2vh;
+          filter: drop-shadow(0 22px 18px rgba(0,0,0,0.75)) drop-shadow(0 0 32px rgba(255,190,70,0.35)) drop-shadow(0 -8px 18px rgba(255,200,90,0.22));
+        }
+        .trunk-guide-gold-shadow {
+          right: 8%;
+          bottom: 7%;
+          width: 28vh;
+          height: 5vh;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at center, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 55%, transparent 80%);
+          filter: blur(10px);
+          transform: scaleY(0.55);
+          opacity: 0.85;
         }
         @media (max-width: 900px) {
           .trunk-guide-pink {
@@ -258,6 +271,13 @@ function TrunkPage() {
             right: -3%;
             bottom: 12%;
             height: 47vh;
+            filter: drop-shadow(0 18px 16px rgba(0,0,0,0.72)) drop-shadow(0 0 26px rgba(255,190,70,0.30)) drop-shadow(0 -6px 14px rgba(255,200,90,0.18));
+          }
+          .trunk-guide-gold-shadow {
+            right: -1%;
+            bottom: 10%;
+            width: 22vh;
+            height: 4vh;
           }
         }
         @media (max-width: 640px) {
@@ -279,6 +299,13 @@ function TrunkPage() {
             right: -8%;
             bottom: 18%;
             height: 39vh;
+            filter: drop-shadow(0 14px 12px rgba(0,0,0,0.68)) drop-shadow(0 0 20px rgba(255,190,70,0.25)) drop-shadow(0 -4px 10px rgba(255,200,90,0.14));
+          }
+          .trunk-guide-gold-shadow {
+            right: -6%;
+            bottom: 16%;
+            width: 18vh;
+            height: 3.5vh;
           }
         }
       `}</style>
