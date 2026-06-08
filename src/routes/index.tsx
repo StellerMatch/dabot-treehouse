@@ -279,7 +279,27 @@ function ChoosePathModal({
   onChoose: (tier: PackageTier) => void;
 }) {
   const [hovered, setHovered] = useState<PackageTier | null>("better");
-  const availableCredits = 0;
+  const [availableCredits, setAvailableCredits] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    try {
+      const v = Number(localStorage.getItem("dabottree:credits") ?? "0");
+      return Number.isFinite(v) ? v : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [addOpen, setAddOpen] = useState(false);
+
+  const addCredits = (amount: number) => {
+    setAvailableCredits((prev) => {
+      const next = Math.max(0, prev + Math.floor(amount));
+      try {
+        localStorage.setItem("dabottree:credits", String(next));
+      } catch {}
+      return next;
+    });
+    setAddOpen(false);
+  };
 
   return (
     <div
@@ -340,23 +360,32 @@ function ChoosePathModal({
           open along the way. Choose the one that fits this build.
         </p>
 
-        <div className="relative mt-3 flex items-center justify-center">
+        <div className="relative mt-3 flex flex-wrap items-center justify-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/40 bg-black/35 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-amber-100/90">
             <span aria-hidden>✦</span>
             <span>Available credits: {availableCredits}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-950 shadow-[0_4px_14px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-200 hover:to-amber-400"
+          >
+            <span aria-hidden>+</span> Add Credits
+          </button>
         </div>
 
         <div className="relative mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
           {PATH_OPTIONS.map((opt) => {
             const isHover = hovered === opt.id;
+            const canAfford = availableCredits >= opt.credits;
             return (
               <button
                 key={opt.id}
                 type="button"
                 onMouseEnter={() => setHovered(opt.id)}
                 onFocus={() => setHovered(opt.id)}
-                onClick={() => onChoose(opt.id)}
+                onClick={() => (canAfford ? onChoose(opt.id) : setAddOpen(true))}
+                aria-disabled={!canAfford}
                 className="group relative flex flex-col items-stretch text-left transition-transform hover:-translate-y-1 focus:outline-none focus:-translate-y-1"
               >
                 <span
@@ -449,9 +478,14 @@ function ChoosePathModal({
 
 
                   <span
-                    className="relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 text-[13px] font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition group-hover:from-amber-200 group-hover:to-amber-400"
+                    className={
+                      "relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-[13px] font-semibold transition " +
+                      (canAfford
+                        ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] group-hover:from-amber-200 group-hover:to-amber-400"
+                        : "border-amber-200/25 bg-black/40 text-amber-100/70 group-hover:bg-black/55")
+                    }
                   >
-                    Choose {opt.name}
+                    {canAfford ? `Choose ${opt.name}` : "Add Credits to Choose"}
                   </span>
                 </span>
               </button>
@@ -461,6 +495,133 @@ function ChoosePathModal({
 
         <p className="relative mt-5 text-center text-[11px] text-amber-100/65">
           You can switch paths later — every step keeps your packet.
+        </p>
+      </div>
+
+      {addOpen && (
+        <AddCreditsPanel
+          onClose={() => setAddOpen(false)}
+          onAdd={addCredits}
+          currentCredits={availableCredits}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddCreditsPanel({
+  onClose,
+  onAdd,
+  currentCredits,
+}: {
+  onClose: () => void;
+  onAdd: (amount: number) => void;
+  currentCredits: number;
+}) {
+  const [custom, setCustom] = useState<string>("");
+  const presets = [20, 40, 60];
+  const customNum = Math.max(0, Math.floor(Number(custom) || 0));
+
+  return (
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add credits"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(10,5,0,0.6) 0%, rgba(0,0,0,0.85) 80%)",
+          backdropFilter: "blur(4px)",
+        }}
+      />
+      <div
+        className="relative w-full max-w-[420px] rounded-[18px] px-6 py-6 text-amber-50"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(150,100,30,0.95) 0%, rgba(60,32,8,0.98) 70%, rgba(30,16,4,1) 100%)",
+          border: "1px solid rgba(240,195,110,0.7)",
+          boxShadow:
+            "0 30px 80px -20px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,225,160,0.3), 0 0 60px -10px rgba(255,190,90,0.55)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3 top-3 rounded-full border border-amber-200/40 bg-black/40 px-2 py-0.5 text-[11px] text-amber-50/80 hover:bg-black/60"
+        >
+          ✕
+        </button>
+
+        <div className="flex items-center justify-center gap-2">
+          <span className="text-amber-200/90">✦</span>
+          <span className="text-[11px] uppercase tracking-[0.32em] text-amber-100/90">
+            Add Credits
+          </span>
+          <span className="text-amber-200/90">✦</span>
+        </div>
+        <h3
+          className="mt-2 text-center text-[20px] leading-tight"
+          style={{ fontFamily: 'ui-serif, Georgia, "Times New Roman", serif' }}
+        >
+          Forge more credits
+        </h3>
+        <p className="mt-1 text-center text-[12px] text-amber-100/80">
+          Current balance: <span className="font-semibold text-amber-100">{currentCredits}</span> credits
+        </p>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {presets.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onAdd(n)}
+              className="rounded-xl border border-amber-200/50 bg-black/35 px-3 py-3 text-center transition hover:-translate-y-0.5 hover:border-amber-200/80 hover:bg-black/50"
+            >
+              <div className="text-[18px] font-semibold text-amber-100">+{n}</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">credits</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-amber-200/30 bg-black/30 p-3">
+          <label className="block text-[11px] uppercase tracking-[0.2em] text-amber-100/80">
+            Custom amount
+          </label>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              placeholder="e.g. 100"
+              className="w-full rounded-lg border border-amber-200/30 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/40 focus:border-amber-200/70 focus:outline-none"
+            />
+            <button
+              type="button"
+              disabled={customNum <= 0}
+              onClick={() => onAdd(customNum)}
+              className={
+                "rounded-lg border px-3 py-2 text-[12px] font-semibold transition " +
+                (customNum > 0
+                  ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
+                  : "cursor-not-allowed border-amber-200/20 bg-black/40 text-amber-100/40")
+              }
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <p className="mt-4 text-center text-[10.5px] text-amber-100/60">
+          Credits are the in-app currency of the tree.
         </p>
       </div>
     </div>
