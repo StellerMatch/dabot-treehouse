@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-
+import { Mic } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import logoImage from "@/assets/dabottree-logo.png";
 
@@ -28,22 +28,82 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { type } = Route.useSearch();
+  const navigate = useNavigate();
   const [idea, setIdea] = useState("");
   const [ideaType, setIdeaType] = useState<string>(type ?? "");
   const [pathOpen, setPathOpen] = useState(false);
-  const navigate = useNavigate();
-
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (type) setIdeaType(type);
   }, [type]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setVoiceSupported(
+      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
+    );
+  }, []);
 
-  const words = useMemo(
-    () => idea.trim().split(/\s+/).filter(Boolean).length,
-    [idea],
+  const startVoice = useCallback(() => {
+    if (!voiceSupported) return;
+
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+
+    const baseText = idea ? idea.replace(/\s+$/, "") + " " : "";
+    let finalText = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const result = e.results[i];
+        if (result.isFinal) finalText += result[0].transcript;
+        else interim += result[0].transcript;
+      }
+
+      setIdea(baseText + finalText + interim);
+    };
+    rec.onerror = () => setVoiceState("idle");
+    rec.onend = () => {
+      setVoiceState((state) => (state === "listening" ? "processing" : state));
+      setTimeout(() => setVoiceState("idle"), 350);
+    };
+
+    recognitionRef.current = rec;
+    setVoiceState("listening");
+    try {
+      rec.start();
+    } catch {
+      setVoiceState("idle");
+    }
+  }, [idea, voiceSupported]);
+
+  const stopVoice = useCallback(() => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+    setVoiceState("processing");
+  }, []);
+
+  useEffect(
+    () => () => {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+    },
+    [],
   );
+
+  const words = useMemo(() => idea.trim().split(/\s+/).filter(Boolean).length, [idea]);
   const ready = words >= 5;
+  const listening = voiceState === "listening";
+  const processingVoice = voiceState === "processing";
 
   return (
     <main
@@ -67,7 +127,6 @@ function Index() {
 
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-end px-5 pt-5 sm:px-8 sm:pt-6">
-
         <nav className="pointer-events-auto flex items-center gap-2 text-xs">
           <Link
             to="/dashboard"
@@ -82,7 +141,6 @@ function Index() {
             Sign in
           </Link>
         </nav>
-
       </header>
 
       {/* Intake panel */}
@@ -99,9 +157,7 @@ function Index() {
         />
 
         <div className="mb-4 text-center">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-amber-100/85">
-            Step in
-          </p>
+          <p className="text-[10px] uppercase tracking-[0.4em] text-amber-100/85">Step in</p>
           <h1
             className="mt-2 text-2xl font-semibold leading-tight sm:text-3xl"
             style={{ textShadow: "0 1px 24px rgba(255,170,80,0.35)" }}
@@ -118,12 +174,10 @@ function Index() {
           )}
         </div>
 
-
         <div
           className="relative rounded-2xl border border-amber-200/20 bg-[rgba(28,16,8,0.45)] p-4 backdrop-blur-xl"
           style={{
-            boxShadow:
-              "0 0 60px -10px rgba(255,160,70,0.35), inset 0 1px 0 rgba(255,220,180,0.08)",
+            boxShadow: "0 0 60px -10px rgba(255,160,70,0.35), inset 0 1px 0 rgba(255,220,180,0.08)",
           }}
         >
           <label htmlFor="idea" className="sr-only">
@@ -139,13 +193,40 @@ function Index() {
           />
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-amber-200/10 pt-3">
             <div className="text-[11px] text-amber-100/70">
-              {idea.length === 0
-                ? "Listening when you're ready."
-                : `${words} words · ${idea.length} chars${
-                    ready ? " · listening" : " · keep going"
-                  }`}
+              {listening
+                ? "Listening... speak your idea."
+                : processingVoice
+                  ? "Adding your spoken idea..."
+                  : idea.length === 0
+                    ? "Listening when you're ready."
+                    : `${words} words · ${idea.length} chars${
+                        ready ? " · listening" : " · keep going"
+                      }`}
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={listening ? stopVoice : startVoice}
+                disabled={!voiceSupported || processingVoice}
+                title={
+                  !voiceSupported
+                    ? "Voice input is not supported in this browser"
+                    : listening
+                      ? "Stop recording"
+                      : "Speak your idea"
+                }
+                aria-pressed={listening}
+                className={
+                  "inline-flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-md transition " +
+                  (listening
+                    ? "border-red-300/70 bg-red-500/25 text-red-50 shadow-[0_0_20px_-4px_rgba(248,113,113,0.8)]"
+                    : "border-amber-200/40 bg-amber-100/10 text-amber-100 hover:border-amber-200/60 hover:bg-amber-100/20") +
+                  (!voiceSupported || processingVoice ? " cursor-not-allowed opacity-50" : "")
+                }
+              >
+                <Mic className="h-4 w-4" aria-hidden />
+                <span className="sr-only">{listening ? "Stop recording" : "Speak your idea"}</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -186,14 +267,9 @@ function Index() {
               >
                 Start shaping →
               </button>
-
             </div>
           </div>
         </div>
-
-        <p className="mt-3 text-center text-[11px] text-amber-100/60">
-          No payment, no commitments. This is the doorway.
-        </p>
       </section>
 
       {pathOpen && (
@@ -203,15 +279,29 @@ function Index() {
             if (typeof window !== "undefined") {
               try {
                 sessionStorage.setItem("dabottree:packageTier", tier);
+                sessionStorage.setItem("dabottree:reportPath", tier);
               } catch {}
             }
             setPathOpen(false);
-            navigate({ to: "/dashboard" });
+            setConfirmationMessage(getPathConfirmation(tier));
+            window.setTimeout(() => {
+              navigate({ to: "/dashboard" });
+            }, 2800);
           }}
         />
       )}
-    </main>
 
+      {confirmationMessage && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/35 px-4 backdrop-blur-sm">
+          <div className="max-w-lg rounded-2xl border border-amber-200/30 bg-[rgba(24,13,7,0.95)] p-6 text-center shadow-[0_0_60px_-10px_rgba(255,178,92,0.75)]">
+            <p className="text-[10px] uppercase tracking-[0.32em] text-amber-100/70">
+              Path selected
+            </p>
+            <p className="mt-3 text-lg leading-relaxed text-amber-50">{confirmationMessage}</p>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
 
@@ -226,7 +316,7 @@ type PathOption = {
   tagline: string;
   perks: string[];
   accent: string; // outer glow
-  ring: string;   // border
+  ring: string; // border
 };
 
 const PATH_OPTIONS: PathOption[] = [
@@ -234,11 +324,12 @@ const PATH_OPTIONS: PathOption[] = [
     id: "good",
     name: "Good",
     credits: 20,
-    tagline: "The starter path — steady roots, sealed doors.",
+    tagline: "A clean report path — steady roots, sealed doors.",
     perks: [
-      "Basic guided build path",
-      "Level review summaries",
+      "Project report with main findings",
+      "Level review summaries included",
       "Opportunity doors visible but locked",
+      "Upgrade anytime when deeper options appear",
     ],
     accent: "rgba(180,140,80,0.55)",
     ring: "rgba(220,180,110,0.55)",
@@ -247,11 +338,12 @@ const PATH_OPTIONS: PathOption[] = [
     id: "better",
     name: "Better",
     credits: 40,
-    tagline: "A key in hand — one door opens at every level.",
+    tagline: "A deeper report path — one key at every level.",
     perks: [
-      "Everything in Good",
+      "Deeper project report",
       "1 key per level",
       "Unlock one opportunity door per level",
+      "More answers help the bots go deeper",
     ],
     accent: "rgba(255,190,90,0.7)",
     ring: "rgba(255,210,130,0.75)",
@@ -260,16 +352,27 @@ const PATH_OPTIONS: PathOption[] = [
     id: "best",
     name: "Best",
     credits: 60,
-    tagline: "Both doors open — the full path of opportunities.",
+    tagline: "The fullest report path — both doors open.",
     perks: [
-      "Everything in Better",
+      "Most detailed project report",
       "Both opportunity doors open per level",
       "Full opportunity question access",
+      "Best report before any build decision",
     ],
     accent: "rgba(255,225,150,0.95)",
     ring: "rgba(255,235,180,0.95)",
   },
 ];
+
+function getPathConfirmation(tier: PackageTier) {
+  if (tier === "good") {
+    return "Thank you for your idea. We're starting your project report on the Good path. You can keep moving forward, and upgrade anytime when you want to unlock deeper opportunities.";
+  }
+  if (tier === "better") {
+    return "Thank you for your idea. We're excited to grow it with you on the Better report path.";
+  }
+  return "Thank you for your idea. We're opening the full Best report path for this project.";
+}
 
 function ChoosePathModal({
   onClose,
@@ -342,7 +445,7 @@ function ChoosePathModal({
         <div className="relative flex items-center justify-center gap-2">
           <span className="text-amber-200/90">✦</span>
           <span className="text-[11px] uppercase tracking-[0.36em] text-amber-100/90">
-            Choose Your Path
+            Choose Report Depth
           </span>
           <span className="text-amber-200/90">✦</span>
         </div>
@@ -353,11 +456,12 @@ function ChoosePathModal({
             textShadow: "0 1px 24px rgba(255,170,80,0.4)",
           }}
         >
-          Three paths into the tree.
+          Three report paths into the tree.
         </h2>
         <p className="relative mx-auto mt-2 max-w-[560px] text-center text-[13px] leading-relaxed text-amber-50/90">
-          Every path shapes your idea — they differ in how many opportunity doors
-          open along the way. Choose the one that fits this build.
+          Credits shape the project report experience. Better and Best let you answer more
+          opportunity questions, so the bots can go deeper before the final report. Build, hosting,
+          maintenance, and subscriptions come after the report.
         </p>
 
         <div className="relative mt-3 flex flex-wrap items-center justify-center gap-2">
@@ -419,7 +523,7 @@ function ChoosePathModal({
                   <div className="relative flex items-center justify-between">
                     <span
                       className="text-[11px] uppercase tracking-[0.32em] text-amber-100/85"
-                      style={{ fontFamily: 'ui-serif, Georgia, serif' }}
+                      style={{ fontFamily: "ui-serif, Georgia, serif" }}
                     >
                       Path
                     </span>
@@ -474,9 +578,6 @@ function ChoosePathModal({
                     )}
                   </div>
 
-
-
-
                   <span
                     className={
                       "relative mt-5 inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-[13px] font-semibold transition " +
@@ -494,7 +595,7 @@ function ChoosePathModal({
         </div>
 
         <p className="relative mt-5 text-center text-[11px] text-amber-100/65">
-          You can switch paths later — every step keeps your packet.
+          You can upgrade later — every step keeps your project report packet.
         </p>
       </div>
 
@@ -573,7 +674,8 @@ function AddCreditsPanel({
           Forge more credits
         </h3>
         <p className="mt-1 text-center text-[12px] text-amber-100/80">
-          Current balance: <span className="font-semibold text-amber-100">{currentCredits}</span> credits
+          Current balance: <span className="font-semibold text-amber-100">{currentCredits}</span>{" "}
+          credits
         </p>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
@@ -585,7 +687,9 @@ function AddCreditsPanel({
               className="rounded-xl border border-amber-200/50 bg-black/35 px-3 py-3 text-center transition hover:-translate-y-0.5 hover:border-amber-200/80 hover:bg-black/50"
             >
               <div className="text-[18px] font-semibold text-amber-100">+{n}</div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">credits</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">
+                credits
+              </div>
             </button>
           ))}
         </div>
@@ -621,7 +725,7 @@ function AddCreditsPanel({
         </div>
 
         <p className="mt-4 text-center text-[10.5px] text-amber-100/60">
-          Credits are the in-app currency of the tree.
+          Credits are used for project report depth here. Build subscriptions are separate.
         </p>
       </div>
     </div>
@@ -641,13 +745,8 @@ function FantasyDoor({
   const glowOpacity = state === "locked" ? 0 : opened ? 0.9 : 0.35;
   const glowSize = opened ? 140 : 70;
 
-
   return (
-    <span
-      className="relative inline-block"
-      style={{ width: 92, height: 140 }}
-      aria-hidden
-    >
+    <span className="relative inline-block" style={{ width: 92, height: 140 }} aria-hidden>
       {/* warm glow spill behind the door */}
       <span
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -668,8 +767,7 @@ function FantasyDoor({
         className="absolute inset-0 overflow-hidden"
         style={{
           borderRadius: "46px 46px 6px 6px",
-          background:
-            "linear-gradient(180deg, #4a3318 0%, #2a1c0a 60%, #15100a 100%)",
+          background: "linear-gradient(180deg, #4a3318 0%, #2a1c0a 60%, #15100a 100%)",
           border: "1px solid rgba(240,200,120,0.55)",
           boxShadow:
             "inset 0 1px 0 rgba(255,225,170,0.25), inset 0 -3px 0 rgba(0,0,0,0.55), 0 10px 24px -8px rgba(0,0,0,0.7)",
@@ -732,15 +830,12 @@ function FantasyDoor({
                 bottom: 10,
                 [isLeft ? "left" : "right"]: 12,
                 width: "calc(50% - 14px)",
-                borderRadius: isLeft
-                  ? "34px 2px 1px 2px"
-                  : "2px 34px 2px 1px",
+                borderRadius: isLeft ? "34px 2px 1px 2px" : "2px 34px 2px 1px",
                 background:
                   "repeating-linear-gradient(90deg, rgba(95,55,18,1) 0 4px, rgba(70,38,10,1) 4px 5px), linear-gradient(180deg, rgba(120,72,22,1) 0%, rgba(60,32,8,1) 100%)",
                 backgroundBlendMode: "multiply",
                 border: "1px solid rgba(0,0,0,0.6)",
-                boxShadow:
-                  "inset 0 1px 0 rgba(255,210,140,0.18), inset 0 -2px 0 rgba(0,0,0,0.55)",
+                boxShadow: "inset 0 1px 0 rgba(255,210,140,0.18), inset 0 -2px 0 rgba(0,0,0,0.55)",
                 transform: `perspective(420px) rotateY(${isLeft ? -leafAngle : leafAngle}deg)`,
                 transformOrigin: isLeft ? "left center" : "right center",
                 transition: "transform 600ms cubic-bezier(.2,.7,.2,1)",
@@ -752,8 +847,7 @@ function FantasyDoor({
                 style={{
                   top: "18%",
                   height: 4,
-                  background:
-                    "linear-gradient(180deg, #5a4525 0%, #1d140a 100%)",
+                  background: "linear-gradient(180deg, #5a4525 0%, #1d140a 100%)",
                   boxShadow: "inset 0 1px 0 rgba(255,220,160,0.25)",
                 }}
               />
@@ -763,8 +857,7 @@ function FantasyDoor({
                 style={{
                   bottom: "18%",
                   height: 4,
-                  background:
-                    "linear-gradient(180deg, #5a4525 0%, #1d140a 100%)",
+                  background: "linear-gradient(180deg, #5a4525 0%, #1d140a 100%)",
                   boxShadow: "inset 0 1px 0 rgba(255,220,160,0.25)",
                 }}
               />
@@ -777,8 +870,7 @@ function FantasyDoor({
                   width: 4,
                   height: 4,
                   borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle at 35% 30%, #d8b878 0%, #3a2a10 80%)",
+                  background: "radial-gradient(circle at 35% 30%, #d8b878 0%, #3a2a10 80%)",
                 }}
               />
               <span
@@ -789,8 +881,7 @@ function FantasyDoor({
                   width: 4,
                   height: 4,
                   borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle at 35% 30%, #d8b878 0%, #3a2a10 80%)",
+                  background: "radial-gradient(circle at 35% 30%, #d8b878 0%, #3a2a10 80%)",
                 }}
               />
               {/* handle ring */}
@@ -848,11 +939,9 @@ function FantasyDoor({
               width: 18,
               height: 14,
               borderRadius: 3,
-              background:
-                "linear-gradient(180deg, #e6c585 0%, #8b6628 60%, #4d3410 100%)",
+              background: "linear-gradient(180deg, #e6c585 0%, #8b6628 60%, #4d3410 100%)",
               border: "1px solid rgba(0,0,0,0.6)",
-              boxShadow:
-                "inset 0 1px 0 rgba(255,235,180,0.55), 0 1px 3px rgba(0,0,0,0.6)",
+              boxShadow: "inset 0 1px 0 rgba(255,235,180,0.55), 0 1px 3px rgba(0,0,0,0.6)",
             }}
           />
           {/* keyhole */}
@@ -868,7 +957,6 @@ function FantasyDoor({
           />
         </span>
       )}
-
 
       {/* threshold shadow */}
       <span
@@ -892,7 +980,6 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
       }}
       aria-hidden
     >
-
       {/* faint warm aura */}
       <span
         className="pointer-events-none absolute inset-0 rounded-full"
@@ -915,8 +1002,7 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
           border: "3px solid #e9c684",
           background:
             "radial-gradient(circle at 35% 30%, rgba(255,235,180,0.4) 0%, transparent 60%)",
-          boxShadow:
-            "0 0 6px rgba(255,210,130,0.6), inset 0 0 4px rgba(0,0,0,0.45)",
+          boxShadow: "0 0 6px rgba(255,210,130,0.6), inset 0 0 4px rgba(0,0,0,0.45)",
         }}
       />
       {/* bow inner gem */}
@@ -928,8 +1014,7 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
           width: 6,
           height: 6,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle at 35% 30%, #fff4c8 0%, #c98a1c 80%)",
+          background: "radial-gradient(circle at 35% 30%, #fff4c8 0%, #c98a1c 80%)",
           boxShadow: "0 0 4px rgba(255,210,130,0.85)",
         }}
       />
@@ -941,8 +1026,7 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
           top: 9,
           width: 30,
           height: 4,
-          background:
-            "linear-gradient(180deg, #f1d290 0%, #b0822c 55%, #5a3f12 100%)",
+          background: "linear-gradient(180deg, #f1d290 0%, #b0822c 55%, #5a3f12 100%)",
           borderRadius: 1,
           boxShadow: "inset 0 1px 0 rgba(255,240,200,0.55)",
         }}
@@ -955,8 +1039,7 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
           top: 13,
           width: 4,
           height: 7,
-          background:
-            "linear-gradient(180deg, #d8a85a 0%, #6a4a14 100%)",
+          background: "linear-gradient(180deg, #d8a85a 0%, #6a4a14 100%)",
           borderRadius: "0 0 1px 1px",
         }}
       />
@@ -967,8 +1050,7 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
           top: 13,
           width: 4,
           height: 5,
-          background:
-            "linear-gradient(180deg, #d8a85a 0%, #6a4a14 100%)",
+          background: "linear-gradient(180deg, #d8a85a 0%, #6a4a14 100%)",
           borderRadius: "0 0 1px 1px",
         }}
       />
@@ -1010,6 +1092,3 @@ function KeyIcon({ disabled = false }: { disabled?: boolean }) {
     </span>
   );
 }
-
-
-
