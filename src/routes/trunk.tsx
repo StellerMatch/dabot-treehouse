@@ -202,7 +202,7 @@ function TrunkPage() {
           50%      { transform: translateX(-50%) scale(0.53) translateY(-3px); }
         }
         .trunk-compass-standing {
-          left: 50%; bottom: 40%;
+          left: 50%; bottom: 38%;
           height: 78vh; width: auto;
           transform-origin: 50% 100%;
           clip-path: inset(0 0 10% 0);
