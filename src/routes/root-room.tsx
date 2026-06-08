@@ -112,12 +112,18 @@ function RootRoom() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [ascending, setAscending] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [packageTier, setPackageTier] = useState<"good" | "better" | "best">("good");
   const navigate = useNavigate();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
+    // Optional override via URL: ?package=good|better|best
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("package");
+    if (t === "good" || t === "better" || t === "best") setPackageTier(t);
   }, []);
 
   useEffect(() => {
@@ -127,7 +133,11 @@ function RootRoom() {
     return () => window.clearTimeout(t);
   }, [ascending, navigate, reducedMotion]);
 
-  const handleAscend = () => setAscending(true);
+  const handleAscend = () => {
+    setReportOpen(false);
+    setAscending(true);
+  };
+
 
   // Sequence after Start
   useEffect(() => {
