@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import trunkBgAsset from "@/assets/trunk-room-bg.png.asset.json";
-import floatingBookAsset from "@/assets/floating-book.png.asset.json";
+import trunkBgAsset from "@/assets/trunk-room-bg-v2.png.asset.json";
+import packetBookAsset from "@/assets/trunk-packet-book.png.asset.json";
+import compassStagAsset from "@/assets/compass-stag.png.asset.json";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/trunk")({
@@ -35,10 +36,15 @@ const TRUNK_NEXT_PALETTE = {
 
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
+  const [compassArrived, setCompassArrived] = useState(false);
 
   useEffect(() => {
-    const t = window.setTimeout(() => setBookArrived(true), 1800);
-    return () => window.clearTimeout(t);
+    const t1 = window.setTimeout(() => setBookArrived(true), 1800);
+    const t2 = window.setTimeout(() => setCompassArrived(true), 4200);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, []);
 
   return (
@@ -46,7 +52,7 @@ function TrunkPage() {
       <div className="absolute inset-0">
         <img
           src={trunkBgAsset.url}
-          alt="The Trunk Layer — an open trunk chamber with a central reading table beneath a shaft of light."
+          alt="The Trunk Layer — a vast root chamber with a central reading table beneath a shaft of light."
           className="absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: "center center" }}
           draggable={false}
@@ -65,11 +71,11 @@ function TrunkPage() {
           aria-hidden
         />
 
-        {/* Arriving book — descends from light, settles onto table */}
+        {/* Arriving packet book — descends along the light beam, lands flat on the table */}
         <img
-          src={floatingBookAsset.url}
+          src={packetBookAsset.url}
           alt=""
-          className={`pointer-events-none absolute left-1/2 -translate-x-1/2 z-[10] ${
+          className={`pointer-events-none absolute left-1/2 z-[10] ${
             bookArrived ? "trunk-book-resting" : "trunk-book-arriving"
           }`}
           draggable={false}
@@ -82,6 +88,16 @@ function TrunkPage() {
             aria-hidden
           />
         )}
+
+        {/* Compass — emerges from the distant doorway, walks up beside the table */}
+        <img
+          src={compassStagAsset.url}
+          alt=""
+          className={`pointer-events-none absolute z-[11] ${
+            compassArrived ? "trunk-compass-standing" : "trunk-compass-walking"
+          }`}
+          draggable={false}
+        />
       </div>
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
@@ -139,34 +155,37 @@ function TrunkPage() {
           0%, 100% { opacity: 0.65; }
           50% { opacity: 1; }
         }
+        /* Book descends from the ceiling along the light beam, then settles flat on the table */
         @keyframes trunk-book-arriving-kf {
-          0%   { top: -10%; transform: translateX(-50%) scale(1.6) rotate(6deg); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
-          25%  { opacity: 1; }
-          100% { top: 52%; transform: translateX(-50%) scale(0.55) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 30px rgba(255,210,140,0.9)); }
+          0%   { top: -8%;  transform: translateX(-50%) scale(0.35) rotateX(0deg); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,235,180,1)); }
+          20%  { opacity: 1; }
+          85%  { top: 60%;  transform: translateX(-50%) scale(0.95) rotateX(68deg); opacity: 1; }
+          100% { top: 62%;  transform: translateX(-50%) scale(1)    rotateX(72deg); opacity: 1; filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.85)); }
         }
         .trunk-book-arriving {
-          top: -10%;
-          height: 28vh; width: auto;
+          top: -8%;
+          height: 22vh; width: auto;
+          transform-origin: 50% 80%;
           animation: trunk-book-arriving-kf 1.8s cubic-bezier(0.4, 0.0, 0.4, 1) forwards;
           will-change: top, transform, opacity;
         }
         @keyframes trunk-book-rest-kf {
-          0%, 100% { transform: translateX(-50%) translateY(0); }
-          50%      { transform: translateX(-50%) translateY(-4px); }
+          0%, 100% { transform: translateX(-50%) scale(1) rotateX(72deg) translateY(0); }
+          50%      { transform: translateX(-50%) scale(1) rotateX(72deg) translateY(-2px); }
         }
         .trunk-book-resting {
-          top: 52%;
-          height: 28vh; width: auto;
-          transform: translateX(-50%) scale(0.55);
-          filter: drop-shadow(0 0 32px rgba(255,210,140,0.95));
+          top: 62%;
+          height: 22vh; width: auto;
+          transform-origin: 50% 80%;
+          filter: drop-shadow(0 14px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(255,210,140,0.9));
           animation: trunk-book-rest-kf 4s ease-in-out infinite;
         }
         @keyframes trunk-glow-kf {
           0%   { opacity: 0; transform: translateX(-50%) scale(0.4); }
-          100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+          100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
         }
         .trunk-table-glow {
-          bottom: 28%;
+          bottom: 26%;
           width: 38vmin; height: 14vmin;
           border-radius: 50%;
           background: radial-gradient(ellipse at center, rgba(255,225,160,0.7) 0%, rgba(255,180,80,0.3) 45%, transparent 75%);
@@ -174,10 +193,35 @@ function TrunkPage() {
           mix-blend-mode: screen;
           animation: trunk-glow-kf 0.8s ease-out forwards;
         }
+        /* Compass — walks forward from the distant doorway, grows in scale, stops beside the table */
+        @keyframes trunk-compass-walking-kf {
+          0%   { left: 50%; bottom: 42%; transform: translateX(-50%) scale(0.05); opacity: 0; filter: brightness(0.5) drop-shadow(0 0 8px rgba(255,200,120,0.4)); }
+          15%  { opacity: 1; }
+          100% { left: 68%; bottom: 6%;  transform: translateX(-50%) scale(0.55); opacity: 1; filter: brightness(1) drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.5)); }
+        }
+        .trunk-compass-walking {
+          height: 78vh; width: auto;
+          transform-origin: 50% 100%;
+          animation: trunk-compass-walking-kf 2.4s cubic-bezier(0.4, 0.0, 0.5, 1) forwards;
+          will-change: left, bottom, transform, opacity;
+        }
+        @keyframes trunk-compass-stand-kf {
+          0%, 100% { transform: translateX(-50%) scale(0.55) translateY(0); }
+          50%      { transform: translateX(-50%) scale(0.55) translateY(-3px); }
+        }
+        .trunk-compass-standing {
+          left: 68%; bottom: 6%;
+          height: 78vh; width: auto;
+          transform-origin: 50% 100%;
+          filter: drop-shadow(0 18px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(255,170,70,0.55));
+          animation: trunk-compass-stand-kf 5s ease-in-out infinite;
+        }
         @media (max-width: 640px) {
-          .trunk-book-arriving, .trunk-book-resting { height: 22vh; }
+          .trunk-book-arriving, .trunk-book-resting { height: 16vh; }
+          .trunk-compass-walking, .trunk-compass-standing { height: 60vh; }
         }
       `}</style>
+
     </main>
   );
 }
