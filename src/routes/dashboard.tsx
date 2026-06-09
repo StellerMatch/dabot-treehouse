@@ -1,12 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/dabottree-library-bg-v2.png.asset.json";
 import ideaBgAsset from "@/assets/soil-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
-const libraryBg = libraryBgAsset.url;
 const ideaBg = ideaBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 const claritySquirrelReady = claritySquirrelReadyAsset.url;
@@ -71,13 +69,16 @@ function readReportTier(): ReportTier {
 }
 
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    ideaId: typeof s.ideaId === "string" ? (s.ideaId as string) : undefined,
+  }),
   head: () => ({
     meta: [
-      { title: "Creator Library — DaBotTree" },
+      { title: "Idea Dashboard — DaBotTree" },
       {
         name: "description",
         content:
-          "Your living tree library: ideas as books on the left shelf, an open journal in the middle, a progress shelf on the right.",
+          "Open a saved idea inside the DaBotTree dashboard and keep shaping it in the dirt-ground workspace.",
       },
     ],
   }),
@@ -1528,9 +1529,17 @@ function shortIdeaSummary(idea: LightbulbIdea): string {
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [ideas, setIdeas] = useState<LightbulbIdea[]>(() => loadStoredIdeas() ?? seedIdeas);
+  const { ideaId } = Route.useSearch();
+  const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [selectedId, setSelectedId] = useState("");
-  const [extras, setExtras] = useState<Record<string, IdeaExtras>>(() => loadStoredExtras() ?? {});
+  const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
+
+  useEffect(() => {
+    const storedIdeas = loadStoredIdeas();
+    const storedExtras = loadStoredExtras();
+    if (storedIdeas) setIdeas(storedIdeas);
+    if (storedExtras) setExtras(storedExtras);
+  }, []);
 
   // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
   useEffect(() => {
