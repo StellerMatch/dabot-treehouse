@@ -1495,8 +1495,6 @@ const spinePalettes: Array<[string, string, string]> = [
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
-const SELECTED_STORAGE_KEY = "dabottree:selectedIdeaId";
-
 function loadStoredIdeas(): LightbulbIdea[] | null {
   if (typeof window === "undefined") return null;
   try {
@@ -1530,18 +1528,7 @@ function shortIdeaSummary(idea: LightbulbIdea): string {
 function Dashboard() {
   const navigate = useNavigate();
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(() => loadStoredIdeas() ?? seedIdeas);
-  const [selectedId, setSelectedId] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const hasIncomingDraft =
-          (sessionStorage.getItem("dabottree:draftIdea") ?? "").trim().length > 0;
-        if (hasIncomingDraft) return "";
-        const stored = localStorage.getItem(SELECTED_STORAGE_KEY);
-        if (stored) return stored;
-      } catch {}
-    }
-    return "";
-  });
+  const [selectedId, setSelectedId] = useState("");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>(() => loadStoredExtras() ?? {});
 
   // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
@@ -1557,13 +1544,6 @@ function Dashboard() {
       localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
     } catch {}
   }, [extras]);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      if (selectedId) localStorage.setItem(SELECTED_STORAGE_KEY, selectedId);
-      else localStorage.removeItem(SELECTED_STORAGE_KEY);
-    } catch {}
-  }, [selectedId]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1661,7 +1641,6 @@ function Dashboard() {
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
-        localStorage.removeItem(SELECTED_STORAGE_KEY);
       } catch {}
     }
   }, []);
@@ -1875,9 +1854,6 @@ function Dashboard() {
   const openIdeasDashboard = () => {
     setSelectedId("");
     setActiveCategory("core-idea");
-    try {
-      localStorage.removeItem(SELECTED_STORAGE_KEY);
-    } catch {}
   };
 
   const deleteIdea = (id: string) => {
@@ -1892,11 +1868,6 @@ function Dashboard() {
       setSelectedId("");
       setActiveCategory("core-idea");
     }
-    try {
-      if (localStorage.getItem(SELECTED_STORAGE_KEY) === id) {
-        localStorage.removeItem(SELECTED_STORAGE_KEY);
-      }
-    } catch {}
   };
 
   const moveToPreClarity = (id: string) => {
