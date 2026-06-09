@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
-// Background is the original library scene (no owl baked in). The owl sage is now a separate overlay layer (owlSage) so it can be repositioned independently.
+import libraryBgAsset from "@/assets/soil-bg.png.asset.json";
+// Dashboard background is a rich soil texture.
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
