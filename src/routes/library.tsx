@@ -165,7 +165,7 @@ function LibraryPage() {
                     <button
                       type="button"
                       onClick={() => openIdea(idea.id)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/50 bg-gradient-to-b from-amber-700 to-amber-900 px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-amber-600 hover:to-amber-800"
+                      className="inline-flex items-center gap-1 rounded-sm border border-emerald-900/60 bg-gradient-to-b from-[#5f7d4a] to-[#324a26] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#708e5a] hover:to-[#3d5a30]"
                     >
                       <BookOpen className="h-3 w-3" />
                       Open
