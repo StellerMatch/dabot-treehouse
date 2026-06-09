@@ -1489,11 +1489,66 @@ const spinePalettes: Array<[string, string, string]> = [
   ["#3d0f0a", "#7a1f10", "#d8b06a"], // oxblood + gold
 ];
 
+const IDEAS_STORAGE_KEY = "dabottree:ideas";
+const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+const SELECTED_STORAGE_KEY = "dabottree:selectedIdeaId";
+
+function loadStoredIdeas(): LightbulbIdea[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(IDEAS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed as LightbulbIdea[];
+  } catch {}
+  return null;
+}
+
+function loadStoredExtras(): Record<string, IdeaExtras> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(EXTRAS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") return parsed as Record<string, IdeaExtras>;
+  } catch {}
+  return null;
+}
+
 function Dashboard() {
   const navigate = useNavigate();
-  const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
-  const [selectedId, setSelectedId] = useState<string>(seedIdeas[0]?.id ?? "");
-  const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
+  const [ideas, setIdeas] = useState<LightbulbIdea[]>(() => loadStoredIdeas() ?? seedIdeas);
+  const [selectedId, setSelectedId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(SELECTED_STORAGE_KEY);
+        if (stored) return stored;
+      } catch {}
+    }
+    const initial = loadStoredIdeas() ?? seedIdeas;
+    return initial[0]?.id ?? "";
+  });
+  const [extras, setExtras] = useState<Record<string, IdeaExtras>>(() => loadStoredExtras() ?? {});
+
+  // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
+    } catch {}
+  }, [ideas]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
+    } catch {}
+  }, [extras]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (selectedId) localStorage.setItem(SELECTED_STORAGE_KEY, selectedId);
+    } catch {}
+  }, [selectedId]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
