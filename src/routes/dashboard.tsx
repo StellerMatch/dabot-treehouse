@@ -2107,8 +2107,8 @@ function Dashboard() {
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={{ backgroundImage: `url(${libraryBg})` }}
       />
-      {/* Owl sage — draggable overlay layer */}
-      <DraggableOwl src={owlSage} />
+      {/* Owl sage belongs to the project workspace, not the all-ideas dashboard. */}
+      {selected && <DraggableOwl src={owlSage} />}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-20"
@@ -2129,7 +2129,7 @@ function Dashboard() {
 
       {/* Clarity the squirrel — transparent PNG overlay, follows viewport.
           Swaps to the "ready" pose when the Next Step button unlocks. */}
-      {(() => {
+      {selected ? (() => {
         const nextStepUnlocked =
           overallPct >= 90 && (selectedExtras.clarityFollowupCount ?? 0) >= MIN_CLARITY_FOLLOWUPS;
         return (
@@ -2149,7 +2149,7 @@ function Dashboard() {
             }}
           />
         );
-      })()}
+      })() : null}
 
       {/* Header — laid-down book controls floating over the library scene */}
       <header className="relative z-30 flex flex-wrap items-center justify-center gap-1.5 px-2 pt-1.5 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
@@ -2220,7 +2220,7 @@ function Dashboard() {
       {/* Center stage — full width, the library room breathes */}
       <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
         {!selected ? (
-          <div className="relative mx-auto mt-6 w-full max-w-4xl rounded-md border border-amber-950/50 bg-amber-50/88 p-4 font-serif text-amber-950 shadow-2xl sm:p-5">
+          <div className="relative z-20 mx-auto mt-6 w-full max-w-4xl rounded-md border border-amber-950/50 bg-amber-50/88 p-4 font-serif text-amber-950 shadow-2xl sm:p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.25em] text-amber-900/65">
@@ -2260,7 +2260,7 @@ function Dashboard() {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center gap-1.5">
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => setSelectedId(idea.id)}
@@ -2284,7 +2284,7 @@ function Dashboard() {
                         );
                         if (ok) deleteIdea(idea.id);
                       }}
-                      className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-900/25 bg-red-50/70 px-2.5 py-1.5 text-[11px] text-red-900 transition hover:bg-red-100"
+                      className="inline-flex items-center gap-1 rounded-sm border border-red-900/25 bg-red-50/70 px-2.5 py-1.5 text-[11px] text-red-900 transition hover:bg-red-100 sm:ml-auto"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Delete
