@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 
 export const Route = createFileRoute("/signin")({
