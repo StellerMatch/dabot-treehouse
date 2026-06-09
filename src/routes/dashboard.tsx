@@ -2073,11 +2073,11 @@ function Dashboard() {
       className="relative flex w-full max-w-[100vw] flex-col overflow-x-hidden text-amber-950"
       style={{ minHeight: "100dvh" }}
     >
-      {/* living tree library background */}
+      {/* Library and opened-idea screens intentionally use separate backgrounds. */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
-        style={{ backgroundImage: `url(${selected ? libraryBg : ideaBg})` }}
+        style={{ backgroundImage: `url(${selected ? ideaBg : libraryBg})` }}
       />
       {/* Owl sage belongs to the project workspace, not the all-ideas dashboard. */}
       {selected && <DraggableOwl src={owlSage} />}
