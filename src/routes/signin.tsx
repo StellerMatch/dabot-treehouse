@@ -33,15 +33,12 @@ function SignIn() {
     navigate({ to: dest });
   };
 
-  const hasDraft =
-    typeof window !== "undefined" &&
-    (() => {
-      try {
-        return (sessionStorage.getItem("dabottree:draftIdea") ?? "").trim().length > 0;
-      } catch {
-        return false;
-      }
-    })();
+  const [hasDraft, setHasDraft] = useState(false);
+  useEffect(() => {
+    try {
+      setHasDraft((sessionStorage.getItem("dabottree:draftIdea") ?? "").trim().length > 0);
+    } catch {}
+  }, []);
 
   return (
     <main
