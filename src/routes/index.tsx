@@ -263,6 +263,7 @@ function Index() {
                       else sessionStorage.removeItem("dabottree:draftIdeaType");
                       sessionStorage.removeItem("dabottree:packageTier");
                       sessionStorage.removeItem("dabottree:reportPath");
+                      localStorage.removeItem("dabottree:selectedIdeaId");
                       authed = localStorage.getItem("dabottree:authed") === "1";
                     } catch {}
                   }

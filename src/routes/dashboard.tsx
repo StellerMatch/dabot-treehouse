@@ -1522,12 +1522,14 @@ function Dashboard() {
   const [selectedId, setSelectedId] = useState<string>(() => {
     if (typeof window !== "undefined") {
       try {
+        const hasIncomingDraft =
+          (sessionStorage.getItem("dabottree:draftIdea") ?? "").trim().length > 0;
+        if (hasIncomingDraft) return "";
         const stored = localStorage.getItem(SELECTED_STORAGE_KEY);
         if (stored) return stored;
       } catch {}
     }
-    const initial = loadStoredIdeas() ?? seedIdeas;
-    return initial[0]?.id ?? "";
+    return "";
   });
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>(() => loadStoredExtras() ?? {});
 
@@ -1631,6 +1633,7 @@ function Dashboard() {
       setIdeas((prev) => [newIdea, ...prev]);
       // Do NOT auto-select the new idea — the user should land on the library
       // view and intentionally open the saved idea to enter its workflow.
+      setSelectedId("");
       setExtras((prev) => ({
         ...prev,
         [id]: {
@@ -1645,12 +1648,13 @@ function Dashboard() {
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
+        localStorage.removeItem(SELECTED_STORAGE_KEY);
       } catch {}
     }
   }, []);
 
   const selected = useMemo(
-    () => ideas.find((i) => i.id === selectedId) ?? ideas[0],
+    () => ideas.find((i) => i.id === selectedId),
     [ideas, selectedId],
   );
 
