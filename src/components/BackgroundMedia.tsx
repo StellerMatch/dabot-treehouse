@@ -50,6 +50,7 @@ export function BackgroundMedia({ config, className }: Props) {
           src={item.src}
           alt=""
           className={`h-full w-full ${fitClass} object-center`}
+          style={{ objectPosition: item.objectPosition ?? "50% 50%" }}
           onError={() => setFailed(true)}
         />
       )}
@@ -57,6 +58,7 @@ export function BackgroundMedia({ config, className }: Props) {
         <video
           ref={videoRef}
           className={`h-full w-full ${fitClass} object-center`}
+          style={{ objectPosition: item.objectPosition ?? "50% 50%" }}
           src={item.src}
           poster={item.poster}
           autoPlay={item.autoplay ?? true}
@@ -175,4 +177,3 @@ export function BackgroundMedia({ config, className }: Props) {
     </div>
   );
 }
-

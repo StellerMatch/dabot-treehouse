@@ -16,6 +16,8 @@ export type BackgroundConfig = {
   autoplay?: boolean;
   /** How the media fills the viewport. Defaults to "cover". */
   objectFit?: "cover" | "contain";
+  /** Background focal point for images/videos using CSS object-position. */
+  objectPosition?: string;
 };
 
 /**
@@ -40,6 +42,7 @@ export const frontPageBackground: BackgroundConfig = {
   type: "image",
   src: doorwayImage,
   objectFit: "cover",
+  objectPosition: "50% 42%",
   muted: true,
   autoplay: true,
   loop: true,
