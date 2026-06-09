@@ -2105,11 +2105,11 @@ function Dashboard() {
       className="relative flex w-full max-w-[100vw] flex-col overflow-x-hidden text-amber-950"
       style={{ minHeight: "100dvh" }}
     >
-      {/* Library and opened-idea screens intentionally use separate backgrounds. */}
+      {/* The dashboard is its own dirt-scene page. */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
-        style={{ backgroundImage: `url(${selected ? ideaBg : libraryBg})` }}
+        style={{ backgroundImage: `url(${ideaBg})` }}
       />
       {/* Owl sage belongs to the project workspace, not the all-ideas dashboard. */}
       {selected && <DraggableOwl src={owlSage} />}
@@ -2184,7 +2184,7 @@ function Dashboard() {
             ideas={ideas}
             selectedId={selected?.id ?? ""}
             onNewIdea={() => addIdea()}
-            onSelectIdea={(id) => setSelectedId(id)}
+            onSelectIdea={openIdeaDashboard}
             onOpenDashboard={openIdeasDashboard}
             onShowSummary={(idea) => setSummaryIdea(idea)}
             onDeleteIdea={deleteIdea}
@@ -2221,89 +2221,9 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Center stage — full width, the library room breathes */}
+      {/* Center stage — full width, the dashboard workspace */}
       <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
-        {!selected ? (
-          <div className="relative z-20 mx-auto mt-6 w-full max-w-4xl rounded-md border border-amber-950/50 bg-amber-50/88 p-4 font-serif text-amber-950 shadow-2xl sm:p-5">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-amber-900/65">
-                  Saved Ideas Dashboard
-                </p>
-                <h1 className="mt-1 text-xl font-semibold">My Library</h1>
-              </div>
-              <button
-                type="button"
-                onClick={() => addIdea()}
-                className="inline-flex items-center gap-2 rounded-md border border-amber-950/50 bg-amber-900 px-3 py-2 text-[12px] font-semibold text-amber-50 shadow transition hover:bg-amber-950"
-              >
-                <Plus className="h-4 w-4" />
-                New Idea
-              </button>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {ideas.map((idea) => (
-                <div
-                  key={idea.id}
-                  className="rounded-md border border-amber-900/35 bg-amber-50/75 p-3 shadow-sm"
-                >
-                  <div className="flex items-start gap-2">
-                    <span
-                      className="mt-0.5 block h-10 w-2 shrink-0 rounded-sm"
-                      style={{
-                        background:
-                          spinePalettes[(idea.title.length + idea.id.length) % spinePalettes.length][1],
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate text-[14px] font-semibold">
-                        {idea.title || "Untitled"}
-                      </h2>
-                      <p className="mt-1 line-clamp-3 text-[12px] leading-snug text-amber-900/80">
-                        {shortIdeaSummary(idea)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(idea.id)}
-                      className="rounded-sm border border-amber-900/35 bg-amber-900 px-2.5 py-1.5 text-[11px] font-semibold text-amber-50 transition hover:bg-amber-950"
-                    >
-                      Open
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSummaryIdea(idea)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/30 bg-amber-50/80 px-2.5 py-1.5 text-[11px] text-amber-950 transition hover:bg-amber-100"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      Summary
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const ok = window.confirm(
-                          `Delete "${idea.title || "Untitled"}" from your library?`,
-                        );
-                        if (ok) deleteIdea(idea.id);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-sm border border-red-900/25 bg-red-50/70 px-2.5 py-1.5 text-[11px] text-red-900 transition hover:bg-red-100 sm:ml-auto"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {ideas.length === 0 && (
-                <div className="col-span-full rounded-md border border-amber-900/30 bg-amber-50/70 p-6 text-center text-[13px] italic text-amber-900/80">
-                  No ideas yet. Tap New Idea to begin.
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
+        {selected ? (
           <NoteDesk
             selected={selected}
             extras={selectedExtras}
@@ -2320,7 +2240,7 @@ function Dashboard() {
             overallPct={overallPct}
             onDemoFill={demoFill}
           />
-        )}
+        ) : null}
       </div>
 
       {/* floor shadow */}
@@ -2428,7 +2348,7 @@ function Dashboard() {
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedId(summaryIdea.id);
+                    openIdeaDashboard(summaryIdea.id);
                   setSummaryIdea(null);
                 }}
                 className="w-full rounded-sm border border-amber-950/60 bg-amber-900 px-3 py-2 text-center text-[12px] font-semibold text-amber-50 transition hover:bg-amber-950"
