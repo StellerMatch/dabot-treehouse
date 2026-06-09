@@ -31,6 +31,9 @@ import {
   User,
   Wand2,
   LogOut,
+  FileText,
+  LayoutDashboard,
+  Trash2,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
@@ -1516,6 +1519,14 @@ function loadStoredExtras(): Record<string, IdeaExtras> | null {
   return null;
 }
 
+function shortIdeaSummary(idea: LightbulbIdea): string {
+  return (
+    idea.description?.trim() ||
+    idea.messy?.trim() ||
+    `${idea.title || "Untitled idea"} is saved in your library and ready to open when you want to keep shaping it.`
+  );
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(() => loadStoredIdeas() ?? seedIdeas);
@@ -1550,6 +1561,7 @@ function Dashboard() {
     if (typeof window === "undefined") return;
     try {
       if (selectedId) localStorage.setItem(SELECTED_STORAGE_KEY, selectedId);
+      else localStorage.removeItem(SELECTED_STORAGE_KEY);
     } catch {}
   }, [selectedId]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
@@ -1566,6 +1578,7 @@ function Dashboard() {
   const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
     { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
   >({ kind: "idle" });
+  const [summaryIdea, setSummaryIdea] = useState<LightbulbIdea | null>(null);
   
 
   const sendLibraryWebhook = async (attemptNumber: number) => {
@@ -1859,6 +1872,33 @@ function Dashboard() {
     navigate({ to: "/" });
   };
 
+  const openIdeasDashboard = () => {
+    setSelectedId("");
+    setActiveCategory("core-idea");
+    try {
+      localStorage.removeItem(SELECTED_STORAGE_KEY);
+    } catch {}
+  };
+
+  const deleteIdea = (id: string) => {
+    setIdeas((prev) => prev.filter((idea) => idea.id !== id));
+    setExtras((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setSummaryIdea((current) => (current?.id === id ? null : current));
+    if (selectedId === id) {
+      setSelectedId("");
+      setActiveCategory("core-idea");
+    }
+    try {
+      if (localStorage.getItem(SELECTED_STORAGE_KEY) === id) {
+        localStorage.removeItem(SELECTED_STORAGE_KEY);
+      }
+    } catch {}
+  };
+
   const moveToPreClarity = (id: string) => {
     setIdeas((prev) =>
       prev.map((i) =>
@@ -2141,6 +2181,9 @@ function Dashboard() {
             selectedId={selected?.id ?? ""}
             onNewIdea={() => addIdea()}
             onSelectIdea={(id) => setSelectedId(id)}
+            onOpenDashboard={openIdeasDashboard}
+            onShowSummary={(idea) => setSummaryIdea(idea)}
+            onDeleteIdea={deleteIdea}
           />
           <OrganizeButton
             overall={overallPct}
@@ -2177,8 +2220,84 @@ function Dashboard() {
       {/* Center stage — full width, the library room breathes */}
       <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
         {!selected ? (
-          <div className="relative mx-auto mt-12 max-w-md rounded-md border border-amber-950/50 bg-amber-50/85 p-8 text-center font-serif italic text-amber-900 shadow-2xl">
-            Open My Library and pick an idea to begin.
+          <div className="relative mx-auto mt-6 w-full max-w-4xl rounded-md border border-amber-950/50 bg-amber-50/88 p-4 font-serif text-amber-950 shadow-2xl sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-amber-900/65">
+                  Saved Ideas Dashboard
+                </p>
+                <h1 className="mt-1 text-xl font-semibold">My Library</h1>
+              </div>
+              <button
+                type="button"
+                onClick={() => addIdea()}
+                className="inline-flex items-center gap-2 rounded-md border border-amber-950/50 bg-amber-900 px-3 py-2 text-[12px] font-semibold text-amber-50 shadow transition hover:bg-amber-950"
+              >
+                <Plus className="h-4 w-4" />
+                New Idea
+              </button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {ideas.map((idea) => (
+                <div
+                  key={idea.id}
+                  className="rounded-md border border-amber-900/35 bg-amber-50/75 p-3 shadow-sm"
+                >
+                  <div className="flex items-start gap-2">
+                    <span
+                      className="mt-0.5 block h-10 w-2 shrink-0 rounded-sm"
+                      style={{
+                        background:
+                          spinePalettes[(idea.title.length + idea.id.length) % spinePalettes.length][1],
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-[14px] font-semibold">
+                        {idea.title || "Untitled"}
+                      </h2>
+                      <p className="mt-1 line-clamp-3 text-[12px] leading-snug text-amber-900/80">
+                        {shortIdeaSummary(idea)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(idea.id)}
+                      className="rounded-sm border border-amber-900/35 bg-amber-900 px-2.5 py-1.5 text-[11px] font-semibold text-amber-50 transition hover:bg-amber-950"
+                    >
+                      Open
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSummaryIdea(idea)}
+                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/30 bg-amber-50/80 px-2.5 py-1.5 text-[11px] text-amber-950 transition hover:bg-amber-100"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      Summary
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const ok = window.confirm(
+                          `Delete "${idea.title || "Untitled"}" from your library?`,
+                        );
+                        if (ok) deleteIdea(idea.id);
+                      }}
+                      className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-900/25 bg-red-50/70 px-2.5 py-1.5 text-[11px] text-red-900 transition hover:bg-red-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {ideas.length === 0 && (
+                <div className="col-span-full rounded-md border border-amber-900/30 bg-amber-50/70 p-6 text-center text-[13px] italic text-amber-900/80">
+                  No ideas yet. Tap New Idea to begin.
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <NoteDesk
@@ -2275,6 +2394,46 @@ function Dashboard() {
             setLibraryReportOpen(true);
           }}
         />
+      )}
+      {summaryIdea && (
+        <Dialog open={Boolean(summaryIdea)} onOpenChange={(open) => !open && setSummaryIdea(null)}>
+          <DialogContent
+            className="max-w-md border-amber-950/80 text-amber-950"
+            style={{ background: "linear-gradient(180deg, #f4e4bd 0%, #d9bf86 100%)" }}
+          >
+            <DialogHeader>
+              <DialogTitle className="font-serif text-amber-950">
+                {summaryIdea.title || "Untitled idea"}
+              </DialogTitle>
+              <DialogDescription className="font-serif text-[11px] uppercase tracking-widest text-amber-900/80">
+                Idea summary - {stageLabels[summaryIdea.stage]}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 font-serif text-[13px] leading-relaxed text-amber-950">
+              <p className="whitespace-pre-wrap break-words">{shortIdeaSummary(summaryIdea)}</p>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="rounded-sm border border-amber-900/30 bg-amber-50/60 px-2 py-1">
+                  <div className="uppercase tracking-[0.18em] text-amber-900/60">Type</div>
+                  <div>{summaryIdea.ideaType || "Not set"}</div>
+                </div>
+                <div className="rounded-sm border border-amber-900/30 bg-amber-50/60 px-2 py-1">
+                  <div className="uppercase tracking-[0.18em] text-amber-900/60">Next</div>
+                  <div>{summaryIdea.nextAction || "Open when ready"}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedId(summaryIdea.id);
+                  setSummaryIdea(null);
+                }}
+                className="w-full rounded-sm border border-amber-950/60 bg-amber-900 px-3 py-2 text-center text-[12px] font-semibold text-amber-50 transition hover:bg-amber-950"
+              >
+                Open This Idea
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </main>
   );
@@ -2695,11 +2854,17 @@ function ProfileAvatarButton({
   selectedId,
   onNewIdea,
   onSelectIdea,
+  onOpenDashboard,
+  onShowSummary,
+  onDeleteIdea,
 }: {
   ideas: LightbulbIdea[];
   selectedId: string;
   onNewIdea: () => void;
   onSelectIdea: (id: string) => void;
+  onOpenDashboard: () => void;
+  onShowSummary: (idea: LightbulbIdea) => void;
+  onDeleteIdea: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<"menu" | "library" | "profile">("menu");
@@ -2865,37 +3030,93 @@ function ProfileAvatarButton({
             <div className="mb-2 font-serif text-[13px] font-semibold text-amber-950">
               My Library
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                onOpenDashboard();
+                setOpen(false);
+              }}
+              className="mb-3 flex w-full items-center gap-2 rounded-md border border-amber-900/35 bg-amber-100/70 px-3 py-2 text-left font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-100"
+            >
+              <LayoutDashboard className="h-4 w-4 shrink-0" />
+              <span>All Ideas Dashboard</span>
+            </button>
             <ul className="max-h-[50vh] space-y-1 overflow-y-auto pr-1">
               {ideas.map((idea) => {
                 const active = idea.id === selectedId;
                 return (
                   <li key={idea.id}>
-                    <button
-                      onClick={() => {
-                        onSelectIdea(idea.id);
-                        setOpen(false);
-                      }}
+                    <div
                       className={
-                        "group flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 text-left font-serif text-[12px] transition " +
+                        "group rounded-sm border px-2 py-1.5 font-serif text-[12px] transition " +
                         (active
                           ? "border-amber-950/80 bg-amber-100/80 text-amber-950"
                           : "border-amber-900/40 bg-amber-50/40 text-amber-950 hover:bg-amber-100/70")
                       }
                     >
-                      <span
-                        className="block h-6 w-1.5 shrink-0 rounded-sm"
-                        style={{
-                          background:
-                            spinePalettes[
-                              (idea.title.length + idea.id.length) % spinePalettes.length
-                            ][1],
-                        }}
-                      />
-                      <span className="min-w-0 flex-1 truncate">{idea.title || "Untitled"}</span>
-                      <span className="shrink-0 text-[10px] italic text-amber-900/70">
-                        {stageLabels[idea.stage]}
-                      </span>
-                    </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSelectIdea(idea.id);
+                            setOpen(false);
+                          }}
+                          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                        >
+                          <span
+                            className="block h-6 w-1.5 shrink-0 rounded-sm"
+                            style={{
+                              background:
+                                spinePalettes[
+                                  (idea.title.length + idea.id.length) % spinePalettes.length
+                                ][1],
+                            }}
+                          />
+                          <span className="min-w-0 flex-1 truncate">
+                            {idea.title || "Untitled"}
+                          </span>
+                        </button>
+                        <span className="shrink-0 text-[10px] italic text-amber-900/70">
+                          {stageLabels[idea.stage]}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-1 pl-3.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSelectIdea(idea.id);
+                            setOpen(false);
+                          }}
+                          className="rounded-sm border border-amber-900/25 bg-amber-50/70 px-2 py-1 text-[10px] font-semibold text-amber-950 transition hover:bg-amber-100"
+                        >
+                          Open
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onShowSummary(idea);
+                            setOpen(false);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-sm border border-amber-900/25 bg-amber-50/70 px-2 py-1 text-[10px] text-amber-950 transition hover:bg-amber-100"
+                        >
+                          <FileText className="h-3 w-3" />
+                          Summary
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const ok = window.confirm(
+                              `Delete "${idea.title || "Untitled"}" from your library?`,
+                            );
+                            if (ok) onDeleteIdea(idea.id);
+                          }}
+                          className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-900/25 bg-red-50/60 px-2 py-1 text-[10px] text-red-900 transition hover:bg-red-100"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </li>
                 );
               })}
