@@ -1629,7 +1629,8 @@ function Dashboard() {
         description: metadata.description || mainSummaryFrom(draft, title),
       };
       setIdeas((prev) => [newIdea, ...prev]);
-      setSelectedId(id);
+      // Do NOT auto-select the new idea — the user should land on the library
+      // view and intentionally open the saved idea to enter its workflow.
       setExtras((prev) => ({
         ...prev,
         [id]: {
