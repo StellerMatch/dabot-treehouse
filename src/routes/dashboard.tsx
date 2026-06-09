@@ -1533,12 +1533,14 @@ function Dashboard() {
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [selectedId, setSelectedId] = useState("");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
+  const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
     const storedIdeas = loadStoredIdeas();
     const storedExtras = loadStoredExtras();
     if (storedIdeas) setIdeas(storedIdeas);
     if (storedExtras) setExtras(storedExtras);
+    setStorageReady(true);
   }, []);
 
   // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
@@ -1659,6 +1661,26 @@ function Dashboard() {
     () => ideas.find((i) => i.id === selectedId),
     [ideas, selectedId],
   );
+
+  useEffect(() => {
+    if (!storageReady) return;
+    if (!ideaId) {
+      setSelectedId("");
+      navigate({ to: "/library" });
+      return;
+    }
+    const match = ideas.find((idea) => idea.id === ideaId);
+    if (!match) {
+      setSelectedId("");
+      navigate({ to: "/library" });
+      return;
+    }
+    setSelectedId(match.id);
+  }, [ideaId, ideas, navigate, storageReady]);
+
+  const openIdeaDashboard = (id: string) => {
+    navigate({ to: "/dashboard", search: { ideaId: id } });
+  };
 
   // Good/Better/Best is chosen when the user intentionally starts/continues
   // a saved project from their library. The Library n8n test webhook fires
@@ -1862,7 +1884,7 @@ function Dashboard() {
   };
 
   const openIdeasDashboard = () => {
-    setSelectedId("");
+    navigate({ to: "/library" });
     setActiveCategory("core-idea");
   };
 
@@ -1877,6 +1899,7 @@ function Dashboard() {
     if (selectedId === id) {
       setSelectedId("");
       setActiveCategory("core-idea");
+      navigate({ to: "/library" });
     }
   };
 
@@ -1894,7 +1917,7 @@ function Dashboard() {
           : i,
       ),
     );
-    setSelectedId(id);
+    navigate({ to: "/dashboard", search: { ideaId: id } });
     setActiveCategory("core-idea");
   };
 
