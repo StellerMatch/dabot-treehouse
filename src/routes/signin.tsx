@@ -29,7 +29,7 @@ function SignIn() {
         if (email) localStorage.setItem("dabottree:accountEmail", email);
       } catch {}
     }
-    const dest = next && next.startsWith("/") ? next : "/dashboard";
+    const dest = next && next.startsWith("/") ? next : "/library";
     navigate({ to: dest });
   };
 

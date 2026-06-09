@@ -271,7 +271,7 @@ function Index() {
                   if (!authed) {
                     // Prototype gate: send to login/sign-up first. The draft idea is
                     // preserved in sessionStorage and saved to My Account after sign-in.
-                    navigate({ to: "/signin", search: { next: "/dashboard" } as any });
+                    navigate({ to: "/signin", search: { next: "/library" } as any });
                     return;
                   }
                   setConfirmationMessage(
