@@ -24,7 +24,9 @@ type LevelDoor = {
   key: string;
   level: string;
   owner: string;
+  page: string;
   report: string;
+  section: string;
   source: string;
   status: LevelStatus;
   summary: string;
@@ -37,13 +39,16 @@ const runSummary = levelSystemData.run_receipt_summary ?? {};
 const LEVELS: LevelDoor[] = levelSystem.levels.map((level) => {
   const door = levelSystem.doors.find((item) => item.level_key === level.level_key);
   const visual = visualScenes.find((item) => item.backend_source === level.report_source_key);
+  const lovableTarget = level as { lovable_page?: string; lovable_section?: string };
 
   return {
     key: level.level_key,
     level: level.level_name.replace(/ Level$/, ""),
     owner: level.owner,
+    page: lovableTarget.lovable_page ?? "/levels",
     report: level.level_key === "the_clearing" ? "Naming Report" : level.level_name + " Report",
     door: door?.label ?? "Open Level Report",
+    section: lovableTarget.lovable_section ?? "Level card / report door",
     source: level.report_source_key,
     status: door?.status === "ready" ? "ready" : "waiting",
     background: visual?.background_reference_summary ?? door?.background_reference ?? "current level background",
@@ -161,6 +166,8 @@ function LevelsPage() {
                       <DoorOpen className="h-4 w-4 text-amber-200" />
                       {level.door}
                     </div>
+                    <p className="truncate text-xs text-slate-400">Lovable page: {level.page}</p>
+                    <p className="text-xs text-slate-400">Section: {level.section}</p>
                     <p className="truncate text-xs text-slate-400">Source: {level.source}</p>
                     <p className="text-xs text-slate-400">Background: {level.background}</p>
                   </div>

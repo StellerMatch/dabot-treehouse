@@ -45,7 +45,9 @@
           }
         ],
         "boundary": "Internal review only. No publishing, spending, credentials, webhooks, external accounts, backend storage, or bot authority changes.",
-        "n8n_anchor": "7. Prepare User Review Output"
+        "n8n_anchor": "7. Prepare User Review Output",
+        "lovable_page": "/library",
+        "lovable_section": "Saved ideas list opens a selected idea; the Library report action runs from the opened Idea Dashboard."
       },
       {
         "level_key": "trunk",
@@ -59,7 +61,9 @@
         "expected_output": null,
         "open_questions": [],
         "boundary": null,
-        "n8n_anchor": "7.6 / 7.7 Trunk and Lantern Handoffs"
+        "n8n_anchor": "7.6 / 7.7 Trunk and Lantern Handoffs",
+        "lovable_page": "/trunk",
+        "lovable_section": "Trunk review screen where Luma, Bloom, Vault, and Compass are shown as broad role-based contributors."
       },
       {
         "level_key": "the_clearing",
@@ -73,7 +77,9 @@
         "expected_output": null,
         "open_questions": [],
         "boundary": null,
-        "n8n_anchor": "7.8. The Clearing: Prepare Project Name and URL Options"
+        "n8n_anchor": "7.8. The Clearing: Prepare Project Name and URL Options",
+        "lovable_page": "/levels",
+        "lovable_section": "The Clearing level card / naming door until a dedicated Clearing page exists."
       },
       {
         "level_key": "canopy",
@@ -100,7 +106,9 @@
         },
         "open_questions": [],
         "boundary": "Canopy prepares internal planning only. It does not approve build, launch, spending, public claims, account actions, legal/trademark claims, domain purchase, or bot authority changes.",
-        "n8n_anchor": "8. Canopy Level: Prepare Rook Foundation Packet"
+        "n8n_anchor": "8. Canopy Level: Prepare Rook Foundation Packet",
+        "lovable_page": "/levels",
+        "lovable_section": "Canopy level card / Rook foundation door until a dedicated Canopy page exists."
       },
       {
         "level_key": "branchworks",
@@ -129,7 +137,9 @@
         },
         "open_questions": [],
         "boundary": "Branchworks prepares internal experiment/design direction only. It does not approve Lovable submission, build execution, deployment, public launch, spending, account access, backend setup, route/config/tool changes, final product selection, or bot authority changes.",
-        "n8n_anchor": "8.5. Branchworks Level: Prepare Tinker Experiment Packet"
+        "n8n_anchor": "8.5. Branchworks Level: Prepare Tinker Experiment Packet",
+        "lovable_page": "/levels",
+        "lovable_section": "Branchworks level card / Tinker experiment door until a dedicated Branchworks page exists."
       },
       {
         "level_key": "crown",
@@ -143,7 +153,9 @@
         "expected_output": null,
         "open_questions": [],
         "boundary": "Crown prepares an internal prototype package, Shield Final Boundary Pass, and next-level handoff only. It does not approve Lovable submission, build execution, deployment, public launch, spending, account access, backend setup, route/config/tool changes, live support activation, final product selection, or bot authority changes.",
-        "n8n_anchor": "8.6. Crown Level: Prepare Weaver Prototype Package"
+        "n8n_anchor": "8.6. Crown Level: Prepare Weaver Prototype Package",
+        "lovable_page": "/levels",
+        "lovable_section": "Crown level card / Weaver prototype door until a dedicated Crown page exists."
       },
       {
         "level_key": "the_sweep",
@@ -157,7 +169,9 @@
         "expected_output": null,
         "open_questions": [],
         "boundary": "The Sweep is simulation/reporting only. It does not approve Lovable submission, browser/computer-use automation, account access, production data use, public action, spending, deployment, code fixes, auto-merge, final product approval, route/config/tool changes, or bot authority changes.",
-        "n8n_anchor": "8.7. The Sweep: Prepare Ghost Simulation Report"
+        "n8n_anchor": "8.7. The Sweep: Prepare Ghost Simulation Report",
+        "lovable_page": "/levels",
+        "lovable_section": "Sweep level card / Ghost simulation report until a dedicated Sweep page exists."
       },
       {
         "level_key": "nest",
@@ -190,7 +204,9 @@
         },
         "open_questions": [],
         "boundary": "Nest is project-home/watch/readiness guidance unless later approved as live operations. It does not approve cron automation, live support operations, support inboxes, public launch, spending, deployment, customer promises, production monitoring, account/channel/runtime/config changes, final product approval, or bot authority changes.",
-        "n8n_anchor": "8.8. Nest Level: Prepare Ward Living Project Home"
+        "n8n_anchor": "8.8. Nest Level: Prepare Ward Living Project Home",
+        "lovable_page": "/levels",
+        "lovable_section": "Nest level card / Ward project-home door until a dedicated Nest page exists."
       },
       {
         "level_key": "seed",
@@ -224,7 +240,9 @@
         },
         "open_questions": [],
         "boundary": "Seed prepares launch/growth/distribution guidance plus internal/admin Seed Page and DaBotTree Admin Page concepts only. It does not approve public launch, posting, ads, spending, account access, email/message sends, customer promises, legal/commercial claims, automation, deployment, live support, final launch authority, public exposure of internal seed data, or bot authority changes.",
-        "n8n_anchor": "8.9. Seed Level: Prepare Bloom Seed Launch Packet"
+        "n8n_anchor": "8.9. Seed Level: Prepare Bloom Seed Launch Packet",
+        "lovable_page": "/levels",
+        "lovable_section": "Seed level card / Bloom launch packet door until a dedicated Seed page exists."
       }
     ],
     "doors": [
