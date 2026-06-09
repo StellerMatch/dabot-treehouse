@@ -228,7 +228,7 @@ function LibraryPage() {
                   setSummaryIdea(null);
                   openIdea(id);
                 }}
-                className="mt-3 inline-flex items-center gap-2 self-start rounded-sm border border-amber-900/40 bg-amber-100 px-3 py-1.5 font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-200"
+                className="mt-3 inline-flex items-center gap-2 self-start rounded-sm border border-emerald-900/60 bg-gradient-to-b from-[#5f7d4a] to-[#324a26] px-3 py-1.5 font-serif text-[12px] font-semibold text-amber-50 transition hover:from-[#708e5a] hover:to-[#3d5a30]"
               >
                 <BookOpen className="h-4 w-4" />
                 Open This Idea
