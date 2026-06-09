@@ -1,12 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/dabottree-library-bg-v2.png.asset.json";
 import ideaBgAsset from "@/assets/soil-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
-const libraryBg = libraryBgAsset.url;
 const ideaBg = ideaBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 const claritySquirrelReady = claritySquirrelReadyAsset.url;
@@ -71,13 +69,16 @@ function readReportTier(): ReportTier {
 }
 
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    ideaId: typeof s.ideaId === "string" ? (s.ideaId as string) : undefined,
+  }),
   head: () => ({
     meta: [
-      { title: "Creator Library — DaBotTree" },
+      { title: "Idea Dashboard — DaBotTree" },
       {
         name: "description",
         content:
-          "Your living tree library: ideas as books on the left shelf, an open journal in the middle, a progress shelf on the right.",
+          "Open a saved idea inside the DaBotTree dashboard and keep shaping it in the dirt-ground workspace.",
       },
     ],
   }),
@@ -1528,23 +1529,35 @@ function shortIdeaSummary(idea: LightbulbIdea): string {
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [ideas, setIdeas] = useState<LightbulbIdea[]>(() => loadStoredIdeas() ?? seedIdeas);
+  const { ideaId } = Route.useSearch();
+  const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [selectedId, setSelectedId] = useState("");
-  const [extras, setExtras] = useState<Record<string, IdeaExtras>>(() => loadStoredExtras() ?? {});
+  const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
+  const [storageReady, setStorageReady] = useState(false);
+
+  useEffect(() => {
+    const storedIdeas = loadStoredIdeas();
+    const storedExtras = loadStoredExtras();
+    if (storedIdeas) setIdeas(storedIdeas);
+    if (storedExtras) setExtras(storedExtras);
+    setStorageReady(true);
+  }, []);
 
   // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
   useEffect(() => {
+    if (!storageReady) return;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
     } catch {}
-  }, [ideas]);
+  }, [ideas, storageReady]);
   useEffect(() => {
+    if (!storageReady) return;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
     } catch {}
-  }, [extras]);
+  }, [extras, storageReady]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1650,6 +1663,26 @@ function Dashboard() {
     () => ideas.find((i) => i.id === selectedId),
     [ideas, selectedId],
   );
+
+  useEffect(() => {
+    if (!storageReady) return;
+    if (!ideaId) {
+      setSelectedId("");
+      navigate({ to: "/library" });
+      return;
+    }
+    const match = ideas.find((idea) => idea.id === ideaId);
+    if (!match) {
+      setSelectedId("");
+      navigate({ to: "/library" });
+      return;
+    }
+    setSelectedId(match.id);
+  }, [ideaId, ideas, navigate, storageReady]);
+
+  const openIdeaDashboard = (id: string) => {
+    navigate({ to: "/dashboard", search: { ideaId: id } });
+  };
 
   // Good/Better/Best is chosen when the user intentionally starts/continues
   // a saved project from their library. The Library n8n test webhook fires
@@ -1853,7 +1886,7 @@ function Dashboard() {
   };
 
   const openIdeasDashboard = () => {
-    setSelectedId("");
+    navigate({ to: "/library" });
     setActiveCategory("core-idea");
   };
 
@@ -1868,6 +1901,7 @@ function Dashboard() {
     if (selectedId === id) {
       setSelectedId("");
       setActiveCategory("core-idea");
+      navigate({ to: "/library" });
     }
   };
 
@@ -1885,7 +1919,7 @@ function Dashboard() {
           : i,
       ),
     );
-    setSelectedId(id);
+    navigate({ to: "/dashboard", search: { ideaId: id } });
     setActiveCategory("core-idea");
   };
 
@@ -2073,11 +2107,11 @@ function Dashboard() {
       className="relative flex w-full max-w-[100vw] flex-col overflow-x-hidden text-amber-950"
       style={{ minHeight: "100dvh" }}
     >
-      {/* Library and opened-idea screens intentionally use separate backgrounds. */}
+      {/* The dashboard is its own dirt-scene page. */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
-        style={{ backgroundImage: `url(${selected ? ideaBg : libraryBg})` }}
+        style={{ backgroundImage: `url(${ideaBg})` }}
       />
       {/* Owl sage belongs to the project workspace, not the all-ideas dashboard. */}
       {selected && <DraggableOwl src={owlSage} />}
@@ -2152,7 +2186,7 @@ function Dashboard() {
             ideas={ideas}
             selectedId={selected?.id ?? ""}
             onNewIdea={() => addIdea()}
-            onSelectIdea={(id) => setSelectedId(id)}
+            onSelectIdea={openIdeaDashboard}
             onOpenDashboard={openIdeasDashboard}
             onShowSummary={(idea) => setSummaryIdea(idea)}
             onDeleteIdea={deleteIdea}
@@ -2189,89 +2223,9 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Center stage — full width, the library room breathes */}
+      {/* Center stage — full width, the dashboard workspace */}
       <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
-        {!selected ? (
-          <div className="relative z-20 mx-auto mt-6 w-full max-w-4xl rounded-md border border-amber-950/50 bg-amber-50/88 p-4 font-serif text-amber-950 shadow-2xl sm:p-5">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-amber-900/65">
-                  Saved Ideas Dashboard
-                </p>
-                <h1 className="mt-1 text-xl font-semibold">My Library</h1>
-              </div>
-              <button
-                type="button"
-                onClick={() => addIdea()}
-                className="inline-flex items-center gap-2 rounded-md border border-amber-950/50 bg-amber-900 px-3 py-2 text-[12px] font-semibold text-amber-50 shadow transition hover:bg-amber-950"
-              >
-                <Plus className="h-4 w-4" />
-                New Idea
-              </button>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {ideas.map((idea) => (
-                <div
-                  key={idea.id}
-                  className="rounded-md border border-amber-900/35 bg-amber-50/75 p-3 shadow-sm"
-                >
-                  <div className="flex items-start gap-2">
-                    <span
-                      className="mt-0.5 block h-10 w-2 shrink-0 rounded-sm"
-                      style={{
-                        background:
-                          spinePalettes[(idea.title.length + idea.id.length) % spinePalettes.length][1],
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate text-[14px] font-semibold">
-                        {idea.title || "Untitled"}
-                      </h2>
-                      <p className="mt-1 line-clamp-3 text-[12px] leading-snug text-amber-900/80">
-                        {shortIdeaSummary(idea)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(idea.id)}
-                      className="rounded-sm border border-amber-900/35 bg-amber-900 px-2.5 py-1.5 text-[11px] font-semibold text-amber-50 transition hover:bg-amber-950"
-                    >
-                      Open
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSummaryIdea(idea)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/30 bg-amber-50/80 px-2.5 py-1.5 text-[11px] text-amber-950 transition hover:bg-amber-100"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      Summary
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const ok = window.confirm(
-                          `Delete "${idea.title || "Untitled"}" from your library?`,
-                        );
-                        if (ok) deleteIdea(idea.id);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-sm border border-red-900/25 bg-red-50/70 px-2.5 py-1.5 text-[11px] text-red-900 transition hover:bg-red-100 sm:ml-auto"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {ideas.length === 0 && (
-                <div className="col-span-full rounded-md border border-amber-900/30 bg-amber-50/70 p-6 text-center text-[13px] italic text-amber-900/80">
-                  No ideas yet. Tap New Idea to begin.
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
+        {selected ? (
           <NoteDesk
             selected={selected}
             extras={selectedExtras}
@@ -2288,7 +2242,7 @@ function Dashboard() {
             overallPct={overallPct}
             onDemoFill={demoFill}
           />
-        )}
+        ) : null}
       </div>
 
       {/* floor shadow */}
@@ -2396,7 +2350,7 @@ function Dashboard() {
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedId(summaryIdea.id);
+                    openIdeaDashboard(summaryIdea.id);
                   setSummaryIdea(null);
                 }}
                 className="w-full rounded-sm border border-amber-950/60 bg-amber-900 px-3 py-2 text-center text-[12px] font-semibold text-amber-50 transition hover:bg-amber-950"
@@ -3011,7 +2965,7 @@ function ProfileAvatarButton({
               className="mb-3 flex w-full items-center gap-2 rounded-md border border-amber-900/35 bg-amber-100/70 px-3 py-2 text-left font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-100"
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" />
-              <span>All Ideas Dashboard</span>
+              <span>Open Library</span>
             </button>
             <ul className="max-h-[50vh] space-y-1 overflow-y-auto pr-1">
               {ideas.map((idea) => {
