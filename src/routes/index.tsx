@@ -129,10 +129,10 @@ function Index() {
       <header className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-end px-5 pt-5 sm:px-8 sm:pt-6">
         <nav className="pointer-events-auto flex items-center gap-2 text-xs">
           <Link
-            to="/dashboard"
+            to="/library"
             className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
           >
-            Dashboard
+            Library
           </Link>
           <Link
             to="/levels"
@@ -271,14 +271,14 @@ function Index() {
                   if (!authed) {
                     // Prototype gate: send to login/sign-up first. The draft idea is
                     // preserved in sessionStorage and saved to My Account after sign-in.
-                    navigate({ to: "/signin", search: { next: "/dashboard" } as any });
+                    navigate({ to: "/signin", search: { next: "/library" } as any });
                     return;
                   }
                   setConfirmationMessage(
                     "Idea saved to your library. Open it from your profile when you're ready to move forward.",
                   );
                   window.setTimeout(() => {
-                    navigate({ to: "/dashboard" });
+                    navigate({ to: "/library" });
                   }, 1400);
                 }}
                 className={
