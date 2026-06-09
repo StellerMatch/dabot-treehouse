@@ -3515,7 +3515,24 @@ function LibraryDoorQuestionModal({
   onClose: () => void;
   onSubmit: (answer: string) => void;
 }) {
-  const [answer, setAnswer] = useState(initialAnswer);
+  const parseInitial = (text: string): string[] => {
+    const slots = questions.map(() => "");
+    if (!text) return slots;
+    const re = /(?:^|\n)\s*(\d+)\.\s*([\s\S]*?)(?=\n\s*\d+\.\s|$)/g;
+    let m: RegExpExecArray | null;
+    let matched = false;
+    while ((m = re.exec(text)) !== null) {
+      matched = true;
+      const idx = Number(m[1]) - 1;
+      if (idx >= 0 && idx < slots.length) slots[idx] = m[2].trim();
+    }
+    if (!matched) slots[0] = text;
+    return slots;
+  };
+
+  const [answers, setAnswers] = useState<string[]>(() => parseInitial(initialAnswer));
+  const [savedFlags, setSavedFlags] = useState<boolean[]>(() => questions.map(() => false));
+  const [voiceIdx, setVoiceIdx] = useState<number | null>(null);
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceSupported, setVoiceSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -3527,37 +3544,80 @@ function LibraryDoorQuestionModal({
     );
   }, []);
 
-  const startVoice = useCallback(() => {
-    if (!voiceSupported) return;
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const rec = new SR();
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.lang = navigator.language || "en-US";
-    const baseText = answer ? answer.replace(/\s+$/, "") + " " : "";
-    let finalText = "";
-    rec.onresult = (e: any) => {
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const result = e.results[i];
-        if (result.isFinal) finalText += result[0].transcript;
-        else interim += result[0].transcript;
+  const composeAnswer = (slots: string[]) =>
+    slots
+      .map((a, i) => (a.trim() ? `${i + 1}. ${a.trim()}` : ""))
+      .filter(Boolean)
+      .join("\n");
+
+  const updateAnswer = (idx: number, value: string) => {
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[idx] = value;
+      return next;
+    });
+    setSavedFlags((prev) => {
+      const next = [...prev];
+      next[idx] = false;
+      return next;
+    });
+  };
+
+  const saveAnswer = (idx: number) => {
+    setAnswers((current) => {
+      const composed = composeAnswer(current);
+      onSubmit(composed);
+      return current;
+    });
+    setSavedFlags((prev) => {
+      const next = [...prev];
+      next[idx] = true;
+      return next;
+    });
+  };
+
+  const startVoice = useCallback(
+    (idx: number) => {
+      if (!voiceSupported) return;
+      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const rec = new SR();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = navigator.language || "en-US";
+      const baseText = answers[idx] ? answers[idx].replace(/\s+$/, "") + " " : "";
+      let finalText = "";
+      rec.onresult = (e: any) => {
+        let interim = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const result = e.results[i];
+          if (result.isFinal) finalText += result[0].transcript;
+          else interim += result[0].transcript;
+        }
+        updateAnswer(idx, baseText + finalText + interim);
+      };
+      rec.onerror = () => {
+        setVoiceState("idle");
+        setVoiceIdx(null);
+      };
+      rec.onend = () => {
+        setVoiceState((state) => (state === "listening" ? "processing" : state));
+        setTimeout(() => {
+          setVoiceState("idle");
+          setVoiceIdx(null);
+        }, 350);
+      };
+      recognitionRef.current = rec;
+      setVoiceIdx(idx);
+      setVoiceState("listening");
+      try {
+        rec.start();
+      } catch {
+        setVoiceState("idle");
+        setVoiceIdx(null);
       }
-      setAnswer(baseText + finalText + interim);
-    };
-    rec.onerror = () => setVoiceState("idle");
-    rec.onend = () => {
-      setVoiceState((state) => (state === "listening" ? "processing" : state));
-      setTimeout(() => setVoiceState("idle"), 350);
-    };
-    recognitionRef.current = rec;
-    setVoiceState("listening");
-    try {
-      rec.start();
-    } catch {
-      setVoiceState("idle");
-    }
-  }, [answer, voiceSupported]);
+    },
+    [answers, voiceSupported],
+  );
 
   const stopVoice = useCallback(() => {
     try {
@@ -3592,37 +3652,60 @@ function LibraryDoorQuestionModal({
         <h3 className="font-serif text-2xl">
           {doorId === "door1" ? "Door 1" : "Door 2"} questions
         </h3>
-        <ol className="mt-4 space-y-3 text-sm leading-relaxed text-amber-50/90">
-          {questions.map((question, index) => (
-            <li key={question}>
-              <span className="font-semibold text-amber-200">{index + 1}. </span>
-              {question}
-            </li>
-          ))}
+        <p className="mt-1 text-xs italic text-amber-100/70">
+          Answer each question individually — type or speak, then Save.
+        </p>
+        <ol className="mt-5 space-y-4">
+          {questions.map((question, index) => {
+            const thisIdxActive = voiceIdx === index;
+            return (
+              <li
+                key={question}
+                className="rounded-xl border border-amber-200/25 bg-black/30 p-3"
+              >
+                <div className="text-sm leading-relaxed text-amber-50/95">
+                  <span className="font-semibold text-amber-200">{index + 1}. </span>
+                  {question}
+                </div>
+                <textarea
+                  value={answers[index] ?? ""}
+                  onChange={(e) => updateAnswer(index, e.target.value)}
+                  rows={3}
+                  placeholder="Your answer..."
+                  className="mt-2 w-full resize-none rounded-md border border-amber-200/15 bg-black/40 p-2 text-sm leading-relaxed text-amber-50 placeholder:text-amber-100/35 focus:border-amber-200/50 focus:outline-none"
+                />
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <MicButton
+                    state={thisIdxActive ? voiceState : "idle"}
+                    onStart={() => startVoice(index)}
+                    onStop={stopVoice}
+                    supported={voiceSupported}
+                  />
+                  <div className="flex items-center gap-2">
+                    {savedFlags[index] && (
+                      <span className="text-[11px] italic text-emerald-300/90">Saved</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => saveAnswer(index)}
+                      className="rounded-full border border-emerald-300/50 bg-gradient-to-b from-[#6f9457] to-[#3d5a30] px-4 py-1.5 text-xs font-semibold text-amber-50 transition hover:from-[#7da564] hover:to-[#4a6a3a]"
+                    >
+                      Enter / Save
+                    </button>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ol>
-        <div className="mt-5 rounded-xl border border-amber-200/25 bg-black/30 p-3">
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            rows={7}
-            placeholder="Answer the questions in your own words..."
-            className="w-full resize-none bg-transparent text-sm leading-relaxed text-amber-50 placeholder:text-amber-100/40 focus:outline-none"
-          />
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-amber-200/10 pt-3">
-            <MicButton
-              state={voiceState}
-              onStart={startVoice}
-              onStop={stopVoice}
-              supported={voiceSupported}
-            />
-            <button
-              type="button"
-              onClick={() => onSubmit(answer)}
-              className="rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-5 py-2 text-sm font-semibold text-amber-950 transition hover:from-amber-200 hover:to-amber-400"
-            >
-              Submit answers
-            </button>
-          </div>
+        <div className="mt-5 flex items-center justify-end gap-3 border-t border-amber-200/10 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-amber-200/30 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-200/10"
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>
