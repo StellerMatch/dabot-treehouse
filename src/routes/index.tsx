@@ -309,37 +309,6 @@ function Index() {
   );
 }
 
-function IdeaSoilBackground() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#281407]"
-    >
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 18% 22%, rgba(112,68,31,0.55) 0 2px, transparent 3px), radial-gradient(circle at 72% 18%, rgba(72,39,17,0.7) 0 1.5px, transparent 3px), radial-gradient(circle at 34% 76%, rgba(151,95,45,0.35) 0 1px, transparent 2px), radial-gradient(circle at 83% 66%, rgba(54,29,13,0.75) 0 2px, transparent 4px), repeating-linear-gradient(8deg, rgba(85,47,19,0.22) 0 2px, transparent 2px 8px), linear-gradient(180deg, #4c2b13 0%, #351b0a 52%, #231006 100%)",
-          backgroundSize: "78px 78px, 116px 116px, 54px 54px, 92px 92px, 18px 18px, 100% 100%",
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-70"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 82%, rgba(222,149,72,0.34), transparent 48%), linear-gradient(180deg, rgba(18,8,3,0.25), rgba(18,8,3,0.1) 42%, rgba(10,4,1,0.62))",
-        }}
-      />
-      <div
-        className="absolute inset-x-0 bottom-0 h-[38vh]"
-        style={{
-          background:
-            "linear-gradient(180deg, transparent 0%, rgba(91,51,20,0.32) 35%, rgba(20,9,3,0.78) 100%)",
-        }}
-      />
-    </div>
-  );
-}
 
 // ============= Choose Your Path Modal =============
 
