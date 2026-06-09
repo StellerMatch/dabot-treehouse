@@ -2131,7 +2131,12 @@ function Dashboard() {
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
         <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
-          <ProfileAvatarButton />
+          <ProfileAvatarButton
+            ideas={ideas}
+            selectedId={selected?.id ?? ""}
+            onNewIdea={() => addIdea()}
+            onSelectIdea={(id) => setSelectedId(id)}
+          />
           <OrganizeButton
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
