@@ -255,18 +255,24 @@ function Index() {
                 disabled={!ready}
                 onClick={() => {
                   if (!ready) return;
+                  let authed = false;
                   if (typeof window !== "undefined") {
                     try {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
                       if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
                       else sessionStorage.removeItem("dabottree:draftIdeaType");
-                      // Clear any prior tier selection — Good/Better/Best is chosen
-                      // later, only when the user opens the saved project from their library.
                       sessionStorage.removeItem("dabottree:packageTier");
                       sessionStorage.removeItem("dabottree:reportPath");
+                      authed = localStorage.getItem("dabottree:authed") === "1";
                     } catch {}
                   }
                   setPathOpen(false);
+                  if (!authed) {
+                    // Prototype gate: send to login/sign-up first. The draft idea is
+                    // preserved in sessionStorage and saved to My Account after sign-in.
+                    navigate({ to: "/signin", search: { next: "/dashboard" } as any });
+                    return;
+                  }
                   setConfirmationMessage(
                     "Idea saved to your library. Open it from your profile when you're ready to move forward.",
                   );
