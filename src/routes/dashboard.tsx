@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
-import ideaBgAsset from "@/assets/soil-bg.png.asset.json";
+import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
