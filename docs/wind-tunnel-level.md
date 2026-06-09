@@ -16,14 +16,27 @@ Wind Tunnel is not the builder, judge, or final product direction. It is an outs
 Preferred placement:
 
 ```text
-Canopy Level -> Wind Tunnel Level -> Branchworks Level
+Canopy Level -> Wind Tunnel Prep -> Wind Tunnel Level -> Knowledge Review -> Branchworks Level
 ```
 
 Reason:
 
-- Canopy should clarify the project enough that an outside tool can understand it.
-- Wind Tunnel can then produce an external scenario before Treehouse-native experiment work begins.
-- Branchworks, Tinker, Momma, and the Build-A-Bears can use the external result as challenge/comparison material.
+- Canopy should clarify the project enough to create a short, safe external prompt without doing all deep Knowledge work first.
+- Wind Tunnel can then produce an outside prototype vision/scenario before Treehouse-native experiment work begins.
+- Knowledge Review should compare the original Boss idea, the sanitized prompt, and the outside output before Bear prompts are written.
+- Branchworks, Tinker, Momma, and the Build-A-Bears can use the reviewed external result as challenge/comparison material.
+
+Wind Tunnel should not run on raw idea text alone. It needs a lightweight prep step first so an outside tool does not accidentally redefine the project with a generic or misunderstood version.
+
+## Workflow Sequence
+
+1. Preserve the original Boss idea and source wording.
+2. Create a short `wind_tunnel_prep_packet` from Canopy/Knowledge Prep.
+3. Stop for approval if an external tool, account, subscription credit, or data transfer is required.
+4. Run the qualified sanitized prompt through the selected outside tool/company.
+5. Store the outside result as the `wind_tunnel_scenario_packet`.
+6. Run Knowledge Review against the original idea, prep packet, and outside output.
+7. Send the reviewed lessons into Branchworks so Tinker, Momma, and the Build-A-Bears can write stronger aligned prompts.
 
 ## Qualification
 
@@ -40,7 +53,9 @@ A project qualifies only when:
 Each Wind Tunnel run should create a `wind_tunnel_scenario_packet` with:
 
 - qualification decision and reason;
+- original source pointer or preserved idea reference;
 - sanitized idea packet sent out;
+- outside prompt boundaries and do-not-include notes;
 - tool/company used;
 - subscription/credit note;
 - raw or summarized outside output;
@@ -48,6 +63,7 @@ Each Wind Tunnel run should create a `wind_tunnel_scenario_packet` with:
 - missing pieces or shallow parts;
 - risks, off-target areas, or rejected suggestions;
 - useful pieces to feed into Treehouse;
+- Knowledge Review teardown notes;
 - comparison prompts for Tinker, Momma, and the Build-A-Bears.
 
 ## Boundaries
@@ -80,3 +96,10 @@ The Build-A-Bears are Treehouse-native creative builders:
 
 Wind Tunnel can feed or challenge Bear work. It does not replace it.
 
+The Build-A-Bears should not create three unrelated apps from the Wind Tunnel output. They should create three aligned Treehouse-native versions of the same project with different emphasis:
+
+- Ace emphasizes clean structure and clarity.
+- Bolt emphasizes bold direction and creative energy.
+- Craft emphasizes polished usability and practical feel.
+
+Wind Tunnel is a reference/input version. The Baby Bear versions are Treehouse-native directions. Bubba/Grandpa Bear synthesis can later harvest the strongest pieces from the Bear outputs and any useful Wind Tunnel lesson into a stronger final direction.

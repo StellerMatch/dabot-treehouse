@@ -110,15 +110,18 @@
         "status": "optional_waiting_qualification_and_tool_selection",
         "report_source_key": "wind_tunnel_scenario_packet",
         "report_present": false,
-        "report_summary": "Optional external processed-scenario level where a qualified sanitized idea is run through an outside tool/company, then Treehouse studies the results as comparison material before Branchworks.",
+        "report_summary": "Optional external processed-scenario level where a qualified idea gets quick Knowledge Prep, runs through an outside tool/company, then returns for Knowledge Review before Branchworks and the Build-A-Bears.",
         "expected_output": {
           "packet_type": "wind_tunnel_scenario_packet",
           "should_include": [
             "qualification decision and reason",
+            "original source pointer or preserved idea reference",
             "sanitized idea packet sent to the outside tool",
+            "outside prompt boundaries and do-not-include notes",
             "tool/company used and subscription/credit note",
             "raw or summarized outside output",
             "features, assumptions, and missing pieces the outside tool introduced",
+            "Knowledge Review teardown notes comparing original idea, prep packet, and outside output",
             "useful pieces to feed back into Treehouse",
             "off-target, shallow, risky, or unsafe pieces to reject",
             "comparison prompts for Tinker, Momma, and the Build-A-Bears"
@@ -131,18 +134,23 @@
             "weak_spot": "Wind Tunnel should not run on vague, private, sensitive, account-connected, or high-risk ideas."
           },
           {
+            "shelf": "prep",
+            "question": "What quick Knowledge Prep is needed before an outside tool sees the idea?",
+            "weak_spot": "Wind Tunnel should not run from raw idea text alone; the prompt needs source preservation, boundaries, and do-not-include notes first."
+          },
+          {
             "shelf": "tool_selection",
             "question": "Which outside tool should process this idea for the current purpose?",
             "weak_spot": "Abacus, Lovable, ChatLLM, or another tool may fit different idea types and cost/credit limits."
           },
           {
             "shelf": "synthesis",
-            "question": "What should Treehouse learn from the outside result before Branchworks?",
-            "weak_spot": "The outside result is evidence and comparison material, not authority."
+            "question": "What should Knowledge Review learn from the outside result before Branchworks and the Build-A-Bears?",
+            "weak_spot": "The outside result is evidence and comparison material, not authority or the project definition."
           }
         ],
         "boundary": "Wind Tunnel is optional external-scenario processing only. It does not approve signup/login, subscription purchase, credit spending beyond approved tool use, external account access, private data sharing, deployment, publishing, automation activation, Lovable submission, final product direction, route/config/runtime changes, or bot authority changes.",
-        "n8n_anchor": "Candidate note: insert after Canopy and before Branchworks only when qualified; no live n8n node is active yet."
+        "n8n_anchor": "Candidate note: after Canopy quick prep and before Branchworks only when qualified; no live n8n node is active yet."
       },
       {
         "level_key": "branchworks",
@@ -152,7 +160,7 @@
         "status": "tinker_experiment_packet_prepared_internal_only",
         "report_source_key": "branchworks_experiment_packet",
         "report_present": true,
-        "report_summary": "Turn the Rook/Canopy foundation into Bear-ready experiment directions and a three-door Lovable preview concept while preserving closed gates.",
+        "report_summary": "Turn the Rook/Canopy foundation plus any Knowledge-reviewed Wind Tunnel lessons into Bear-ready aligned experiment directions and a three-door Lovable preview concept while preserving closed gates.",
         "expected_output": {
           "packet_type": "tinker_branchworks_experiment_packet",
           "should_include": [
@@ -160,6 +168,7 @@
             "Squirrel build rails / development guardrails",
             "Lantern practical build-pass notes",
             "Echo pre-Momma memory alignment",
+            "Knowledge-reviewed Wind Tunnel lessons when available",
             "Momma Bear neutral packet",
             "three isolated Bear direction outputs",
             "Momma Bear master report",
@@ -331,7 +340,7 @@
         "kind": "optional_level_report_door",
         "status": "waiting",
         "opens_report_source_key": "wind_tunnel_scenario_packet",
-        "n8n_anchor": "Candidate note: insert after Canopy and before Branchworks only when qualified; no live n8n node is active yet.",
+        "n8n_anchor": "Candidate note: after Canopy quick prep and before Branchworks only when qualified; no live n8n node is active yet.",
         "background_reference": "temporary external scenario / wind tunnel background",
         "action_boundary": "Door opens prepared internal output only. It does not run external tools, approve subscriptions, spend credits, submit prompts, connect accounts, deploy, publish, activate automation, or change runtime/config/authority."
       },
@@ -410,7 +419,7 @@
         "current clean packet or intake payload",
         "confirmed local run target",
         "Boss approval before live n8n sync or Lovable submission",
-        "Wind Tunnel qualification and explicit tool-use approval before any external scenario run"
+        "Wind Tunnel qualification, quick Knowledge Prep, Knowledge Review plan, and explicit tool-use approval before any external scenario run"
       ],
       "visual_work_left_for_boss": [
         "final background art per level",
@@ -450,11 +459,11 @@
         "order": 2.5,
         "scene_key": "wind_tunnel_external_scenario",
         "display_name": "Wind Tunnel Level",
-        "n8n_anchor": "Candidate note: after Canopy and before Branchworks when qualified",
+        "n8n_anchor": "Candidate note: after Canopy quick prep and before Branchworks when qualified",
         "backend_source": "wind_tunnel_scenario_packet",
         "status": "candidate_optional_level_no_live_node_yet",
         "background_reference_summary": "temporary external scenario / wind tunnel background",
-        "purpose": "Run qualified sanitized ideas through an outside company/tool as processed scenarios, then bring useful results back into Treehouse synthesis."
+        "purpose": "Run qualified sanitized ideas through an outside company/tool as processed scenarios, then send the output through Knowledge Review before Branchworks and Bear prompts."
       },
       {
         "order": 3,
