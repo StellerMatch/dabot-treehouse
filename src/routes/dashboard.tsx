@@ -2128,15 +2128,6 @@ function Dashboard() {
           />
         </div>
 
-        {/* CENTER: My Library + New Idea — absolutely centered on desktop, wraps on smaller screens */}
-        <div className="order-3 flex w-full basis-full items-center justify-center gap-2 sm:gap-3 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-2 lg:w-auto lg:basis-auto lg:-translate-x-1/2 lg:-translate-y-1/2">
-          <LibraryPopover
-            ideas={ideas}
-            selectedId={selected?.id ?? ""}
-            onSelect={(id) => setSelectedId(id)}
-          />
-          <NewLightbulbPopover onCreate={(type) => addIdea(type)} />
-        </div>
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
         <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
