@@ -1545,17 +1545,19 @@ function Dashboard() {
 
   // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
   useEffect(() => {
+    if (!storageReady) return;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
     } catch {}
-  }, [ideas]);
+  }, [ideas, storageReady]);
   useEffect(() => {
+    if (!storageReady) return;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
     } catch {}
-  }, [extras]);
+  }, [extras, storageReady]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2963,7 +2965,7 @@ function ProfileAvatarButton({
               className="mb-3 flex w-full items-center gap-2 rounded-md border border-amber-900/35 bg-amber-100/70 px-3 py-2 text-left font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-100"
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" />
-              <span>All Ideas Dashboard</span>
+              <span>Open Library</span>
             </button>
             <ul className="max-h-[50vh] space-y-1 overflow-y-auto pr-1">
               {ideas.map((idea) => {
