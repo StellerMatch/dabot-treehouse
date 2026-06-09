@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
-import libraryBgAsset from "@/assets/soil-bg.png.asset.json";
-// Dashboard background is a rich soil texture.
+import libraryBgAsset from "@/assets/dabottree-library-bg-v2.png.asset.json";
+import ideaBgAsset from "@/assets/soil-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
 const libraryBg = libraryBgAsset.url;
+const ideaBg = ideaBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 const claritySquirrelReady = claritySquirrelReadyAsset.url;
 const owlSage = owlSageAsset.url;
@@ -2076,7 +2077,7 @@ function Dashboard() {
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
-        style={{ backgroundImage: `url(${libraryBg})` }}
+        style={{ backgroundImage: `url(${selected ? ideaBg : libraryBg})` }}
       />
       {/* Owl sage belongs to the project workspace, not the all-ideas dashboard. */}
       {selected && <DraggableOwl src={owlSage} />}
