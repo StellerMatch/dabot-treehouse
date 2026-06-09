@@ -2077,7 +2077,7 @@ function Dashboard() {
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
-        style={{ backgroundImage: `url(${selected ? ideaBg : libraryBg})` }}
+        style={{ backgroundImage: `url(${selected ? libraryBg : ideaBg})` }}
       />
       {/* Owl sage belongs to the project workspace, not the all-ideas dashboard. */}
       {selected && <DraggableOwl src={owlSage} />}
