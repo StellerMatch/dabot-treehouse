@@ -30,6 +30,7 @@ import {
   Pencil,
   User,
   Wand2,
+  LogOut,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
@@ -2127,19 +2128,15 @@ function Dashboard() {
           />
         </div>
 
-        {/* CENTER: My Library + New Idea — absolutely centered on desktop, wraps on smaller screens */}
-        <div className="order-3 flex w-full basis-full items-center justify-center gap-2 sm:gap-3 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-2 lg:w-auto lg:basis-auto lg:-translate-x-1/2 lg:-translate-y-1/2">
-          <LibraryPopover
-            ideas={ideas}
-            selectedId={selected?.id ?? ""}
-            onSelect={(id) => setSelectedId(id)}
-          />
-          <NewLightbulbPopover onCreate={(type) => addIdea(type)} />
-        </div>
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
         <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
-          <ProfileAvatarButton />
+          <ProfileAvatarButton
+            ideas={ideas}
+            selectedId={selected?.id ?? ""}
+            onNewIdea={() => addIdea()}
+            onSelectIdea={(id) => setSelectedId(id)}
+          />
           <OrganizeButton
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
@@ -2688,8 +2685,19 @@ function ProgressPopover({
   );
 }
 
-function ProfileAvatarButton() {
+function ProfileAvatarButton({
+  ideas,
+  selectedId,
+  onNewIdea,
+  onSelectIdea,
+}: {
+  ideas: LightbulbIdea[];
+  selectedId: string;
+  onNewIdea: () => void;
+  onSelectIdea: (id: string) => void;
+}) {
   const [open, setOpen] = useState(false);
+  const [panel, setPanel] = useState<"menu" | "library" | "profile">("menu");
   const [photo, setPhoto] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -2702,6 +2710,13 @@ function ProfileAvatarButton() {
       if (n) setName(n);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      const t = setTimeout(() => setPanel("menu"), 250);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
 
   const initials = (
     name.trim()
@@ -2727,13 +2742,22 @@ function ProfileAvatarButton() {
     reader.readAsDataURL(file);
   };
 
+  const handleSignOut = () => {
+    setOpen(false);
+    try {
+      localStorage.removeItem("dabottree:authed");
+      localStorage.removeItem("dabottree:accountEmail");
+    } catch {}
+    window.location.href = "/signin";
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
-          title="Profile"
-          aria-label="Open profile"
+          title="My Account"
+          aria-label="Open account menu"
           className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-amber-950/70 bg-gradient-to-br from-amber-100 to-amber-300 text-amber-950 shadow-[0_4px_10px_-3px_rgba(20,8,2,0.7),inset_0_1px_0_rgba(255,250,235,0.6)] transition hover:scale-[1.04]"
         >
           {photo ? (
@@ -2748,66 +2772,203 @@ function ProfileAvatarButton() {
         </button>
       </PopoverTrigger>
       <PopoverContent
-        align="start"
+        align="end"
         sideOffset={10}
-        className="z-40 w-[260px] border-amber-950/80 p-3 text-amber-950 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)]"
-        style={{ background: "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)", borderRadius: 6 }}
+        className="z-40 w-[300px] border-amber-950/80 p-0 text-amber-950 shadow-[0_22px_44px_-18px_rgba(20,8,2,0.9)] overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #efe0bf 0%, #d8c08a 100%)", borderRadius: 8 }}
       >
-        <div className="mb-2 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-950/80">
-          Profile
-        </div>
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-full border border-amber-950/60 bg-amber-100">
-            {photo ? (
-              <img src={photo} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <User className="h-6 w-6 text-amber-900/70" />
-              </div>
-            )}
+        {panel === "menu" && (
+          <div className="p-4">
+            <div className="mb-3 font-serif text-[11px] uppercase tracking-[0.25em] text-amber-950/70">
+              My Account
+            </div>
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onNewIdea();
+                }}
+                className="flex w-full items-center gap-3 rounded-md border border-amber-900/25 bg-amber-50/70 px-4 py-3 text-left font-serif text-[15px] font-semibold text-amber-950 shadow-sm transition hover:bg-amber-100/90 hover:shadow-md active:translate-y-[1px]"
+              >
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: "linear-gradient(180deg, #f5d27a 0%, #d99a32 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,245,210,0.6), 0 2px 4px rgba(100,60,10,0.25)",
+                  }}
+                >
+                  <Plus className="h-5 w-5 text-amber-950" />
+                </span>
+                <span>New Idea</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanel("library")}
+                className="flex w-full items-center gap-3 rounded-md border border-amber-900/25 bg-amber-50/70 px-4 py-3 text-left font-serif text-[15px] font-semibold text-amber-950 shadow-sm transition hover:bg-amber-100/90 hover:shadow-md active:translate-y-[1px]"
+              >
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: "linear-gradient(180deg, #b8a078 0%, #8a6e40 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
+                  }}
+                >
+                  <BookOpen className="h-5 w-5 text-amber-50" />
+                </span>
+                <span>My Library</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanel("profile")}
+                className="flex w-full items-center gap-3 rounded-md border border-amber-900/25 bg-amber-50/70 px-4 py-3 text-left font-serif text-[15px] font-semibold text-amber-950 shadow-sm transition hover:bg-amber-100/90 hover:shadow-md active:translate-y-[1px]"
+              >
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: "linear-gradient(180deg, #8a9eb0 0%, #5a7088 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
+                  }}
+                >
+                  <User className="h-5 w-5 text-amber-50" />
+                </span>
+                <span>Profile / Settings</span>
+              </button>
+            </div>
+            <div className="mt-3 border-t border-amber-900/20 pt-2.5">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left font-serif text-[12px] text-amber-900/60 transition hover:bg-amber-50/60 hover:text-amber-950"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </button>
+            </div>
           </div>
-          <input
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              try {
-                localStorage.setItem("dabottree.profile.name", e.target.value);
-              } catch {}
-            }}
-            placeholder="Your name"
-            className="flex-1 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-1 font-serif text-[12px] text-amber-950 outline-none focus:border-amber-950"
-          />
-        </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => onPick(e.target.files?.[0] ?? null)}
-        />
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="flex-1 rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
-          >
-            {photo ? "Change photo" : "Upload photo"}
-          </button>
-          {photo && (
+        )}
+
+        {panel === "library" && (
+          <div className="p-4">
             <button
               type="button"
-              onClick={() => {
-                setPhoto(null);
-                try {
-                  localStorage.removeItem("dabottree.profile.photo");
-                } catch {}
-              }}
-              className="rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
+              onClick={() => setPanel("menu")}
+              className="mb-2 font-serif text-[11px] uppercase tracking-[0.2em] text-amber-950/60 transition hover:text-amber-950"
             >
-              Remove
+              ← Back
             </button>
-          )}
-        </div>
+            <div className="mb-2 font-serif text-[13px] font-semibold text-amber-950">
+              My Library
+            </div>
+            <ul className="max-h-[50vh] space-y-1 overflow-y-auto pr-1">
+              {ideas.map((idea) => {
+                const active = idea.id === selectedId;
+                return (
+                  <li key={idea.id}>
+                    <button
+                      onClick={() => {
+                        onSelectIdea(idea.id);
+                        setOpen(false);
+                      }}
+                      className={
+                        "group flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 text-left font-serif text-[12px] transition " +
+                        (active
+                          ? "border-amber-950/80 bg-amber-100/80 text-amber-950"
+                          : "border-amber-900/40 bg-amber-50/40 text-amber-950 hover:bg-amber-100/70")
+                      }
+                    >
+                      <span
+                        className="block h-6 w-1.5 shrink-0 rounded-sm"
+                        style={{
+                          background:
+                            spinePalettes[
+                              (idea.title.length + idea.id.length) % spinePalettes.length
+                            ][1],
+                        }}
+                      />
+                      <span className="min-w-0 flex-1 truncate">{idea.title || "Untitled"}</span>
+                      <span className="shrink-0 text-[10px] italic text-amber-900/70">
+                        {stageLabels[idea.stage]}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+              {ideas.length === 0 && (
+                <li className="px-2 py-3 font-serif text-[11px] italic text-amber-900/80">
+                  No ideas yet. Tap New Idea to begin.
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {panel === "profile" && (
+          <div className="p-4">
+            <button
+              type="button"
+              onClick={() => setPanel("menu")}
+              className="mb-2 font-serif text-[11px] uppercase tracking-[0.2em] text-amber-950/60 transition hover:text-amber-950"
+            >
+              ← Back
+            </button>
+            <div className="mb-2 font-serif text-[13px] font-semibold text-amber-950">
+              Profile
+            </div>
+            <div className="mb-3 flex items-center gap-3">
+              <div className="h-12 w-12 overflow-hidden rounded-full border border-amber-950/60 bg-amber-100">
+                {photo ? (
+                  <img src={photo} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <User className="h-6 w-6 text-amber-900/70" />
+                  </div>
+                )}
+              </div>
+              <input
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  try {
+                    localStorage.setItem("dabottree.profile.name", e.target.value);
+                  } catch {}
+                }}
+                placeholder="Your name"
+                className="flex-1 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-1 font-serif text-[12px] text-amber-950 outline-none focus:border-amber-950"
+              />
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => onPick(e.target.files?.[0] ?? null)}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="flex-1 rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
+              >
+                {photo ? "Change photo" : "Upload photo"}
+              </button>
+              {photo && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhoto(null);
+                    try {
+                      localStorage.removeItem("dabottree.profile.photo");
+                    } catch {}
+                  }}
+                  className="rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
