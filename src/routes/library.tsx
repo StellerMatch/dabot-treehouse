@@ -158,30 +158,31 @@ function LibraryPage() {
                   <div className="font-serif text-[15px] font-semibold text-amber-50">
                     {idea.title || "Untitled"}
                   </div>
-                  <div className="mt-1 line-clamp-3 font-serif text-[12px] italic text-amber-100/80">
-                    {shortIdeaSummary(idea)}
+                  <div className="mt-1 line-clamp-3 font-serif text-[12px] italic text-amber-100/85">
+                    {nextStepSummary(idea)}
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => openIdea(idea.id)}
-                      className="rounded-sm border border-amber-200/40 bg-amber-100/10 px-2 py-1 text-[10px] font-semibold text-amber-50 transition hover:bg-amber-100/20"
+                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/50 bg-gradient-to-b from-amber-700 to-amber-900 px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-amber-600 hover:to-amber-800"
                     >
+                      <BookOpen className="h-3 w-3" />
                       Open
                     </button>
                     <button
                       type="button"
                       onClick={() => setSummaryIdea(idea)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-amber-100/10 px-2 py-1 text-[10px] text-amber-50 transition hover:bg-amber-100/20"
+                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#a8763d] to-[#7a4f24] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#b78449] hover:to-[#8b5a2a]"
                     >
                       <FileText className="h-3 w-3" />
-                      Summary
+                      Review
                     </button>
                     <button
                       type="button"
                       onClick={(e) => e.preventDefault()}
                       title={stage}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-amber-100/10 px-2 py-1 text-[10px] text-amber-50"
+                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#8a6a3a] to-[#5c4421] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm"
                     >
                       <Tag className="h-3 w-3" />
                       {stage}
@@ -189,7 +190,7 @@ function LibraryPage() {
                     <button
                       type="button"
                       onClick={() => deleteIdea(idea.id)}
-                      className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-300/40 bg-red-900/30 px-2 py-1 text-[10px] text-red-50 transition hover:bg-red-900/50"
+                      className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-300/40 bg-red-900/40 px-2 py-1 text-[10px] text-red-50 transition hover:bg-red-900/60"
                     >
                       <Trash2 className="h-3 w-3" />
                       Delete
@@ -214,11 +215,11 @@ function LibraryPage() {
                   {summaryIdea.title || "Untitled idea"}
                 </DialogTitle>
                 <DialogDescription>
-                  Quick summary of this saved idea.
+                  Next step for this saved idea.
                 </DialogDescription>
               </DialogHeader>
               <p className="whitespace-pre-wrap break-words font-serif text-sm">
-                {shortIdeaSummary(summaryIdea)}
+                {nextStepSummary(summaryIdea)}
               </p>
               <button
                 type="button"
