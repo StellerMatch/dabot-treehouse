@@ -109,7 +109,7 @@ function Index() {
       className="relative flex w-screen items-end justify-center overflow-hidden text-white"
       style={{ height: "100dvh" }}
     >
-      <IdeaSoilBackground />
+      <BackgroundMedia />
 
       {/* Hero logo — centered, aligned with top nav */}
       <div className="pointer-events-none absolute inset-x-0 -top-16 z-10 flex justify-center px-4 sm:-top-20">
