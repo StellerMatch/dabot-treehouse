@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrunkRouteImport } from './routes/trunk'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as RootRoomRouteImport } from './routes/root-room'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LevelsRouteImport } from './routes/levels'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const SigninRoute = SigninRouteImport.update({
 const RootRoomRoute = RootRoomRouteImport.update({
   id: '/root-room',
   path: '/root-room',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LevelsRoute = LevelsRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/levels': typeof LevelsRoute
+  '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
   '/trunk': typeof TrunkRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/levels': typeof LevelsRoute
+  '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
   '/trunk': typeof TrunkRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/levels': typeof LevelsRoute
+  '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
   '/trunk': typeof TrunkRoute
@@ -78,16 +87,25 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/levels'
+    | '/library'
     | '/root-room'
     | '/signin'
     | '/trunk'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/levels' | '/root-room' | '/signin' | '/trunk'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/levels'
+    | '/library'
+    | '/root-room'
+    | '/signin'
+    | '/trunk'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/levels'
+    | '/library'
     | '/root-room'
     | '/signin'
     | '/trunk'
@@ -97,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LevelsRoute: typeof LevelsRoute
+  LibraryRoute: typeof LibraryRoute
   RootRoomRoute: typeof RootRoomRoute
   SigninRoute: typeof SigninRoute
   TrunkRoute: typeof TrunkRoute
@@ -123,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/root-room'
       fullPath: '/root-room'
       preLoaderRoute: typeof RootRoomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/levels': {
@@ -153,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LevelsRoute: LevelsRoute,
+  LibraryRoute: LibraryRoute,
   RootRoomRoute: RootRoomRoute,
   SigninRoute: SigninRoute,
   TrunkRoute: TrunkRoute,
