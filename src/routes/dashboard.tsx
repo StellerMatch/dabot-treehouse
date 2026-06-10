@@ -706,6 +706,10 @@ function categoryStatusForIdea(
   return { pct: pcts[strength.stars], label: labels[strength.stars] };
 }
 
+// Source of truth: docs/clarity-library-process.md (Folder Rating Rubric).
+// 1 Very Weak / 2 Needs Help / 3 Good / 4 Ready. Generated-only folders are
+// capped until the user adds real follow-up notes so weak intake cannot inflate
+// itself into Review.
 function categoryStrengthForIdea(
   idea: LightbulbIdea | undefined,
   extras: IdeaExtras,
@@ -755,6 +759,10 @@ function categoryStrengthForIdea(
   return { stars, generatedOnly };
 }
 
+// Source of truth: docs/clarity-library-process.md (steps 6 + 9).
+// Library readiness is capped at 89% while any required folder is under 3 stars,
+// which also keeps the Review/Next Step button locked. Only when every folder is
+// 3 or 4 stars can the score reach 90%+ and unlock the master review.
 function libraryReadinessForIdea(idea: LightbulbIdea | undefined, extras: IdeaExtras) {
   const strengths = CATEGORY_ORDER.map((cat) => ({
     category: cat,
@@ -3685,6 +3693,10 @@ function LibraryStartCreditModal({
   );
 }
 
+// Source of truth: docs/clarity-library-process.md (step 10 + Final Review wording).
+// The master review is built from folder notes and folder ratings. The original
+// intake is shown unchanged in the "Original intake saved by Clarity" panel; the
+// review never rewrites it or pretends unresolved folders are solved.
 function LibraryLevelReportModal({
   idea,
   extras,
