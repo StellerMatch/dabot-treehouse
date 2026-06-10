@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import { IDEA_SHELF_NEXT_ACTION, seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
@@ -282,12 +282,18 @@ function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
 }
 
 function normalizeLibraryStage(idea: LightbulbIdea): LightbulbIdea {
-  if (idea.stage === "lightbulb") return syncLibraryStageFromPaidStart(idea);
+  if (idea.stage === "lightbulb") {
+    const synced = syncLibraryStageFromPaidStart(idea);
+    if (synced.stage !== "lightbulb" || synced.nextAction === IDEA_SHELF_NEXT_ACTION) {
+      return synced;
+    }
+    return { ...synced, nextAction: IDEA_SHELF_NEXT_ACTION };
+  }
   if (idea.stage !== "pre-clarity" || hasConfirmedLibraryStart(idea)) return idea;
   return {
     ...idea,
     stage: "lightbulb",
-    nextAction: "Open the idea when you are ready to start the Library stage",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
   };
 }
 
@@ -399,20 +405,21 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
         changedExtras = true;
       }
 
-      if (hasUsefulText) {
-        if (
-          idea.shelfReadiness >= 90 ||
-          idea.nextAction === "Answer the next clarity question" ||
-          idea.nextAction === "Answer the next Library question" ||
-          idea.nextAction === "Review idea progress, then move to the next step"
-        ) {
-          changedIdeas = true;
-          return {
-            ...idea,
-            shelfReadiness: 82,
-            nextAction: "Answer three Library questions before creating the project brief",
-          };
-        }
+      if (idea.stage === "lightbulb" && idea.nextAction !== IDEA_SHELF_NEXT_ACTION) {
+        changedIdeas = true;
+        return {
+          ...idea,
+          shelfReadiness: hasUsefulText && idea.shelfReadiness >= 90 ? 82 : idea.shelfReadiness,
+          nextAction: IDEA_SHELF_NEXT_ACTION,
+        };
+      }
+
+      if (hasUsefulText && idea.shelfReadiness >= 90) {
+        changedIdeas = true;
+        return {
+          ...idea,
+          shelfReadiness: 82,
+        };
       }
       return idea;
     });
@@ -427,6 +434,7 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
 }
 
 function nextStepSummary(idea: LightbulbIdea): string {
+  if (idea.stage === "lightbulb") return `Next step: ${IDEA_SHELF_NEXT_ACTION}`;
   const action = idea.nextAction?.trim();
   if (action) return `Next step: ${action}`;
   const stageHint =

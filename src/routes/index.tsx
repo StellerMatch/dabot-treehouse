@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
-import { seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
+import { IDEA_SHELF_NEXT_ACTION, seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
 import { generateWorkingProjectTitle } from "@/lib/project-naming";
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
@@ -55,9 +55,7 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
     shelfReadiness: isStrongIntake ? 82 : 32,
     updatedAt: ts,
     stage: "lightbulb",
-    nextAction: isStrongIntake
-      ? "Answer three Library questions before creating the project brief"
-      : "Answer the next Library question",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
     ideaType: ideaType || undefined,
     description: cleanIdeaText(text),
   };

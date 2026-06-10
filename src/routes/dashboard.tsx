@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import { IDEA_SHELF_NEXT_ACTION, seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
@@ -127,12 +127,18 @@ function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
 }
 
 function normalizeLibraryStage(idea: LightbulbIdea): LightbulbIdea {
-  if (idea.stage === "lightbulb") return syncLibraryStageFromPaidStart(idea);
+  if (idea.stage === "lightbulb") {
+    const synced = syncLibraryStageFromPaidStart(idea);
+    if (synced.stage !== "lightbulb" || synced.nextAction === IDEA_SHELF_NEXT_ACTION) {
+      return synced;
+    }
+    return { ...synced, nextAction: IDEA_SHELF_NEXT_ACTION };
+  }
   if (idea.stage !== "pre-clarity" || hasConfirmedLibraryStart(idea)) return idea;
   return {
     ...idea,
     stage: "lightbulb",
-    nextAction: "Open the idea when you are ready to start the Library stage",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
   };
 }
 
@@ -1729,9 +1735,7 @@ function Dashboard() {
         shelfReadiness: isLongClarityPrompt(draft) ? 82 : 32,
         updatedAt: ts,
         stage: "lightbulb",
-        nextAction: isLongClarityPrompt(draft)
-          ? "Answer three Library questions before creating the project brief"
-          : "Answer the next Library question",
+        nextAction: IDEA_SHELF_NEXT_ACTION,
         audience: metadata.audience,
         industry: metadata.industry,
         ideaType: metadata.ideaType,
@@ -5105,7 +5109,8 @@ function Journal(props: {
           )}
 
           <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
-            Updated <StableTimeAgo ts={selected.updatedAt} /> · Next: {selected.nextAction}
+            Updated <StableTimeAgo ts={selected.updatedAt} /> · Next:{" "}
+            {selected.stage === "lightbulb" ? IDEA_SHELF_NEXT_ACTION : selected.nextAction}
           </div>
         </div>
       </div>

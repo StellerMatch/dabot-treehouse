@@ -34,6 +34,9 @@ export const stageLabels: Record<IdeaStage, string> = {
   "operating-path": "Operating Path",
 };
 
+export const IDEA_SHELF_NEXT_ACTION =
+  "Right now is a great opportunity to add as many notes as possible. Click Add More Notes below and collect as much information as you can before you move this idea to the next step and press Let's Build.";
+
 const STABLE_SEED_NOW = Date.UTC(2026, 5, 7, 12, 0, 0);
 
 export const seedIdeas: LightbulbIdea[] = [
@@ -45,7 +48,7 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 28,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 6,
     stage: "lightbulb",
-    nextAction: "Add more notes & start building",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
     audience: "Local community members",
     industry: "Community tool sharing",
     ideaType: "App",
@@ -77,7 +80,7 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 15,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 50,
     stage: "lightbulb",
-    nextAction: "Add more notes & start building",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
   },
   {
     id: "idea-4",
@@ -87,6 +90,6 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 22,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 72,
     stage: "lightbulb",
-    nextAction: "Add more notes & start building",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
   },
 ];
