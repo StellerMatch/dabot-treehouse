@@ -766,51 +766,56 @@ function LibraryPage() {
                   <div className="mt-1 font-serif text-[12px] italic leading-relaxed text-amber-100/85">
                     {nextStepSummary(idea)}
                   </div>
-                  <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-4">
+                  <div className="mt-auto space-y-2 pt-4">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setNotebookIdea(idea)}
+                        className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#a8763d] to-[#7a4f24] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#b78449] hover:to-[#8b5a2a]"
+                      >
+                        <FileText className="h-3 w-3" />
+                        Notebook ({notebookEntryCount})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddNoteIdea(idea);
+                          setNoteTitle("");
+                          setNoteText("");
+                        }}
+                        className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-gradient-to-b from-[#8a7350] to-[#5a4024] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#9b825c] hover:to-[#6a4d2c]"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add Another Note
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => e.preventDefault()}
+                        title={stage}
+                        className={`inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-[10px] font-semibold shadow-sm ${stagePillClass(idea.stage)}`}
+                      >
+                        <Tag className="h-3 w-3" />
+                        {stage}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteIdea(idea.id)}
+                        className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-300/40 bg-red-900/40 px-2 py-1 text-[10px] text-red-50 transition hover:bg-red-900/60"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Delete
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => beginBuild(idea)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-emerald-200/60 bg-gradient-to-b from-[#68a15a] to-[#2f6b35] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-50 shadow-[0_0_18px_-8px_rgba(165,255,180,0.95)] transition hover:from-[#77b86a] hover:to-[#387a40]"
+                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-emerald-200/70 bg-gradient-to-b from-[#75ac62] to-[#2f6b35] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[0_0_22px_-7px_rgba(165,255,180,0.95)] transition hover:from-[#82bd72] hover:to-[#397d42]"
                     >
-                      <BookOpen className="h-3 w-3" />
-                      Let's Build
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNotebookIdea(idea)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#a8763d] to-[#7a4f24] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#b78449] hover:to-[#8b5a2a]"
-                    >
-                      <FileText className="h-3 w-3" />
-                      Notebook ({notebookEntryCount})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAddNoteIdea(idea);
-                        setNoteTitle("");
-                        setNoteText("");
-                      }}
-                      className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-gradient-to-b from-[#8a7350] to-[#5a4024] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#9b825c] hover:to-[#6a4d2c]"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Add Another Note
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => e.preventDefault()}
-                      title={stage}
-                      className={`inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-[10px] font-semibold shadow-sm ${stagePillClass(idea.stage)}`}
-                    >
-                      <Tag className="h-3 w-3" />
-                      {stage}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteIdea(idea.id)}
-                      className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-300/40 bg-red-900/40 px-2 py-1 text-[10px] text-red-50 transition hover:bg-red-900/60"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      Delete
+                      <BookOpen className="h-4 w-4" />
+                      <span>Let's Build</span>
+                      <span className="text-[9px] font-semibold normal-case tracking-normal text-emerald-50/80">
+                        Continue where you left off
+                      </span>
                     </button>
                   </div>
                 </li>
