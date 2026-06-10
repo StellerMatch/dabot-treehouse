@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { BookOpen, Coins, FileText, Trash2, Tag, Plus, Mic, Save } from "lucide-react";
+import { BookOpen, Coins, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
 
 const libraryBg = libraryBgAsset.url;
 
@@ -455,6 +455,8 @@ function LibraryPage() {
   const [notebookIdea, setNotebookIdea] = useState<LightbulbIdea | null>(null);
   const [openEntry, setOpenEntry] = useState<NotebookEntry | null>(null);
   const [addNoteIdea, setAddNoteIdea] = useState<LightbulbIdea | null>(null);
+  const [deleteIdeaTarget, setDeleteIdeaTarget] = useState<LightbulbIdea | null>(null);
+  const [deleteConfirmStep, setDeleteConfirmStep] = useState<1 | 2>(1);
   const [libraryStartIdea, setLibraryStartIdea] = useState<LightbulbIdea | null>(null);
   const [creditBalance, setCreditBalance] = useState(0);
   const [noteText, setNoteText] = useState("");
@@ -643,10 +645,19 @@ function LibraryPage() {
     recognition.start();
   };
 
-  const deleteIdea = (id: string) => {
-    const target = ideas.find((i) => i.id === id);
-    const ok = window.confirm(`Delete "${target?.title || "Untitled"}" from your library?`);
-    if (!ok) return;
+  const requestDeleteIdea = (idea: LightbulbIdea) => {
+    setDeleteIdeaTarget(idea);
+    setDeleteConfirmStep(1);
+  };
+
+  const cancelDeleteIdea = () => {
+    setDeleteIdeaTarget(null);
+    setDeleteConfirmStep(1);
+  };
+
+  const deleteIdea = () => {
+    if (!deleteIdeaTarget) return;
+    const id = deleteIdeaTarget.id;
     setIdeas((prev) => prev.filter((i) => i.id !== id));
     if (typeof window !== "undefined") {
       try {
@@ -660,6 +671,7 @@ function LibraryPage() {
         }
       } catch {}
     }
+    cancelDeleteIdea();
   };
 
   return (
@@ -756,11 +768,18 @@ function LibraryPage() {
                   key={idea.id}
                   className="relative flex h-full flex-col rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
                 >
+                  <div
+                    title={stage}
+                    className={`absolute left-3 top-3 inline-flex max-w-[48%] items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] shadow-sm ${stagePillClass(idea.stage)}`}
+                  >
+                    <Tag className="h-2.5 w-2.5 shrink-0" />
+                    <span className="truncate">{stage}</span>
+                  </div>
                   <div className="absolute right-3 top-3 inline-flex max-w-[45%] items-center gap-1 rounded-full border border-cyan-100/40 bg-cyan-950/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-cyan-50 shadow-sm">
                     <Tag className="h-2.5 w-2.5 shrink-0" />
                     <span className="truncate">{ideaType}</span>
                   </div>
-                  <div className="pr-[46%] font-serif text-[15px] font-semibold text-amber-50">
+                  <div className="pt-7 font-serif text-[15px] font-semibold text-amber-50">
                     {idea.title || "Untitled"}
                   </div>
                   <div className="mt-1 font-serif text-[12px] italic leading-relaxed text-amber-100/85">
@@ -786,36 +805,24 @@ function LibraryPage() {
                         className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-gradient-to-b from-[#8a7350] to-[#5a4024] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#9b825c] hover:to-[#6a4d2c]"
                       >
                         <Plus className="h-3 w-3" />
-                        Add Another Note
+                        Add More Notes
                       </button>
                       <button
                         type="button"
-                        onClick={(e) => e.preventDefault()}
-                        title={stage}
-                        className={`inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-[10px] font-semibold shadow-sm ${stagePillClass(idea.stage)}`}
+                        onClick={() => requestDeleteIdea(idea)}
+                        title="Delete idea"
+                        className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-200/45 bg-red-950/45 text-red-50 shadow-sm transition hover:border-red-100/70 hover:bg-red-900/65"
                       >
-                        <Tag className="h-3 w-3" />
-                        {stage}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteIdea(idea.id)}
-                        className="ml-auto inline-flex items-center gap-1 rounded-sm border border-red-300/40 bg-red-900/40 px-2 py-1 text-[10px] text-red-50 transition hover:bg-red-900/60"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Delete
+                        <XCircle className="h-4 w-4" />
                       </button>
                     </div>
                     <button
                       type="button"
                       onClick={() => beginBuild(idea)}
-                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-emerald-200/70 bg-gradient-to-b from-[#75ac62] to-[#2f6b35] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[0_0_22px_-7px_rgba(165,255,180,0.95)] transition hover:from-[#82bd72] hover:to-[#397d42]"
+                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
                     >
                       <BookOpen className="h-4 w-4" />
                       <span>Let's Build</span>
-                      <span className="text-[9px] font-semibold normal-case tracking-normal text-emerald-50/80">
-                        Continue where you left off
-                      </span>
                     </button>
                   </div>
                 </li>
@@ -945,6 +952,65 @@ function LibraryPage() {
                   Save Note
                 </button>
               </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(deleteIdeaTarget)}
+        onOpenChange={(open) => {
+          if (!open) cancelDeleteIdea();
+        }}
+      >
+        <DialogContent>
+          {deleteIdeaTarget && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-serif">
+                  {deleteConfirmStep === 1 ? "Delete this idea?" : "Last chance"}
+                </DialogTitle>
+                <DialogDescription>
+                  {deleteConfirmStep === 1
+                    ? `This will delete "${deleteIdeaTarget.title || "Untitled idea"}" off the shelf. Is this something you want to do?`
+                    : `Are you sure? This is your last chance to keep "${deleteIdeaTarget.title || "Untitled idea"}" on the shelf.`}
+                </DialogDescription>
+              </DialogHeader>
+              {deleteConfirmStep === 1 ? (
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={cancelDeleteIdea}
+                    className="rounded-sm border border-amber-900/30 bg-amber-50/70 px-3 py-1.5 font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-100"
+                  >
+                    No, keep it
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmStep(2)}
+                    className="rounded-sm border border-red-900/50 bg-red-900/80 px-3 py-1.5 font-serif text-[12px] font-semibold text-red-50 transition hover:bg-red-800"
+                  >
+                    Yes, delete it
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={deleteIdea}
+                    className="rounded-sm border border-red-900/50 bg-red-900/80 px-3 py-1.5 font-serif text-[12px] font-semibold text-red-50 transition hover:bg-red-800"
+                  >
+                    Yes, delete it
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelDeleteIdea}
+                    className="rounded-sm border border-amber-900/30 bg-amber-50/70 px-3 py-1.5 font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-100"
+                  >
+                    No, keep it
+                  </button>
+                </div>
+              )}
             </>
           )}
         </DialogContent>
