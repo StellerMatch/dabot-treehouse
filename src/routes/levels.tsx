@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, DoorOpen, FileText, PlayCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, DoorOpen, FileText, MapIcon, PlayCircle } from "lucide-react";
 import trunkBgAsset from "@/assets/trunk-room-bg-v2.png.asset.json";
 import levelSystemData from "@/data/level-system.json";
 
@@ -32,9 +32,32 @@ type LevelDoor = {
   summary: string;
 };
 
+type PathStep = {
+  detail: string;
+  key: string;
+  label: string;
+  marker: string;
+};
+
 const levelSystem = levelSystemData.level_result_system;
 const visualScenes = levelSystemData.visual_scene_map?.active_scenes ?? [];
 const runSummary = levelSystemData.run_receipt_summary ?? {};
+
+const FULL_PATH: PathStep[] = [
+  { key: "idea-intake", label: "Idea Intake", detail: "saved idea entry", marker: "entry" },
+  { key: "idea-shelf", label: "Idea Shelf", detail: "saved idea selection", marker: "shelf" },
+  { key: "library", label: "Library Level", detail: "Clarity foundation", marker: "level" },
+  { key: "root-room", label: "Root Room", detail: "clean packet enters roots", marker: "room" },
+  { key: "trunk", label: "Trunk Level", detail: "Lanterns / Compass R&D", marker: "level" },
+  { key: "the-clearing", label: "The Clearing", detail: "Moniker name / URL decision", marker: "side level" },
+  { key: "canopy", label: "Canopy Level", detail: "Rook foundation packet", marker: "level" },
+  { key: "wind-tunnel", label: "Wind Tunnel", detail: "Gauge / Shield / Stagehand worthiness", marker: "level" },
+  { key: "branchworks", label: "Branchworks Level", detail: "Tinker / Momma / Bears", marker: "level" },
+  { key: "crown", label: "Crown Level", detail: "Weaver / Grandpa Bears", marker: "level" },
+  { key: "the-sweep", label: "The Sweep", detail: "Ghost simulation testing", marker: "side level" },
+  { key: "nest", label: "Nest Level", detail: "Ward living project home", marker: "level" },
+  { key: "seed", label: "Seed Level", detail: "Bloom launch / growth packet", marker: "level" },
+];
 
 const LEVELS: LevelDoor[] = levelSystem.levels.map((level) => {
   const door = levelSystem.doors.find((item) => item.level_key === level.level_key);
@@ -96,6 +119,33 @@ function LevelsPage() {
                 report at each level, and expose a door for inspecting each result before any live
                 action.
               </p>
+              <div className="mt-5 rounded-md border border-white/12 bg-black/32 p-4 backdrop-blur-md">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-amber-100">
+                  <MapIcon className="h-4 w-4" />
+                  Current Treehouse path
+                </div>
+                <div className="grid gap-2">
+                  {FULL_PATH.map((step, index) => (
+                    <div
+                      key={step.key}
+                      className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-2 text-sm"
+                    >
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/12 bg-white/8 text-xs font-semibold text-amber-100">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 border-b border-white/8 pb-2 last:border-b-0 last:pb-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium text-white">{step.label}</span>
+                          <span className="rounded-sm border border-amber-200/18 bg-amber-300/8 px-1.5 py-0.5 text-[11px] uppercase tracking-[0.08em] text-amber-100">
+                            {step.marker}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-xs leading-5 text-slate-400">{step.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="mt-5 grid gap-2 rounded-md border border-white/12 bg-black/32 p-4 text-sm text-slate-200 backdrop-blur-md">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-slate-400">Status</span>

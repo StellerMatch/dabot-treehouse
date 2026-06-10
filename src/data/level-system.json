@@ -5,7 +5,7 @@
     "system_type": "dabottree_level_reports_and_doors",
     "status": "ready_internal_only",
     "source_note": "Each level has a report source and a door object for front-end inspection. Doors are internal navigation/output markers, not approval gates.",
-    "level_count": 9,
+    "level_count": 10,
     "levels": [
       {
         "level_key": "library",
@@ -111,9 +111,38 @@
         "lovable_section": "Canopy level card / Rook foundation door until a dedicated Canopy page exists."
       },
       {
+        "level_key": "wind_tunnel",
+        "level_name": "Wind Tunnel",
+        "order": 5,
+        "owner": "Gauge / Shield / Stagehand",
+        "status": "wind_tunnel_worthiness_packet_proposed_internal_only",
+        "report_source_key": "wind_tunnel_worthiness_packet",
+        "report_present": true,
+        "report_summary": "Pressure-test the Canopy/Rook foundation for worthiness, scope strength, risk, and build readiness before Branchworks turns it into Tinker, Momma, and Bear prototype directions.",
+        "expected_output": {
+          "packet_type": "wind_tunnel_worthiness_packet",
+          "should_include": [
+            "worthiness score and rationale",
+            "scope pressure-test result",
+            "user value and audience confidence check",
+            "known risks, weak assumptions, and missing proof",
+            "Gauge rubric/scoring notes",
+            "Shield boundary and external-action notes",
+            "Stagehand tightening or repair notes when needed",
+            "Branchworks-ready instructions for Tinker, Momma, and Bears",
+            "pass / revise / stop recommendation"
+          ]
+        },
+        "open_questions": [],
+        "boundary": "Wind Tunnel is pre-build validation and strengthening only. It does not approve build execution, Lovable submission, deployment, public launch, spending, account access, backend setup, route/config/tool changes, final product selection, or bot authority changes.",
+        "n8n_anchor": "8.4. Wind Tunnel: Prepare Worthiness Packet",
+        "lovable_page": "/levels",
+        "lovable_section": "Wind Tunnel level card / worthiness door until a dedicated Wind Tunnel page exists."
+      },
+      {
         "level_key": "branchworks",
         "level_name": "Branchworks Level",
-        "order": 5,
+        "order": 6,
         "owner": "Tinker / Momma / Bears",
         "status": "tinker_experiment_packet_prepared_internal_only",
         "report_source_key": "branchworks_experiment_packet",
@@ -144,7 +173,7 @@
       {
         "level_key": "crown",
         "level_name": "Crown Level",
-        "order": 6,
+        "order": 7,
         "owner": "Weaver / Grandpa Bears",
         "status": "crown_weaver_prototype_package_prepared_internal_only",
         "report_source_key": "crown_weaver_packet",
@@ -160,7 +189,7 @@
       {
         "level_key": "the_sweep",
         "level_name": "The Sweep",
-        "order": 7,
+        "order": 8,
         "owner": "Ghost",
         "status": "ghost_simulation_report_prepared_internal_only",
         "report_source_key": "ghost_simulation_report",
@@ -176,7 +205,7 @@
       {
         "level_key": "nest",
         "level_name": "Nest Level",
-        "order": 8,
+        "order": 9,
         "owner": "Ward",
         "status": "ward_nest_home_packet_prepared_internal_only",
         "report_source_key": "ward_nest_home_packet",
@@ -211,7 +240,7 @@
       {
         "level_key": "seed",
         "level_name": "Seed Level",
-        "order": 9,
+        "order": 10,
         "owner": "Bloom",
         "status": "bloom_seed_launch_packet_prepared_internal_only",
         "report_source_key": "bloom_seed_launch_packet",
@@ -299,10 +328,23 @@
         "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
       },
       {
+        "door_key": "wind_tunnel_door",
+        "level_key": "wind_tunnel",
+        "level_name": "Wind Tunnel",
+        "order": 5,
+        "label": "Open Wind Tunnel Door",
+        "kind": "level_door",
+        "status": "ready",
+        "opens_report_source_key": "wind_tunnel_worthiness_packet",
+        "n8n_anchor": "8.4. Wind Tunnel: Prepare Worthiness Packet",
+        "background_reference": "no separate Wind Tunnel background reference provided yet",
+        "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
+      },
+      {
         "door_key": "branchworks_door",
         "level_key": "branchworks",
         "level_name": "Branchworks Level",
-        "order": 5,
+        "order": 6,
         "label": "Open Branchworks Door",
         "kind": "level_door",
         "status": "ready",
@@ -315,7 +357,7 @@
         "door_key": "crown_door",
         "level_key": "crown",
         "level_name": "Crown Level",
-        "order": 6,
+        "order": 7,
         "label": "Open Crown Door",
         "kind": "level_door",
         "status": "ready",
@@ -328,7 +370,7 @@
         "door_key": "the_sweep_door",
         "level_key": "the_sweep",
         "level_name": "The Sweep",
-        "order": 7,
+        "order": 8,
         "label": "Open Sweep Report",
         "kind": "level_report_door",
         "status": "ready",
@@ -341,7 +383,7 @@
         "door_key": "nest_door",
         "level_key": "nest",
         "level_name": "Nest Level",
-        "order": 8,
+        "order": 9,
         "label": "Open Nest Door",
         "kind": "level_door",
         "status": "ready",
@@ -354,7 +396,7 @@
         "door_key": "seed_door",
         "level_key": "seed",
         "level_name": "Seed Level",
-        "order": 9,
+        "order": 10,
         "label": "Open Seed Door",
         "kind": "level_door",
         "status": "ready",
@@ -384,7 +426,7 @@
     "map_type": "lovable_frontend_background_assignment_map",
     "status": "current_n8n_order_with_corrected_background_refs",
     "source_note": "Boss clarified on 2026-06-08 that the spoken labels were summaries/background references, not final stage renames. Use the current n8n/Lovable stage names and order; apply corrected background assignments. Creation is not part of this active level map.",
-    "active_scene_count": 7,
+    "active_scene_count": 8,
     "active_scenes": [
       {
         "order": 1,
@@ -408,6 +450,16 @@
       },
       {
         "order": 3,
+        "scene_key": "wind_tunnel_stagehand",
+        "display_name": "Use existing n8n/Lovable name",
+        "n8n_anchor": "Wind Tunnel: Prepare Worthiness Packet",
+        "backend_source": "wind_tunnel_worthiness_packet",
+        "status": "active_current_design_stage_no_background_ref_yet",
+        "background_reference_summary": "no separate Wind Tunnel background reference provided yet",
+        "purpose": "Pressure-test and strengthen the Canopy/Rook foundation before Branchworks sends the project into Tinker, Momma, and Bear prototype directions."
+      },
+      {
+        "order": 4,
         "scene_key": "branchworks_tinker",
         "display_name": "Use existing n8n/Lovable name",
         "n8n_anchor": "Branchworks Level: Prepare Tinker Experiment Packet",
@@ -417,7 +469,7 @@
         "purpose": "Experiment/build-shape stage for possible structures, features, and directions."
       },
       {
-        "order": 4,
+        "order": 5,
         "scene_key": "crown_weaver",
         "display_name": "Use existing n8n/Lovable name",
         "n8n_anchor": "Crown Level: Prepare Weaver Prototype Package",
@@ -427,7 +479,7 @@
         "purpose": "Prototype synthesis, polish, QA loops, and package assembly."
       },
       {
-        "order": 5,
+        "order": 6,
         "scene_key": "the_sweep_ghost",
         "display_name": "Use existing n8n/Lovable name",
         "n8n_anchor": "The Sweep: Prepare Ghost Simulation Report",
@@ -437,7 +489,7 @@
         "purpose": "Post-Crown QA/simulation before the project moves into its home/care layer."
       },
       {
-        "order": 6,
+        "order": 7,
         "scene_key": "nest_ward",
         "display_name": "Use existing n8n/Lovable name",
         "n8n_anchor": "Nest Level: Prepare Ward Living Project Home",
@@ -447,7 +499,7 @@
         "purpose": "Project home, health, care, support readiness, and future watch surface."
       },
       {
-        "order": 7,
+        "order": 8,
         "scene_key": "seed_bloom",
         "display_name": "Use existing n8n/Lovable name",
         "n8n_anchor": "Seed Level: Prepare Bloom Seed Launch Packet",
@@ -457,13 +509,14 @@
         "purpose": "Launch/growth packet, seed categories, and distribution planning."
       }
     ],
-    "backend_order_note": "Backend n8n execution and stage naming remain the source. Do not rename stages from background summaries. The canopies image belongs to Ward/Nest background; the later corrected image belongs to Rook/Canopy background.",
+    "backend_order_note": "Backend n8n execution and stage naming remain the source. Do not rename stages from background summaries. Wind Tunnel is now placed after Canopy/Rook and before Branchworks/Tinker as the worthiness pressure-test level. The canopies image belongs to Ward/Nest background; the later corrected image belongs to Rook/Canopy background.",
     "corrections_locked": [
       "n8n, not NAN",
       "Moniker, not Monica",
       "spoken labels are background/reference summaries, not final renames",
       "earlier canopies image is Ward/Nest background",
-      "later corrected image is Rook/Canopy background"
+      "later corrected image is Rook/Canopy background",
+      "Wind Tunnel belongs after Canopy and before Branchworks when approved as a level"
     ]
   },
   "run_receipt_summary": {
