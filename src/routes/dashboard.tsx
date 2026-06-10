@@ -3760,10 +3760,9 @@ function LibraryLevelReportModal({
   onFinish: () => void;
   onBuild: () => void;
 }) {
-  const answeredDoors = (Object.keys(doorAnswers) as LibraryDoorId[]).filter((doorId) =>
-    doorAnswers[doorId]?.trim(),
-  );
-  const hasAnswers = answeredDoors.length > 0;
+  void doorAnswers;
+  void onOpenDoor;
+  void onRedo;
   const categoryReview = CATEGORY_ORDER.map((cat) => {
     const body = categoryProgressTextFor(idea, extras, cat);
     const strength = readiness.strengths.find((item) => item.category === cat);
@@ -3774,10 +3773,6 @@ function LibraryLevelReportModal({
       body: body.trim() || CATEGORY_MISSING[cat],
     };
   });
-  const canOpenDoor = (doorId: LibraryDoorId) => {
-    if (redoUsed) return false;
-    return answeredDoors.length === 0 || Boolean(doorAnswers[doorId]?.trim());
-  };
   const reportText = [
     `Library Report: ${idea.title}`,
     `Readiness: ${readiness.pct}%`,
