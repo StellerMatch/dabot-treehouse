@@ -716,8 +716,10 @@ function categoryStatusForIdea(
     ) &&
     !extras.notes[key]?.trim();
 
-  if (generatedOnly && base.pct > 80 && (extras.clarityFollowupCount ?? 0) < MIN_CLARITY_FOLLOWUPS) {
-    return { pct: 80, label: "Needs Review" };
+  if (generatedOnly && (extras.clarityFollowupCount ?? 0) < MIN_CLARITY_FOLLOWUPS) {
+    const followupCount = extras.clarityFollowupCount ?? 0;
+    const generatedCap = [55, 65, 72][Math.min(followupCount, 2)];
+    return { pct: Math.min(base.pct, generatedCap), label: "Building" };
   }
   return base;
 }
@@ -1160,12 +1162,12 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
     `Captured a ${sentences.length}-line prompt covering ${covered.length}/${SORTABLE_CATEGORIES.length} folders.`,
   );
   if (strong.length) {
-    readoutLines.push(`Strong base on: ${strong.join(", ")}.`);
+    readoutLines.push(`Starting signals in: ${strong.join(", ")}.`);
   }
   if (missing.length) {
-    readoutLines.push(`Still fuzzy on: ${missing.map(labelOf).join(", ")}. Ask Clarity next.`);
+    readoutLines.push(`Still fuzzy on: ${missing.map(labelOf).join(", ")}. Answer Library questions next.`);
   } else {
-    readoutLines.push("All folders have something to work with.");
+    readoutLines.push("Each folder has an initial note, but the Library still needs real answers.");
   }
   out.clarity = readoutLines;
 
@@ -1498,8 +1500,8 @@ function lightbulbSummaryFrom(text: string): string {
 
 function isLongClarityPrompt(text: string): boolean {
   const t = text.trim();
-  if (t.length >= 220) return true;
-  return splitSentences(t).length >= 3;
+  if (t.length >= 650) return true;
+  return t.length >= 420 && splitSentences(t).length >= 6;
 }
 
 function clarityAnsweredFrom(text: string): string[] {
@@ -5232,13 +5234,12 @@ function ClarityGuide({
     !!selected &&
     !!currentQuestion &&
     currentQuestion.id.startsWith("required-") &&
-    overall >= 80 &&
     answeredCount < MIN_CLARITY_FOLLOWUPS;
   const bubbleText =
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `Wow, this already has a strong base. Before we move to the report, I still want to ask my three biggest Clarity questions so we can clear up the few pieces that are missing.\n\n${currentQuestion!.prompt}`
+        ? `Good, we have a starting point. Now I’ll ask three focused Library questions so we can build the foundation before this turns into a project brief.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;

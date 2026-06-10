@@ -161,7 +161,7 @@ function summaryFromIdea(text: string): string {
 
 function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
   const ts = Date.now();
-  const isStrongIntake = cleanIdeaText(text).length >= 220;
+  const isStrongIntake = cleanIdeaText(text).length >= 650;
   return {
     id: `idea-${ts}`,
     title: titleFromIdea(text, ideaType),
@@ -179,9 +179,9 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
 
 function createIntakeExtras(text: string, ts: number) {
   const clean = cleanIdeaText(text);
-  const isStrongIntake = clean.length >= 220;
+  const isStrongIntake = clean.length >= 650;
   const clarityText = isStrongIntake
-    ? `Captured a strong front-screen idea intake. Direction reads in the low 80s because the prompt gives the library a strong base, but Clarity still needs three focused answers before the report unlocks.\n\n-- Source Notes --\n${clean}`
+    ? `Captured a detailed front-screen idea intake. The Library still needs three focused answers before the project brief unlocks.\n\n-- Source Notes --\n${clean}`
     : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
 
   return {
