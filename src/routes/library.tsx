@@ -1109,20 +1109,20 @@ function LibraryStartCreditModal({
           <Coins className="h-6 w-6 text-amber-200" />
         </div>
         <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
-          Next Stage: Library
+          First Real Step
         </p>
         <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
-          Start the Library Stage?
+          Start Building This Idea?
         </h2>
         <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
           <p>
-            <strong>{idea.title || "Untitled idea"}</strong> will move into Library, where we ask
-            focused questions to build a strong foundation for the idea.
+            This is the first real step toward turning the idea into a real project. It costs{" "}
+            <strong>{cost} credits</strong> because the Library Stage starts the guided questions
+            that shape the foundation before anything gets built.
           </p>
           <p className="mt-3">
             The goal is to turn the rough concept into a clear project brief you can print, share,
-            or use as the starting point for building. This costs{" "}
-            <strong>{cost} credits</strong>.
+            or use as the starting point for building.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div className="rounded-sm border border-amber-200/20 bg-black/25 px-3 py-2">
@@ -1167,7 +1167,7 @@ function LibraryStartCreditModal({
                 : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/45")
             }
           >
-            {canAfford ? `Spend ${cost} credits and continue` : "Add credits first"}
+            {canAfford ? `Spend ${cost} credits and start Library` : "Add credits first"}
           </button>
         </div>
       </div>
