@@ -55,8 +55,8 @@ export function AccountBadge() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  // Hide on the signin page itself.
-  if (pathname.startsWith("/signin")) return null;
+  // Dashboard already has its full account/profile menu in the page header.
+  if (pathname.startsWith("/signin") || pathname.startsWith("/dashboard")) return null;
 
   if (!profile.authed) {
     return (

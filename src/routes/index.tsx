@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Mic, User } from "lucide-react";
+import { Mic } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
@@ -140,7 +140,6 @@ function Index() {
           >
             Levels
           </Link>
-          <AccountBadge />
         </nav>
       </header>
 
@@ -303,84 +302,6 @@ function Index() {
     </main>
   );
 }
-
-function AccountBadge() {
-  const navigate = useNavigate();
-  const [authed, setAuthed] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      setAuthed(localStorage.getItem("dabottree:authed") === "1");
-      setPhoto(localStorage.getItem("dabottree.profile.photo"));
-      setName(localStorage.getItem("dabottree.profile.name") ?? "");
-      setEmail(localStorage.getItem("dabottree:accountEmail") ?? "");
-    } catch {}
-  }, []);
-
-  if (!authed) return null;
-
-  const label = name.trim() || email.trim() || "My Account";
-  const initial = label.trim().charAt(0).toUpperCase() || "U";
-
-  const signOut = () => {
-    try {
-      localStorage.removeItem("dabottree:authed");
-      localStorage.removeItem("dabottree:accountEmail");
-    } catch {}
-    setAuthed(false);
-    setMenuOpen(false);
-    navigate({ to: "/" });
-  };
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        title={label}
-        aria-label="Open account menu"
-        onClick={() => setMenuOpen((open) => !open)}
-        className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-amber-200/55 bg-amber-100/15 text-amber-50 shadow-[0_0_22px_-4px_rgba(255,180,90,0.55)] backdrop-blur-md transition hover:border-amber-200/80 hover:bg-amber-100/25"
-      >
-        {photo ? (
-          <img src={photo} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-xs font-semibold">
-            {initial || <User className="h-4 w-4" />}
-          </span>
-        )}
-      </button>
-      {menuOpen && (
-        <div className="absolute right-0 mt-2 w-44 rounded-lg border border-amber-200/25 bg-[rgba(24,13,7,0.92)] p-2 text-left text-xs text-amber-50 shadow-[0_18px_44px_-18px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-          <div className="border-b border-amber-200/15 px-2 pb-2">
-            <div className="truncate font-medium">{label}</div>
-            {email && name && <div className="truncate text-white/50">{email}</div>}
-          </div>
-          <Link
-            to="/library"
-            onClick={() => setMenuOpen(false)}
-            className="mt-1 block rounded-md px-2 py-1.5 text-white/75 transition hover:bg-white/10 hover:text-white"
-          >
-            Profile
-          </Link>
-          <button
-            type="button"
-            onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-white/75 transition hover:bg-white/10 hover:text-white"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign out
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 
 // ============= Choose Your Path Modal =============
 
