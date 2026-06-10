@@ -322,16 +322,7 @@ function AccountBadge() {
     } catch {}
   }, []);
 
-  if (!authed) {
-    return (
-      <Link
-        to="/signin"
-        className="rounded-full border border-amber-200/40 bg-gradient-to-b from-amber-100/15 to-amber-200/5 px-3.5 py-1.5 text-amber-50 shadow-[0_0_22px_-4px_rgba(255,180,90,0.55)] backdrop-blur-md transition hover:from-amber-100/25 hover:to-amber-200/10 hover:text-white"
-      >
-        Sign in
-      </Link>
-    );
-  }
+  if (!authed) return null;
 
   const label = name.trim() || email.trim() || "My Account";
   const initial = label.trim().charAt(0).toUpperCase() || "U";
