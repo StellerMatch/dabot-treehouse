@@ -133,6 +133,13 @@ function LibraryPage() {
             Library
           </span>
         </Link>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/30 bg-emerald-900/40 px-3.5 py-1.5 text-[11px] font-semibold text-emerald-50 shadow-sm backdrop-blur-sm transition hover:bg-emerald-800/50 hover:border-emerald-200/50"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          New Idea
+        </Link>
       </header>
 
       <section className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
