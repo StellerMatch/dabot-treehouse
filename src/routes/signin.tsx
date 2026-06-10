@@ -20,6 +20,7 @@ function SignIn() {
   const { next } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +28,7 @@ function SignIn() {
       try {
         localStorage.setItem("dabottree:authed", "1");
         if (email) localStorage.setItem("dabottree:accountEmail", email);
+        if (name.trim()) localStorage.setItem("dabottree.profile.name", name.trim());
       } catch {}
     }
     const dest = next && next.startsWith("/") ? next : "/library";
@@ -69,6 +71,8 @@ function SignIn() {
           {mode === "signup" && (
             <input
               type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               className="w-full rounded-md border border-amber-200/20 bg-white/5 px-3 py-2 text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-amber-200/50"
             />
