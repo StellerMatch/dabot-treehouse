@@ -170,8 +170,8 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
     updatedAt: ts,
     stage: "lightbulb",
     nextAction: isStrongIntake
-      ? "Answer three Clarity questions before moving to the next step"
-      : "Answer the next clarity question",
+      ? "Answer three Library questions before creating the project brief"
+      : "Answer the next Library question",
     ideaType: ideaType || undefined,
     description: cleanIdeaText(text),
   };

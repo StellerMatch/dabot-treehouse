@@ -60,7 +60,7 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 54,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 26,
     stage: "pre-clarity",
-    nextAction: "Gather info, then move to Clarity",
+    nextAction: "Gather info, then move to Library",
 
     signals: {
       shape: "weekly digest tool",

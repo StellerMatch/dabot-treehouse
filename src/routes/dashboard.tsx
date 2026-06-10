@@ -1739,8 +1739,8 @@ function Dashboard() {
         updatedAt: ts,
         stage: "lightbulb",
         nextAction: isLongClarityPrompt(draft)
-          ? "Answer three Clarity questions before moving to the next step"
-          : "Answer the next clarity question",
+          ? "Answer three Library questions before creating the project brief"
+          : "Answer the next Library question",
         audience: metadata.audience,
         industry: metadata.industry,
         ideaType: metadata.ideaType,
@@ -2032,7 +2032,7 @@ function Dashboard() {
               ...i,
               stage: "pre-clarity",
               shelfReadiness: Math.max(i.shelfReadiness, 45),
-              nextAction: "Gather info, then move to Clarity",
+              nextAction: "Gather info, then move to Library",
               updatedAt: Date.now(),
             }
           : i,
@@ -3579,16 +3579,19 @@ function LibraryStartCreditModal({
           <Coins className="h-6 w-6 text-amber-200" />
         </div>
         <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
-          Start Library Stage
+          Next Stage: Library
         </p>
         <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
-          Spend {cost} credits to open this report step?
+          Start the Library Stage?
         </h2>
         <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
           <p>
-            <strong>{idea.title || "Untitled idea"}</strong> is ready to move from Clarity into
-            the Library report checkpoint. This confirms the credit spend before the report path
-            opens.
+            <strong>{idea.title || "Untitled idea"}</strong> will move into Library, where we ask
+            focused questions to build a strong foundation for the idea.
+          </p>
+          <p className="mt-3">
+            The goal is to turn the rough concept into a clear project brief you can print, share,
+            or use as the starting point for building.
           </p>
           <div className="mt-3 flex items-center justify-between rounded-sm border border-amber-200/20 bg-black/25 px-3 py-2 text-[12px]">
             <span>Available credits</span>

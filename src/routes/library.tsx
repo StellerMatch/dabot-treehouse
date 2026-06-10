@@ -231,8 +231,8 @@ function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
     updatedAt: ts,
     stage: "lightbulb",
     nextAction: isStrongIntake
-      ? "Answer three Clarity questions before moving to the next step"
-      : "Answer the next clarity question",
+      ? "Answer three Library questions before creating the project brief"
+      : "Answer the next Library question",
     ideaType: type,
     description: cleanDraftText(text),
   };
@@ -427,13 +427,14 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
         if (
           idea.shelfReadiness >= 90 ||
           idea.nextAction === "Answer the next clarity question" ||
+          idea.nextAction === "Answer the next Library question" ||
           idea.nextAction === "Review idea progress, then move to the next step"
         ) {
           changedIdeas = true;
           return {
             ...idea,
             shelfReadiness: 82,
-            nextAction: "Answer three Clarity questions before moving to the next step",
+            nextAction: "Answer three Library questions before creating the project brief",
           };
         }
       }
@@ -456,7 +457,7 @@ function nextStepSummary(idea: LightbulbIdea): string {
     idea.stage === "lightbulb"
       ? "Add a few more notes so we can start shaping this idea."
       : idea.stage === "pre-clarity"
-        ? "Answer Clarity's next question to keep moving forward."
+        ? "Answer the next Library question to keep moving forward."
         : idea.stage === "paid-creation"
           ? "Review the paid creation packet and confirm the next move."
           : idea.stage === "clean-packet"
@@ -1108,15 +1109,19 @@ function LibraryStartCreditModal({
           <Coins className="h-6 w-6 text-amber-200" />
         </div>
         <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
-          Library Stage
+          Next Stage: Library
         </p>
         <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
-          Start the 10-credit Clarity Review?
+          Start the Library Stage?
         </h2>
         <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
           <p>
-            <strong>{idea.title || "Untitled idea"}</strong> will move into the Library stage, where
-            Clarity shapes the idea and prepares the first review step. This costs{" "}
+            <strong>{idea.title || "Untitled idea"}</strong> will move into Library, where we ask
+            focused questions to build a strong foundation for the idea.
+          </p>
+          <p className="mt-3">
+            The goal is to turn the rough concept into a clear project brief you can print, share,
+            or use as the starting point for building. This costs{" "}
             <strong>{cost} credits</strong>.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
