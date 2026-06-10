@@ -2182,10 +2182,10 @@ function Dashboard() {
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
         <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
+          <NewLightbulbPopover onCreate={addIdea} />
           <ProfileAvatarButton
             ideas={ideas}
             selectedId={selected?.id ?? ""}
-            onNewIdea={() => addIdea()}
             onSelectIdea={openIdeaDashboard}
             onOpenDashboard={openIdeasDashboard}
             onShowSummary={(idea) => setSummaryIdea(idea)}
@@ -2778,7 +2778,6 @@ function ProgressPopover({
 function ProfileAvatarButton({
   ideas,
   selectedId,
-  onNewIdea,
   onSelectIdea,
   onOpenDashboard,
   onShowSummary,
@@ -2786,7 +2785,6 @@ function ProfileAvatarButton({
 }: {
   ideas: LightbulbIdea[];
   selectedId: string;
-  onNewIdea: () => void;
   onSelectIdea: (id: string) => void;
   onOpenDashboard: () => void;
   onShowSummary: (idea: LightbulbIdea) => void;
@@ -2879,25 +2877,6 @@ function ProfileAvatarButton({
               My Account
             </div>
             <div className="space-y-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  onNewIdea();
-                }}
-                className="flex w-full items-center gap-3 rounded-md border border-amber-900/25 bg-amber-50/70 px-4 py-3 text-left font-serif text-[15px] font-semibold text-amber-950 shadow-sm transition hover:bg-amber-100/90 hover:shadow-md active:translate-y-[1px]"
-              >
-                <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    background: "linear-gradient(180deg, #f5d27a 0%, #d99a32 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,245,210,0.6), 0 2px 4px rgba(100,60,10,0.25)",
-                  }}
-                >
-                  <Plus className="h-5 w-5 text-amber-950" />
-                </span>
-                <span>New Idea</span>
-              </button>
               <button
                 type="button"
                 onClick={() => setPanel("library")}
