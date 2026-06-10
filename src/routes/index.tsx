@@ -132,7 +132,7 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
     id: `idea-${ts}`,
     title: titleFromIdea(text, ideaType),
     messy: summaryFromIdea(text),
-    shelfReadiness: isStrongIntake ? 90 : 32,
+    shelfReadiness: isStrongIntake ? 82 : 32,
     updatedAt: ts,
     stage: "lightbulb",
     nextAction: isStrongIntake
@@ -147,7 +147,7 @@ function createIntakeExtras(text: string, ts: number) {
   const clean = cleanIdeaText(text);
   const isStrongIntake = clean.length >= 220;
   const clarityText = isStrongIntake
-    ? `Captured a strong front-screen idea intake. Direction reads about 90% because the prompt gives the library enough detail to start across the main folders.\n\n-- Source Notes --\n${clean}`
+    ? `Captured a strong front-screen idea intake. Direction reads in the low 80s because the prompt gives the library a strong base, but Clarity still needs three focused answers before the report unlocks.\n\n-- Source Notes --\n${clean}`
     : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
 
   return {

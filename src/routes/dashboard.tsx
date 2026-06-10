@@ -679,6 +679,33 @@ function categoryStatus(value: string | undefined) {
   return { pct: 100, label: "Ready" };
 }
 
+function cappedInitialProgress(rawPct: number, followupCount: number) {
+  if (rawPct < 80 || followupCount >= MIN_CLARITY_FOLLOWUPS) return rawPct;
+  const capByFollowup = [82, 86, 89][Math.min(followupCount, 2)];
+  return Math.min(rawPct, capByFollowup);
+}
+
+function categoryStatusForIdea(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+  key: CategoryKey,
+) {
+  const base = categoryStatus(categoryProgressTextFor(idea, extras, key));
+  const generatedOnly =
+    extras.posts.some(
+      (post) => post.categories?.includes(key) && post.source === "generated-folder",
+    ) &&
+    !extras.posts.some(
+      (post) => post.categories?.includes(key) && post.source === "captured-note",
+    ) &&
+    !extras.notes[key]?.trim();
+
+  if (generatedOnly && base.pct > 80 && (extras.clarityFollowupCount ?? 0) < MIN_CLARITY_FOLLOWUPS) {
+    return { pct: 80, label: "Needs Review" };
+  }
+  return base;
+}
+
 // ——— Title generator ———
 const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
   { match: /\b(construction|jobsite|job site|crew|contractor)\b/i, name: "Construction Crew" },
@@ -1088,7 +1115,7 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
     `Captured a ${sentences.length}-line prompt covering ${covered.length}/${SORTABLE_CATEGORIES.length} folders.`,
   );
   if (strong.length) {
-    readoutLines.push(`Direction reads ~90% on: ${strong.join(", ")}.`);
+    readoutLines.push(`Strong base on: ${strong.join(", ")}.`);
   }
   if (missing.length) {
     readoutLines.push(`Still fuzzy on: ${missing.map(labelOf).join(", ")}. Ask Clarity next.`);
@@ -1238,7 +1265,7 @@ function weakestCategoryQuestionFor(
   const candidates = CATEGORY_ORDER.filter((cat) => !skipped.has(`weak-${cat}`))
     .map((cat) => ({
       category: cat,
-      pct: categoryStatus(categoryProgressTextFor(idea, extras, cat)).pct,
+      pct: categoryStatusForIdea(idea, extras, cat).pct,
     }))
     .filter((item) => item.pct < 80)
     .sort((a, b) => {
@@ -1661,10 +1688,12 @@ function Dashboard() {
         id,
         title,
         messy: lightbulbSummaryFrom(draft),
-        shelfReadiness: 32,
+        shelfReadiness: isLongClarityPrompt(draft) ? 82 : 32,
         updatedAt: ts,
         stage: "lightbulb",
-        nextAction: "Answer the next clarity question",
+        nextAction: isLongClarityPrompt(draft)
+          ? "Answer three Clarity questions before moving to the next step"
+          : "Answer the next clarity question",
         audience: metadata.audience,
         industry: metadata.industry,
         ideaType: metadata.ideaType,
@@ -1867,6 +1896,10 @@ function Dashboard() {
     const nextPosts = [p, ...mergeCategoryFolderPosts(selectedExtras.posts, cleaned, ts)];
     const newAnswered = answeredQuestionsFromClarityDigest(cleaned, nextPosts);
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
+    const nextFollowupCount = Math.min(
+      MIN_CLARITY_FOLLOWUPS,
+      (selectedExtras.clarityFollowupCount ?? 0) + (currentQuestion ? 1 : 0),
+    );
     updateExtras({
       posts: nextPosts,
       answeredQuestions: Array.from(
@@ -1876,13 +1909,16 @@ function Dashboard() {
           ...(answeredCurrent && currentQuestion ? [currentQuestion.id] : []),
         ]),
       ),
-      clarityFollowupCount: Math.min(
-        MIN_CLARITY_FOLLOWUPS,
-        (selectedExtras.clarityFollowupCount ?? 0) + (currentQuestion ? 1 : 0),
-      ),
+      clarityFollowupCount: nextFollowupCount,
     });
+    const readinessBump = answeredCurrent ? 7 : 4;
     updateSelected({
-      shelfReadiness: Math.min(100, selected.shelfReadiness + (answeredCurrent ? 7 : 4)),
+      shelfReadiness: Math.min(
+        96,
+        nextFollowupCount >= MIN_CLARITY_FOLLOWUPS
+          ? Math.max(91, selected.shelfReadiness + readinessBump)
+          : selected.shelfReadiness + readinessBump,
+      ),
     });
     if (categoryAsk) setCategoryAsk(null);
   };
@@ -1978,7 +2014,7 @@ function Dashboard() {
     setLibraryRedoUsed(true);
     void sendLibraryWebhook(2);
     updateSelected({
-      shelfReadiness: Math.min(100, Math.max(selected.shelfReadiness, 96)),
+      shelfReadiness: Math.min(96, Math.max(selected.shelfReadiness, 91)),
       nextAction: "Review the updated Library report",
     });
   };
@@ -2071,10 +2107,18 @@ function Dashboard() {
   const overallPct = useMemo(() => {
     if (!selected) return 0;
     const sum = categoryDefs.reduce(
-      (acc, c) => acc + categoryStatus(getCategoryProgressValue(c.key)).pct,
+      (acc, c) => acc + categoryStatusForIdea(selected, selectedExtras, c.key).pct,
       0,
     );
-    return Math.round(sum / categoryDefs.length);
+    const rawPct = Math.round(sum / categoryDefs.length);
+    const followupCount = selectedExtras.clarityFollowupCount ?? 0;
+    const stagedPct = cappedInitialProgress(rawPct, followupCount);
+    return Math.min(
+      96,
+      followupCount >= MIN_CLARITY_FOLLOWUPS && rawPct >= 80
+        ? Math.max(stagedPct, 91)
+        : stagedPct,
+    );
   }, [selected, selectedExtras, categoryDefs]);
 
   const leftWidths = [60, 70, 90];
@@ -2120,7 +2164,7 @@ function Dashboard() {
       categoryShelves.map((row, rIdx) => (
         <Shelf key={rIdx} widthPct={rightWidths[rIdx] ?? 85} align="right">
           {row.map((c) => {
-            const status = categoryStatus(getCategoryProgressValue(c.key));
+            const status = categoryStatusForIdea(selected, selectedExtras, c.key);
             return (
               <CategoryBook
                 key={c.key}
@@ -2207,6 +2251,7 @@ function Dashboard() {
             disabled={!selected}
             categories={categoryDefs}
             getValue={getCategoryProgressValue}
+            getStatus={(k) => categoryStatusForIdea(selected, selectedExtras, k)}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
             onAskCategory={(k) => setCategoryAsk(k)}
@@ -2743,6 +2788,7 @@ function ProgressPopover({
   disabled,
   categories,
   getValue,
+  getStatus,
   activeCategory,
   setActiveCategory,
   onAskCategory,
@@ -2751,6 +2797,7 @@ function ProgressPopover({
   disabled: boolean;
   categories: { key: CategoryKey; label: string; hint: string; guidance?: string }[];
   getValue: (k: CategoryKey) => string;
+  getStatus?: (k: CategoryKey) => { pct: number; label: string };
   activeCategory: CategoryKey;
   setActiveCategory: (k: CategoryKey) => void;
   onAskCategory: (k: CategoryKey) => void;
@@ -2788,7 +2835,7 @@ function ProgressPopover({
         </div>
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
           {categories.map((c) => {
-            const status = categoryStatus(getValue(c.key));
+            const status = getStatus ? getStatus(c.key) : categoryStatus(getValue(c.key));
             return (
               <MiniLaidBook
                 key={c.key}
@@ -4996,7 +5043,7 @@ function ClarityGuide({
     if (!selected)
       return "Welcome to the Creator Library. Open My Library and choose a spark to begin.";
     if (!currentQuestion)
-      return "You've answered every question I had. This idea is glowing — try Next Step.";
+      return "You've answered my three biggest questions. The idea is over 90% now, so View Report is ready.";
     return null;
   }, [selected, currentQuestion]);
 
@@ -5004,13 +5051,13 @@ function ClarityGuide({
     !!selected &&
     !!currentQuestion &&
     currentQuestion.id.startsWith("required-") &&
-    overall >= 90 &&
+    overall >= 80 &&
     answeredCount < MIN_CLARITY_FOLLOWUPS;
   const bubbleText =
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `Beautiful work. This idea already has a strong base, and you have clearly put real thought into it. Before we move to Next Stage, I want to ask three focused questions to strengthen the few parts that still need a little more foundation.\n\n${currentQuestion!.prompt}`
+        ? `Wow, this already has a strong base. Before we move to the report, I still want to ask my three biggest Clarity questions so we can clear up the few pieces that are missing.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;

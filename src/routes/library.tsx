@@ -70,7 +70,7 @@ function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
     id: `idea-${ts}`,
     title,
     messy: summaryFromDraft(text),
-    shelfReadiness: isStrongIntake ? 90 : 32,
+    shelfReadiness: isStrongIntake ? 82 : 32,
     updatedAt: ts,
     stage: "lightbulb",
     nextAction: isStrongIntake
@@ -85,7 +85,7 @@ function extrasFromDraft(text: string, ts: number) {
   const clean = cleanDraftText(text);
   const isStrongIntake = clean.length >= 220;
   const clarityText = isStrongIntake
-    ? `Captured a strong front-screen idea intake. Direction reads about 90% because the prompt gives the library enough detail to start across the main folders.\n\n-- Source Notes --\n${clean}`
+    ? `Captured a strong front-screen idea intake. Direction reads in the low 80s because the prompt gives the library a strong base, but Clarity still needs three focused answers before the report unlocks.\n\n-- Source Notes --\n${clean}`
     : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
 
   return {
@@ -165,14 +165,14 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
 
       if (hasUsefulText) {
         if (
-          idea.shelfReadiness > 90 ||
+          idea.shelfReadiness >= 90 ||
           idea.nextAction === "Answer the next clarity question" ||
           idea.nextAction === "Review idea progress, then move to the next step"
         ) {
           changedIdeas = true;
           return {
             ...idea,
-            shelfReadiness: 90,
+            shelfReadiness: 82,
             nextAction: "Answer three Clarity questions before moving to the next step",
           };
         }
