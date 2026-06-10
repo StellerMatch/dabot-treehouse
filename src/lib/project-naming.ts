@@ -5,7 +5,8 @@ type NamingRule = {
 
 const SUBJECT_RULES: NamingRule[] = [
   {
-    match: /\b(robotic\s+(?:lawn\s+)?mower|robot\s+mower|lawn\s+robot|robotic\s+lawn|mow(?:ing|er)?|lawn\s+care)\b/i,
+    match:
+      /\b(robotic\s+(?:lawn\s+)?mower|robot\s+mower|lawn\s+robot|robotic\s+lawn|mow(?:ing|er)?|lawn\s+care)\b/i,
     name: (_text, functionName) => {
       if (/booking/i.test(functionName)) return "Mower";
       if (/dispatch/i.test(functionName)) return "Lawn Robot";
@@ -17,13 +18,17 @@ const SUBJECT_RULES: NamingRule[] = [
   { match: /\bmeal|menu|dinner|lunch|breakfast\b/i, name: "Meal" },
   { match: /\bclient\s+intake|customer\s+intake|intake\s+form\b/i, name: "Client Intake" },
   { match: /\b(recipe|cookbook|kitchen|family recipe|recipe shelf)\b/i, name: "Recipe Shelf" },
-  { match: /\bpet|dog|cat|animal\b/i, name: "Pet Care" },
+  {
+    match:
+      /\b(construction|jobsite|job site|crew|contractor|foreman|worker manager|construction worker|job address|job location|schedule update)\b/i,
+    name: "Construction Crew",
+  },
+  { match: /\b(pet|pets|dog|dogs|cat|cats|animal|animals)\b/i, name: "Pet Care" },
   { match: /\bwedding\b/i, name: "Wedding" },
   {
     match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i,
     name: "Photo",
   },
-  { match: /\bconstruction|jobsite|job site|crew|contractor\b/i, name: "Construction Crew" },
   { match: /\bclassroom|teacher|student|school\b/i, name: "Classroom" },
   { match: /\bplant|garden\b/i, name: "Garden" },
   { match: /\bworkout|fitness|gym\b/i, name: "Fitness" },
@@ -34,7 +39,11 @@ const SUBJECT_RULES: NamingRule[] = [
 const FUNCTION_RULES: NamingRule[] = [
   { match: /\bbooking\s+service\b/i, name: "Booking Service" },
   { match: /\b(book|booking|reservation|appointment)\b/i, name: "Booking App" },
-  { match: /\bdispatch|send\s+(?:out|to)|route\b/i, name: "Dispatch" },
+  {
+    match:
+      /\b(dispatch|send\s+(?:out|to)|route|assign|assignment|give(?:s)? (?:them )?(?:the )?job|job address|job location|crew location)\b/i,
+    name: "Dispatch",
+  },
   { match: /\bschedul/i, name: "Scheduler" },
   { match: /\btrack|tracking\b/i, name: "Tracker" },
   { match: /\b(plan|planning|planner)\b/i, name: "Planner" },
@@ -158,7 +167,7 @@ export function generateWorkingProjectTitle(text: string, ideaType?: string): st
 
   const functionName =
     pickRuleName(FUNCTION_RULES, clean, "") ??
-    (isUsableIdeaType(ideaType) ? titleCase(ideaType!.trim()) : "App");
+    (isUsableIdeaType(ideaType) ? titleCase(ideaType!.trim()) : "Tool");
   const subject = pickRuleName(SUBJECT_RULES, clean, functionName) ?? fallbackSubject(clean);
   return trimToFiveWords(`${subject} ${functionName}`);
 }

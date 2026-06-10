@@ -1,6 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { IDEA_SHELF_NEXT_ACTION, seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import {
+  IDEA_SHELF_NEXT_ACTION,
+  LIBRARY_STAGE_NEXT_ACTION,
+  seedIdeas,
+  stageLabels,
+  type LightbulbIdea,
+} from "@/lib/dabottree-state";
 import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
@@ -72,6 +78,13 @@ function inferIdeaType(text: string, fallback?: string): string | undefined {
   }
   if (/\bweb app|app|application|program\b/i.test(text)) return "App";
   if (
+    /\b(construction|jobsite|job site|crew|contractor|foreman|worker manager|job address|job location|schedule update)\b/i.test(
+      text,
+    )
+  ) {
+    return "Tool";
+  }
+  if (
     /\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(
       text,
     )
@@ -120,17 +133,14 @@ function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
   const ts = Date.now();
   const type = inferIdeaType(text, ideaType);
   const title = titleFromDraft(text, type);
-  const isStrongIntake = cleanDraftText(text).length >= 650;
   return {
     id: `idea-${ts}`,
     title,
     messy: summaryFromDraft(text),
-    shelfReadiness: isStrongIntake ? 82 : 32,
+    shelfReadiness: cleanDraftText(text).length >= 650 ? 82 : 32,
     updatedAt: ts,
     stage: "lightbulb",
-    nextAction: isStrongIntake
-      ? "Answer three Library questions before creating the project brief"
-      : "Answer the next Library question",
+    nextAction: IDEA_SHELF_NEXT_ACTION,
     ideaType: type,
     description: cleanDraftText(text),
   };
@@ -155,9 +165,7 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return (parsed as LightbulbIdea[])
-        .map(cleanStoredIdeaTitle)
-        .map(normalizeLibraryStage);
+      return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle).map(normalizeLibraryStage);
     }
   } catch {}
   return null;
@@ -208,9 +216,7 @@ function libraryStartConfirmedKey(ideaId: string) {
 }
 
 function looksLikeTshirtProject(idea: LightbulbIdea): boolean {
-  const text = [idea.title, idea.description, idea.messy, idea.ideaType]
-    .filter(Boolean)
-    .join(" ");
+  const text = [idea.title, idea.description, idea.messy, idea.ideaType].filter(Boolean).join(" ");
   return (
     /\b(qr|code|scan|scanned|coupon|credit|reward|discount)\b/i.test(text) &&
     /\b(t-?shirt|tee|shirt|tshirt)\b/i.test(text)
@@ -221,7 +227,10 @@ function hasConfirmedLibraryStart(idea: LightbulbIdea): boolean {
   if (typeof window === "undefined") return false;
   try {
     if (localStorage.getItem(libraryStartConfirmedKey(idea.id)) === "1") return true;
-    if (localStorage.getItem(libraryStartPaidKey(idea.id)) === "1" && looksLikeTshirtProject(idea)) {
+    if (
+      localStorage.getItem(libraryStartPaidKey(idea.id)) === "1" &&
+      looksLikeTshirtProject(idea)
+    ) {
       localStorage.setItem(libraryStartConfirmedKey(idea.id), "1");
       return true;
     }
@@ -239,7 +248,7 @@ function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
     ...idea,
     stage: "pre-clarity",
     shelfReadiness: Math.max(idea.shelfReadiness, 45),
-    nextAction: "Answer three Library questions before creating the project brief",
+    nextAction: LIBRARY_STAGE_NEXT_ACTION,
   };
 }
 
@@ -401,7 +410,7 @@ function nextStepSummary(idea: LightbulbIdea): string {
   if (action) return `Next step: ${action}`;
   const stageHint =
     idea.stage === "pre-clarity"
-      ? "Answer the next Library question to keep moving forward."
+      ? "Answer the next personalized Clarity question to keep moving forward."
       : idea.stage === "paid-creation"
         ? "Review the paid creation packet and confirm the next move."
         : idea.stage === "clean-packet"

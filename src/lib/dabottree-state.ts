@@ -37,6 +37,9 @@ export const stageLabels: Record<IdeaStage, string> = {
 export const IDEA_SHELF_NEXT_ACTION =
   "Right now is a great opportunity to add as many notes as possible. Click Add More Notes below and collect as much information as you can before you move this idea to the next step and press Let's Build.";
 
+export const LIBRARY_STAGE_NEXT_ACTION =
+  "Answer personalized Clarity questions before creating the project brief.";
+
 const STABLE_SEED_NOW = Date.UTC(2026, 5, 7, 12, 0, 0);
 
 export const seedIdeas: LightbulbIdea[] = [
@@ -63,7 +66,7 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 54,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 26,
     stage: "pre-clarity",
-    nextAction: "Answer three Library questions before creating the project brief",
+    nextAction: LIBRARY_STAGE_NEXT_ACTION,
 
     signals: {
       shape: "weekly digest tool",
@@ -85,8 +88,7 @@ export const seedIdeas: LightbulbIdea[] = [
   {
     id: "idea-4",
     title: "Calm-down corner for classrooms",
-    messy:
-      "teachers need a tiny kit / playlist / cards for kids who get overwhelmed mid-lesson.",
+    messy: "teachers need a tiny kit / playlist / cards for kids who get overwhelmed mid-lesson.",
     shelfReadiness: 22,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 72,
     stage: "lightbulb",

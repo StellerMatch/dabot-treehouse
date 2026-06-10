@@ -1,6 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { IDEA_SHELF_NEXT_ACTION, seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import {
+  IDEA_SHELF_NEXT_ACTION,
+  LIBRARY_STAGE_NEXT_ACTION,
+  seedIdeas,
+  stageLabels,
+  type LightbulbIdea,
+} from "@/lib/dabottree-state";
 import { bodyForIntakeFolder, parseIntakeIntoFolderBuckets } from "@/lib/intake-folder-breakdown";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
@@ -92,9 +98,7 @@ function libraryStartConfirmedKey(ideaId: string) {
 }
 
 function looksLikeTshirtProject(idea: LightbulbIdea): boolean {
-  const text = [idea.title, idea.description, idea.messy, idea.ideaType]
-    .filter(Boolean)
-    .join(" ");
+  const text = [idea.title, idea.description, idea.messy, idea.ideaType].filter(Boolean).join(" ");
   return (
     /\b(qr|code|scan|scanned|coupon|credit|reward|discount)\b/i.test(text) &&
     /\b(t-?shirt|tee|shirt|tshirt)\b/i.test(text)
@@ -105,7 +109,10 @@ function hasConfirmedLibraryStart(idea: LightbulbIdea): boolean {
   if (typeof window === "undefined") return false;
   try {
     if (localStorage.getItem(libraryStartConfirmedKey(idea.id)) === "1") return true;
-    if (localStorage.getItem(libraryStartPaidKey(idea.id)) === "1" && looksLikeTshirtProject(idea)) {
+    if (
+      localStorage.getItem(libraryStartPaidKey(idea.id)) === "1" &&
+      looksLikeTshirtProject(idea)
+    ) {
       localStorage.setItem(libraryStartConfirmedKey(idea.id), "1");
       return true;
     }
@@ -123,7 +130,7 @@ function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
     ...idea,
     stage: "pre-clarity",
     shelfReadiness: Math.max(idea.shelfReadiness, 45),
-    nextAction: "Answer three Library questions before creating the project brief",
+    nextAction: LIBRARY_STAGE_NEXT_ACTION,
   };
 }
 
@@ -659,7 +666,7 @@ function requiredFollowupQuestionFor(
     ) ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
   return {
     id: `required-${answeredCount + 1}-${cat}`,
-    prompt: `${requiredFollowupTextFor(cat, idea)} Follow-up ${answeredCount + 1} of ${MIN_CLARITY_FOLLOWUPS}.`,
+    prompt: requiredFollowupTextFor(cat, idea),
     keywords: [],
   };
 }
@@ -828,8 +835,7 @@ function libraryReadinessForIdea(idea: LightbulbIdea | undefined, extras: IdeaEx
   }));
   const weak = strengths.filter((item) => item.stars < 3);
   const averagePct = Math.round(
-    strengths.reduce((sum, item) => sum + [0, 35, 65, 90, 100][item.stars], 0) /
-      strengths.length,
+    strengths.reduce((sum, item) => sum + [0, 35, 65, 90, 100][item.stars], 0) / strengths.length,
   );
   return {
     strengths,
@@ -1161,7 +1167,9 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
     readoutLines.push(`Starting signals in: ${strong.join(", ")}.`);
   }
   if (missing.length) {
-    readoutLines.push(`Still fuzzy on: ${missing.map(labelOf).join(", ")}. Answer Library questions next.`);
+    readoutLines.push(
+      `Still fuzzy on: ${missing.map(labelOf).join(", ")}. Answer Library questions next.`,
+    );
   } else {
     readoutLines.push("Each folder has an initial note, but the Library still needs real answers.");
   }
@@ -1400,6 +1408,13 @@ function inferIdeaType(text: string, fallback?: string): string | undefined {
     return "App";
   }
   if (
+    /\b(construction|jobsite|job site|crew|contractor|foreman|worker manager|job address|job location|schedule update)\b/i.test(
+      text,
+    )
+  ) {
+    return "Tool";
+  }
+  if (
     /\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(
       text,
     )
@@ -1604,9 +1619,7 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return (parsed as LightbulbIdea[])
-        .map(cleanStoredIdeaTitle)
-        .map(normalizeLibraryStage);
+      return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle).map(normalizeLibraryStage);
     }
   } catch {}
   return null;
@@ -1674,10 +1687,12 @@ function Dashboard() {
   >({});
   const [libraryRedoUsed, setLibraryRedoUsed] = useState(false);
   const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
-    { kind: "idle" } | { kind: "sending" } | { kind: "ok"; at: number } | { kind: "error"; message: string }
+    | { kind: "idle" }
+    | { kind: "sending" }
+    | { kind: "ok"; at: number }
+    | { kind: "error"; message: string }
   >({ kind: "idle" });
   const [summaryIdea, setSummaryIdea] = useState<LightbulbIdea | null>(null);
-  
 
   const sendLibraryWebhook = async (attemptNumber: number) => {
     if (!selected) return;
@@ -1764,10 +1779,7 @@ function Dashboard() {
     }
   }, []);
 
-  const selected = useMemo(
-    () => ideas.find((i) => i.id === selectedId),
-    [ideas, selectedId],
-  );
+  const selected = useMemo(() => ideas.find((i) => i.id === selectedId), [ideas, selectedId]);
 
   useEffect(() => {
     if (!storageReady) return;
@@ -1794,7 +1806,6 @@ function Dashboard() {
   // only after that selection — not automatically on page load.
   const [tierPickerOpen, setTierPickerOpen] = useState(false);
   const [libraryStartOpen, setLibraryStartOpen] = useState(false);
-
 
   const selectedExtras: IdeaExtras = selected
     ? (extras[selected.id] ?? emptyExtras())
@@ -2032,7 +2043,7 @@ function Dashboard() {
               ...i,
               stage: "pre-clarity",
               shelfReadiness: Math.max(i.shelfReadiness, 45),
-              nextAction: "Answer three Library questions before creating the project brief",
+              nextAction: LIBRARY_STAGE_NEXT_ACTION,
               updatedAt: Date.now(),
             }
           : i,
@@ -2245,10 +2256,7 @@ function Dashboard() {
     const balance = readCreditsBalance();
     if (balance < LIBRARY_START_CREDIT_COST) return;
     try {
-      localStorage.setItem(
-        "dabottree:credits",
-        String(balance - LIBRARY_START_CREDIT_COST),
-      );
+      localStorage.setItem("dabottree:credits", String(balance - LIBRARY_START_CREDIT_COST));
       localStorage.setItem(libraryStartPaidKey(selected.id), "1");
       localStorage.setItem(libraryStartConfirmedKey(selected.id), "1");
       window.dispatchEvent(new Event("storage"));
@@ -2256,7 +2264,7 @@ function Dashboard() {
     updateSelected({
       stage: "pre-clarity",
       shelfReadiness: Math.max(selected.shelfReadiness, 45),
-      nextAction: "Answer three Library questions before creating the project brief",
+      nextAction: LIBRARY_STAGE_NEXT_ACTION,
     });
     setLibraryStartOpen(false);
     openReportPath();
@@ -2295,27 +2303,30 @@ function Dashboard() {
 
       {/* Clarity the squirrel — transparent PNG overlay, follows viewport.
           Swaps to the "ready" pose when the Next Step button unlocks. */}
-      {selected ? (() => {
-        const nextStepUnlocked =
-          overallPct >= 90 && (selectedExtras.clarityFollowupCount ?? 0) >= MIN_CLARITY_FOLLOWUPS;
-        return (
-          <img
-            src={nextStepUnlocked ? claritySquirrelReady : claritySquirrel}
-            alt="Clarity"
-            aria-hidden
-            className={
-              nextStepUnlocked
-                ? "pointer-events-none fixed z-20 select-none right-[-35px] bottom-[150px] h-[299px] sm:right-2 sm:bottom-[220px] sm:h-[368px] lg:right-32 lg:bottom-16 lg:h-[766px]"
-                : "pointer-events-none fixed z-20 select-none right-[-30px] bottom-[150px] h-[260px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
-            }
-            style={{
-              width: "auto",
-              filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
-              animation: "clarity-float 6s ease-in-out infinite",
-            }}
-          />
-        );
-      })() : null}
+      {selected
+        ? (() => {
+            const nextStepUnlocked =
+              overallPct >= 90 &&
+              (selectedExtras.clarityFollowupCount ?? 0) >= MIN_CLARITY_FOLLOWUPS;
+            return (
+              <img
+                src={nextStepUnlocked ? claritySquirrelReady : claritySquirrel}
+                alt="Clarity"
+                aria-hidden
+                className={
+                  nextStepUnlocked
+                    ? "pointer-events-none fixed z-20 select-none right-[-35px] bottom-[150px] h-[299px] sm:right-2 sm:bottom-[220px] sm:h-[368px] lg:right-32 lg:bottom-16 lg:h-[766px]"
+                    : "pointer-events-none fixed z-20 select-none right-[-30px] bottom-[150px] h-[260px] sm:right-2 sm:bottom-[220px] sm:h-[320px] lg:right-8 lg:bottom-32 lg:h-[640px]"
+                }
+                style={{
+                  width: "auto",
+                  filter: "drop-shadow(0 22px 28px rgba(20,10,2,0.55))",
+                  animation: "clarity-float 6s ease-in-out infinite",
+                }}
+              />
+            );
+          })()
+        : null}
 
       {/* Header — laid-down book controls floating over the library scene */}
       <header className="relative z-30 flex flex-wrap items-center justify-center gap-1.5 px-2 pt-1.5 sm:gap-3 sm:px-6 sm:pt-5 lg:flex-nowrap lg:justify-between">
@@ -2339,7 +2350,6 @@ function Dashboard() {
             overall={overallPct}
           />
         </div>
-
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
         <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
@@ -2515,7 +2525,7 @@ function Dashboard() {
               <button
                 type="button"
                 onClick={() => {
-                    openIdeaDashboard(summaryIdea.id);
+                  openIdeaDashboard(summaryIdea.id);
                   setSummaryIdea(null);
                 }}
                 className="w-full rounded-sm border border-amber-950/60 bg-amber-900 px-3 py-2 text-center text-[12px] font-semibold text-amber-50 transition hover:bg-amber-950"
@@ -3075,7 +3085,8 @@ function ProfileAvatarButton({
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
                   style={{
                     background: "linear-gradient(180deg, #b8a078 0%, #8a6e40 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
                   }}
                 >
                   <BookOpen className="h-5 w-5 text-amber-50" />
@@ -3091,7 +3102,8 @@ function ProfileAvatarButton({
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
                   style={{
                     background: "linear-gradient(180deg, #8a9eb0 0%, #5a7088 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
                   }}
                 >
                   <User className="h-5 w-5 text-amber-50" />
@@ -3232,9 +3244,7 @@ function ProfileAvatarButton({
             >
               ← Back
             </button>
-            <div className="mb-2 font-serif text-[13px] font-semibold text-amber-950">
-              Profile
-            </div>
+            <div className="mb-2 font-serif text-[13px] font-semibold text-amber-950">Profile</div>
             <div className="mb-3 flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-full border border-amber-950/60 bg-amber-100">
                 {photo ? (
@@ -3499,13 +3509,13 @@ function OrganizeButton({
           title={
             stageAdvanced
               ? "Already organized"
-                : unlocked
-                  ? `Ready! View the Library report (${overall}%)`
-                  : weakFolderCount > 0
-                    ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
+              : unlocked
+                ? `Ready! View the Library report (${overall}%)`
+                : weakFolderCount > 0
+                  ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
                   : remainingFollowups > 0
                     ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
-                  : `Asleep — unlocks at 90% (currently ${overall}%)`
+                    : `Asleep — unlocks at 90% (currently ${overall}%)`
           }
           trailing={unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null}
         />
@@ -3524,8 +3534,8 @@ function OrganizeButton({
             </>
           ) : weakFolderCount > 0 ? (
             <>
-              Get every folder to <strong>3 or 4 stars</strong> first. {weakFolderCount} still
-              need more.
+              Get every folder to <strong>3 or 4 stars</strong> first. {weakFolderCount} still need
+              more.
             </>
           ) : (
             <>
@@ -3735,10 +3745,7 @@ function LibraryLevelReportModal({
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {categoryReview.map((item) => (
-              <div
-                key={item.cat}
-                className="rounded-lg border border-amber-200/15 bg-black/25 p-3"
-              >
+              <div key={item.cat} className="rounded-lg border border-amber-200/15 bg-black/25 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-serif text-sm font-semibold text-amber-100">
                     {item.label}
@@ -3989,10 +3996,7 @@ function LibraryDoorQuestionModal({
           {questions.map((question, index) => {
             const thisIdxActive = voiceIdx === index;
             return (
-              <li
-                key={question}
-                className="rounded-xl border border-amber-200/25 bg-black/30 p-3"
-              >
+              <li key={question} className="rounded-xl border border-amber-200/25 bg-black/30 p-3">
                 <div className="text-sm leading-relaxed text-amber-50/95">
                   <span className="font-semibold text-amber-200">{index + 1}. </span>
                   {question}
@@ -5290,7 +5294,7 @@ function ClarityGuide({
     if (!selected)
       return "Welcome to the Creator Library. Open the Idea Shelf and choose a spark to begin.";
     if (!currentQuestion)
-      return "You've answered my three biggest questions. The idea is over 90% now, so View Report is ready.";
+      return "You've answered the current Clarity questions. View Report is ready when the idea is strong enough.";
     return null;
   }, [selected, currentQuestion]);
 
@@ -5303,7 +5307,7 @@ function ClarityGuide({
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `Good, we have a starting point. Now I’ll ask three focused Library questions so we can build the foundation before this turns into a project brief.\n\n${currentQuestion!.prompt}`
+        ? `Good, we have a starting point. I’ll ask personalized Clarity questions based on what is still weak or missing before this turns into a project brief.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;
