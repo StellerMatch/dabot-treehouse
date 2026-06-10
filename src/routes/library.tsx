@@ -75,10 +75,65 @@ function cleanDraftText(text: string): string {
 function titleFromDraft(text: string, ideaType?: string): string {
   const clean = cleanDraftText(text);
   const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
-  const words = firstSentence.split(/\s+/).filter(Boolean).slice(0, 7);
+  const stop = new Set([
+    "a",
+    "an",
+    "the",
+    "to",
+    "for",
+    "of",
+    "and",
+    "or",
+    "with",
+    "that",
+    "this",
+    "have",
+    "has",
+    "having",
+    "want",
+    "wants",
+    "need",
+    "needs",
+    "new",
+    "idea",
+    "project",
+    "program",
+    "site",
+    "website",
+    "app",
+    "tool",
+    "build",
+    "make",
+    "using",
+    "help",
+    "helps",
+    "learns",
+  ]);
+  const words = firstSentence
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, ""))
+    .filter((word) => word.length > 2 && !stop.has(word.toLowerCase()))
+    .slice(0, 7);
   const title = words.join(" ");
   if (title.length > 0) return title.charAt(0).toUpperCase() + title.slice(1);
   return ideaType ? `${ideaType} idea` : "Untitled idea";
+}
+
+function shouldCleanSavedTitle(title: string): boolean {
+  const t = title.trim();
+  return (
+    /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
+    /^an\s+(app|tool|website)\b/i.test(t) ||
+    /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
+    t.length > 54
+  );
+}
+
+function cleanStoredIdeaTitle(idea: LightbulbIdea): LightbulbIdea {
+  if (!shouldCleanSavedTitle(idea.title)) return idea;
+  const context = [idea.description, idea.messy, idea.title].filter(Boolean).join(" ");
+  const title = titleFromDraft(context, idea.ideaType);
+  return title && title !== idea.title ? { ...idea, title } : idea;
 }
 
 function summaryFromDraft(text: string): string {
@@ -138,7 +193,7 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     const raw = localStorage.getItem(IDEAS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as LightbulbIdea[];
+    if (Array.isArray(parsed)) return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle);
   } catch {}
   return null;
 }

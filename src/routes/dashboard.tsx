@@ -793,7 +793,12 @@ function generateTitle(text: string, ideaType?: string): string {
     "is",
     "are",
     "my",
+    "have",
+    "has",
+    "having",
     "new",
+    "idea",
+    "project",
     "program",
     "site",
     "website",
@@ -1442,7 +1447,7 @@ function ideaMetadataFromText(
 }
 
 function isWeakGeneratedTitle(title: string): boolean {
-  return /^(might create|program\s*\/\s*site|new (?:app|tool|idea|project)|untitled idea)\b/i.test(
+  return /^(might create|program\s*\/\s*site|(?:have\s+)?new (?:app|tool|idea|project|idea app)|have new idea app|untitled idea)\b/i.test(
     title.trim(),
   );
 }
@@ -1562,6 +1567,7 @@ function shouldCleanSavedTitle(title: string): boolean {
   return (
     /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
     /^an\s+(app|tool|website)\b/i.test(t) ||
+    /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
     t.length > 54
   );
 }
