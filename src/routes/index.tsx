@@ -5,35 +5,11 @@ import logoImage from "@/assets/dabottree-logo.png";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import { IDEA_SHELF_NEXT_ACTION, seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
+import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
 import { generateWorkingProjectTitle } from "@/lib/project-naming";
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
-const INTAKE_CATEGORY_KEYS = [
-  "core-idea",
-  "clarity",
-  "problem",
-  "audience",
-  "features",
-  "workflow",
-  "design",
-  "business",
-  "concerns",
-] as const;
-
-type IntakeCategoryKey = (typeof INTAKE_CATEGORY_KEYS)[number];
-
-const intakeCategoryLabels: Record<IntakeCategoryKey, string> = {
-  "core-idea": "Core Idea",
-  clarity: "Clarity",
-  problem: "Problem",
-  audience: "Audience",
-  features: "Features",
-  workflow: "Workflow",
-  design: "Design",
-  business: "Business",
-  concerns: "Concerns",
-};
 
 function cleanIdeaText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
@@ -62,25 +38,11 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
 }
 
 function createIntakeExtras(text: string, ts: number) {
-  const clean = cleanIdeaText(text);
-  const isStrongIntake = clean.length >= 650;
-  const clarityText = isStrongIntake
-    ? `Captured a detailed front-screen idea intake. The Library still needs three focused answers before the project brief unlocks.\n\n-- Source Notes --\n${clean}`
-    : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
-
   return {
     sourceText: text,
     notes: {},
     attachments: [],
-    posts: INTAKE_CATEGORY_KEYS.map((category, index) => ({
-      id: `post-${ts}-${category}`,
-      kind: "idea-notes",
-      text: intakeCategoryLabels[category],
-      fullText: category === "clarity" ? clarityText : clean,
-      ts: ts - index,
-      categories: [category],
-      source: "generated-folder",
-    })),
+    posts: buildIntakeFolderPosts(cleanIdeaText(text), ts),
     answeredQuestions: [],
     skippedQuestions: [],
     clarityFollowupCount: 0,

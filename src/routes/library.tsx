@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { IDEA_SHELF_NEXT_ACTION, seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
@@ -19,19 +20,6 @@ const libraryBg = libraryBgAsset.url;
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
 const LIBRARY_START_CREDIT_COST = 10;
-const INTAKE_CATEGORY_KEYS = [
-  "core-idea",
-  "clarity",
-  "problem",
-  "audience",
-  "features",
-  "workflow",
-  "design",
-  "business",
-  "concerns",
-] as const;
-
-type IntakeCategoryKey = (typeof INTAKE_CATEGORY_KEYS)[number];
 type NotebookPost = {
   id: string;
   kind?: string;
@@ -55,18 +43,6 @@ type NotebookEntry = {
   title: string;
   body: string;
   ts: number;
-};
-
-const intakeCategoryLabels: Record<IntakeCategoryKey, string> = {
-  "core-idea": "Core Idea",
-  clarity: "Clarity",
-  problem: "Problem",
-  audience: "Audience",
-  features: "Features",
-  workflow: "Workflow",
-  design: "Design",
-  business: "Business",
-  concerns: "Concerns",
 };
 
 function cleanDraftText(text: string): string {
@@ -162,24 +138,11 @@ function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
 
 function extrasFromDraft(text: string, ts: number) {
   const clean = cleanDraftText(text);
-  const isStrongIntake = clean.length >= 650;
-  const clarityText = isStrongIntake
-    ? `Captured a detailed front-screen idea intake. The Library still needs three focused answers before the project brief unlocks.\n\n-- Source Notes --\n${clean}`
-    : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
-
   return {
     sourceText: text,
     notes: {},
     attachments: [],
-    posts: INTAKE_CATEGORY_KEYS.map((category, index) => ({
-      id: `post-${ts}-${category}`,
-      kind: "idea-notes",
-      text: intakeCategoryLabels[category],
-      fullText: category === "clarity" ? clarityText : clean,
-      ts: ts - index,
-      categories: [category],
-      source: "generated-folder",
-    })),
+    posts: buildIntakeFolderPosts(clean, ts),
     answeredQuestions: [],
     skippedQuestions: [],
     clarityFollowupCount: 0,

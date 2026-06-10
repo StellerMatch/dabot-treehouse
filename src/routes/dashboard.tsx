@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { IDEA_SHELF_NEXT_ACTION, seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import { bodyForIntakeFolder, parseIntakeIntoFolderBuckets } from "@/lib/intake-folder-breakdown";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
@@ -1181,15 +1182,14 @@ function bodyForCategoryItems(cat: CategoryKey, items: string[]): string {
 }
 
 function buildCategoryFolderPosts(text: string, ts: number): PostIt[] {
-  const buckets = parsePromptIntoCategories(text);
+  const buckets = parseIntakeIntoFolderBuckets(text);
   return CATEGORY_ORDER.map((cat, i) => {
-    const body = bodyForCategoryItems(cat, buckets[cat]);
+    const body = bodyForIntakeFolder(cat, buckets[cat]);
     return {
       id: `post-${ts}-${cat}`,
       kind: "idea-notes",
       text: postItCategoryPalette[cat].label,
-      // Raw pasted prompt lives only in Clarity's detail view as background context.
-      fullText: cat === "clarity" ? `${body}\n\n— Source Notes (raw paste) —\n${text}` : body,
+      fullText: body,
       ts: ts - i,
       categories: [cat],
       source: "generated-folder",
