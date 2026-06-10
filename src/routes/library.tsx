@@ -18,6 +18,41 @@ const libraryBg = libraryBgAsset.url;
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
 
+function cleanDraftText(text: string): string {
+  return text.trim().replace(/\s+/g, " ");
+}
+
+function titleFromDraft(text: string, ideaType?: string): string {
+  const clean = cleanDraftText(text);
+  const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
+  const words = firstSentence.split(/\s+/).filter(Boolean).slice(0, 7);
+  const title = words.join(" ");
+  if (title.length > 0) return title.charAt(0).toUpperCase() + title.slice(1);
+  return ideaType ? `${ideaType} idea` : "Untitled idea";
+}
+
+function summaryFromDraft(text: string): string {
+  const clean = cleanDraftText(text);
+  if (clean.length <= 180) return clean;
+  return `${clean.slice(0, 177).trim()}...`;
+}
+
+function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
+  const ts = Date.now();
+  const title = titleFromDraft(text, ideaType);
+  return {
+    id: `idea-${ts}`,
+    title,
+    messy: summaryFromDraft(text),
+    shelfReadiness: 32,
+    updatedAt: ts,
+    stage: "lightbulb",
+    nextAction: "Answer the next clarity question",
+    ideaType: ideaType || undefined,
+    description: cleanDraftText(text),
+  };
+}
+
 function loadStoredIdeas(): LightbulbIdea[] | null {
   if (typeof window === "undefined") return null;
   try {
@@ -66,7 +101,20 @@ function LibraryPage() {
 
   useEffect(() => {
     const stored = loadStoredIdeas();
-    if (stored) setIdeas(stored);
+    let nextIdeas = stored ?? seedIdeas;
+    try {
+      const draft = sessionStorage.getItem("dabottree:draftIdea") ?? "";
+      const draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";
+      if (draft.trim().length > 0) {
+        const newIdea = ideaFromDraft(draft, draftType);
+        nextIdeas = [newIdea, ...nextIdeas];
+        sessionStorage.removeItem("dabottree:draftIdea");
+        sessionStorage.removeItem("dabottree:draftIdeaType");
+        sessionStorage.removeItem("dabottree:packageTier");
+        sessionStorage.removeItem("dabottree:reportPath");
+      }
+    } catch {}
+    setIdeas(nextIdeas);
     setReady(true);
   }, []);
 
