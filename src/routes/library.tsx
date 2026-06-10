@@ -319,13 +319,44 @@ function libraryStartPaidKey(ideaId: string) {
   return `dabottree:libraryStartPaid:${ideaId}`;
 }
 
+function hasLibraryActivityInExtras(ideaId: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem(EXTRAS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const extras =
+      parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed[ideaId] : null;
+    if (!extras || typeof extras !== "object") return false;
+    if (Array.isArray(extras.answeredQuestions) && extras.answeredQuestions.length > 0) return true;
+    if (Array.isArray(extras.posts)) {
+      const folderPosts = extras.posts.filter(
+        (p: { source?: string }) => p && p.source === "generated-folder",
+      );
+      if (folderPosts.length > 0) return true;
+      const capturedNotes = extras.posts.filter(
+        (p: { source?: string }) => p && p.source === "captured-note",
+      );
+      if (capturedNotes.length > 0) return true;
+    }
+    if ((extras.clarityFollowupCount ?? 0) > 0) return true;
+  } catch {}
+  return false;
+}
+
 function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
   if (idea.stage !== "lightbulb" || typeof window === "undefined") return idea;
+  let paid = false;
   try {
-    if (localStorage.getItem(libraryStartPaidKey(idea.id)) !== "1") return idea;
-  } catch {
-    return idea;
+    paid = localStorage.getItem(libraryStartPaidKey(idea.id)) === "1";
+  } catch {}
+  if (!paid && hasLibraryActivityInExtras(idea.id)) {
+    // Backfill: idea already moved into Library before the paid marker existed.
+    try {
+      localStorage.setItem(libraryStartPaidKey(idea.id), "1");
+    } catch {}
+    paid = true;
   }
+  if (!paid) return idea;
   return {
     ...idea,
     stage: "pre-clarity",
