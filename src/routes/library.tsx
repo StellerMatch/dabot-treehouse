@@ -74,6 +74,13 @@ function cleanDraftText(text: string): string {
 
 function titleFromDraft(text: string, ideaType?: string): string {
   const clean = cleanDraftText(text);
+  if (
+    /\b(qr|code|scan)\b/i.test(clean) &&
+    /\b(t-?shirt|tee|shirt)\b/i.test(clean) &&
+    /\b(coupon|reward|credit|discount)\b/i.test(clean)
+  ) {
+    return "QR Tee Rewards";
+  }
   const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
   const stop = new Set([
     "a",
@@ -108,12 +115,29 @@ function titleFromDraft(text: string, ideaType?: string): string {
     "help",
     "helps",
     "learns",
+    "user",
+    "users",
+    "someone",
+    "people",
+    "person",
+    "walking",
+    "phone",
+    "account",
+    "credit",
+    "coupon",
+    "scan",
+    "scans",
+    "scanned",
+    "code",
+    "shirt",
+    "tshirt",
+    "tee",
   ]);
   const words = firstSentence
     .split(/\s+/)
     .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, ""))
     .filter((word) => word.length > 2 && !stop.has(word.toLowerCase()))
-    .slice(0, 7);
+    .slice(0, 3);
   const title = words.join(" ");
   if (title.length > 0) return title.charAt(0).toUpperCase() + title.slice(1);
   return ideaType ? `${ideaType} idea` : "Untitled idea";
@@ -125,6 +149,7 @@ function shouldCleanSavedTitle(title: string): boolean {
     /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
     /^an\s+(app|tool|website)\b/i.test(t) ||
     /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
+    (/\b(shirt|tee|tshirt)\b/i.test(t) && /\b(code|scan|coupon|credit)\b/i.test(t)) ||
     t.length > 54
   );
 }

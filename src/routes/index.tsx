@@ -72,6 +72,13 @@ function titleFromIdea(text: string, ideaType?: string): string {
   const clean = cleanIdeaText(text);
   if (!clean) return ideaType ? `${ideaType} idea` : "Untitled idea";
   if (
+    /\b(qr|code|scan)\b/i.test(clean) &&
+    /\b(t-?shirt|tee|shirt)\b/i.test(clean) &&
+    /\b(coupon|reward|credit|discount)\b/i.test(clean)
+  ) {
+    return "QR Tee Rewards";
+  }
+  if (
     /\bwedding\b/i.test(clean) &&
     /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(clean)
   ) {
@@ -117,6 +124,23 @@ function titleFromIdea(text: string, ideaType?: string): string {
     "help",
     "helps",
     "learns",
+    "user",
+    "users",
+    "someone",
+    "people",
+    "person",
+    "walking",
+    "phone",
+    "account",
+    "credit",
+    "coupon",
+    "scan",
+    "scans",
+    "scanned",
+    "code",
+    "shirt",
+    "tshirt",
+    "tee",
   ]);
   const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
   const words = firstSentence

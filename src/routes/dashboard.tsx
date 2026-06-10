@@ -757,6 +757,13 @@ function generateTitle(text: string, ideaType?: string): string {
   const t = text.trim();
   if (!t) return "Untitled Idea";
   if (
+    /\b(qr|code|scan)\b/i.test(t) &&
+    /\b(t-?shirt|tee|shirt)\b/i.test(t) &&
+    /\b(coupon|reward|credit|discount)\b/i.test(t)
+  ) {
+    return "QR Tee Rewards";
+  }
+  if (
     /\bwedding\b/i.test(t) &&
     /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(t)
   ) {
@@ -810,6 +817,23 @@ function generateTitle(text: string, ideaType?: string): string {
     "help",
     "helps",
     "learns",
+    "user",
+    "users",
+    "someone",
+    "people",
+    "person",
+    "walking",
+    "phone",
+    "account",
+    "credit",
+    "coupon",
+    "scan",
+    "scans",
+    "scanned",
+    "code",
+    "shirt",
+    "tshirt",
+    "tee",
   ]);
   const firstSentence = t.split(/[.!?]/)[0] ?? t;
   const words = firstSentence
@@ -1568,6 +1592,7 @@ function shouldCleanSavedTitle(title: string): boolean {
     /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
     /^an\s+(app|tool|website)\b/i.test(t) ||
     /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
+    (/\b(shirt|tee|tshirt)\b/i.test(t) && /\b(code|scan|coupon|credit)\b/i.test(t)) ||
     t.length > 54
   );
 }
