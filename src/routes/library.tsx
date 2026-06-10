@@ -11,12 +11,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { BookOpen, FileText, Trash2, Tag, Plus, Mic, Save } from "lucide-react";
+import { BookOpen, Coins, FileText, Trash2, Tag, Plus, Mic, Save } from "lucide-react";
 
 const libraryBg = libraryBgAsset.url;
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+const LIBRARY_START_CREDIT_COST = 10;
 const INTAKE_CATEGORY_KEYS = [
   "core-idea",
   "clarity",
@@ -158,6 +159,28 @@ function saveExtrasMap(extras: Record<string, IdeaExtrasRecord>) {
   try {
     localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
   } catch {}
+}
+
+function readCreditsBalance(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const value = Number(localStorage.getItem("dabottree:credits") ?? "0");
+    return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeCreditsBalance(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("dabottree:credits", String(Math.max(0, Math.floor(value))));
+    window.dispatchEvent(new Event("storage"));
+  } catch {}
+}
+
+function libraryStartPaidKey(ideaId: string) {
+  return `dabottree:libraryStartPaid:${ideaId}`;
 }
 
 function shortEntryTitle(text: string): string {
@@ -331,6 +354,8 @@ function LibraryPage() {
   const [notebookIdea, setNotebookIdea] = useState<LightbulbIdea | null>(null);
   const [openEntry, setOpenEntry] = useState<NotebookEntry | null>(null);
   const [addNoteIdea, setAddNoteIdea] = useState<LightbulbIdea | null>(null);
+  const [libraryStartIdea, setLibraryStartIdea] = useState<LightbulbIdea | null>(null);
+  const [creditBalance, setCreditBalance] = useState(0);
   const [noteText, setNoteText] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [listening, setListening] = useState(false);
@@ -368,7 +393,22 @@ function LibraryPage() {
     } catch {}
     nextIdeas = backfillMissingIntakeExtras(nextIdeas);
     setIdeas(nextIdeas);
+    setCreditBalance(readCreditsBalance());
     setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncCredits = () => setCreditBalance(readCreditsBalance());
+    syncCredits();
+    window.addEventListener("storage", syncCredits);
+    window.addEventListener("focus", syncCredits);
+    document.addEventListener("visibilitychange", syncCredits);
+    return () => {
+      window.removeEventListener("storage", syncCredits);
+      window.removeEventListener("focus", syncCredits);
+      document.removeEventListener("visibilitychange", syncCredits);
+    };
   }, []);
 
   // Persist deletions made on this page.
@@ -381,6 +421,47 @@ function LibraryPage() {
 
   const openIdea = (id: string) => {
     navigate({ to: "/dashboard", search: { ideaId: id } });
+  };
+
+  const hasPaidLibraryStart = (id: string) => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem(libraryStartPaidKey(id)) === "1";
+    } catch {
+      return false;
+    }
+  };
+
+  const beginBuild = (idea: LightbulbIdea) => {
+    if (idea.stage === "lightbulb" && !hasPaidLibraryStart(idea.id)) {
+      setLibraryStartIdea(idea);
+      setCreditBalance(readCreditsBalance());
+      return;
+    }
+    openIdea(idea.id);
+  };
+
+  const addCredits = (amount: number) => {
+    const next = readCreditsBalance() + amount;
+    writeCreditsBalance(next);
+    setCreditBalance(next);
+  };
+
+  const confirmLibraryStart = () => {
+    if (!libraryStartIdea) return;
+    const balance = readCreditsBalance();
+    if (balance < LIBRARY_START_CREDIT_COST) {
+      setCreditBalance(balance);
+      return;
+    }
+    const next = balance - LIBRARY_START_CREDIT_COST;
+    writeCreditsBalance(next);
+    try {
+      localStorage.setItem(libraryStartPaidKey(libraryStartIdea.id), "1");
+    } catch {}
+    const id = libraryStartIdea.id;
+    setLibraryStartIdea(null);
+    openIdea(id);
   };
 
   const addNotebookNote = () => {
@@ -544,7 +625,7 @@ function LibraryPage() {
                   <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-4">
                     <button
                       type="button"
-                      onClick={() => openIdea(idea.id)}
+                      onClick={() => beginBuild(idea)}
                       className="inline-flex items-center gap-1 rounded-sm border border-emerald-200/60 bg-gradient-to-b from-[#68a15a] to-[#2f6b35] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-50 shadow-[0_0_18px_-8px_rgba(165,255,180,0.95)] transition hover:from-[#77b86a] hover:to-[#387a40]"
                     >
                       <BookOpen className="h-3 w-3" />
@@ -719,6 +800,127 @@ function LibraryPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {libraryStartIdea && (
+        <LibraryStartCreditModal
+          idea={libraryStartIdea}
+          balance={creditBalance}
+          cost={LIBRARY_START_CREDIT_COST}
+          onAddCredits={addCredits}
+          onClose={() => setLibraryStartIdea(null)}
+          onConfirm={confirmLibraryStart}
+        />
+      )}
     </main>
+  );
+}
+
+function LibraryStartCreditModal({
+  idea,
+  balance,
+  cost,
+  onAddCredits,
+  onClose,
+  onConfirm,
+}: {
+  idea: LightbulbIdea;
+  balance: number;
+  cost: number;
+  onAddCredits: (amount: number) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const canAfford = balance >= cost;
+  return (
+    <div
+      className="fixed inset-0 z-[95] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Start Library stage"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+      />
+      <div
+        className="relative w-full max-w-[500px] rounded-md border border-amber-200/60 px-6 py-6 text-amber-50 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9),0_0_70px_-10px_rgba(255,190,90,0.55)]"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(142,96,31,0.96) 0%, rgba(72,43,15,0.98) 58%, rgba(34,20,8,0.99) 100%)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
+        >
+          x
+        </button>
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/50 bg-black/25">
+          <Coins className="h-6 w-6 text-amber-200" />
+        </div>
+        <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
+          Library Stage
+        </p>
+        <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
+          Start the 10-credit Clarity Review?
+        </h2>
+        <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
+          <p>
+            <strong>{idea.title || "Untitled idea"}</strong> will move into the Library stage,
+            where Clarity shapes the idea and prepares the first review step. This costs{" "}
+            <strong>{cost} credits</strong>.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-sm border border-amber-200/20 bg-black/25 px-3 py-2">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/60">
+                Available credits
+              </div>
+              <div className="mt-1 text-lg font-semibold tabular-nums">{balance}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onAddCredits(10)}
+              className="rounded-sm border border-amber-200/35 bg-amber-100/12 px-3 py-2 text-left text-amber-50 transition hover:bg-amber-100/20"
+            >
+              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/60">
+                Need more?
+              </div>
+              <div className="mt-1 font-semibold">Add 10 Credits</div>
+            </button>
+          </div>
+          {!canAfford && (
+            <p className="mt-3 text-[12px] text-amber-100/75">
+              Add credits before starting this Library stage.
+            </p>
+          )}
+        </div>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-amber-200/30 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-200/10"
+          >
+            Not yet
+          </button>
+          <button
+            type="button"
+            disabled={!canAfford}
+            onClick={onConfirm}
+            className={
+              "rounded-full border px-4 py-2 text-sm font-semibold transition " +
+              (canAfford
+                ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
+                : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/45")
+            }
+          >
+            {canAfford ? `Spend ${cost} credits and continue` : "Add credits first"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
