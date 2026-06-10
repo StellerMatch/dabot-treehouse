@@ -628,8 +628,38 @@ function projectQuestionName(idea: LightbulbIdea | undefined): string {
   return "this project";
 }
 
+function ideaQuestionContext(idea: LightbulbIdea | undefined): string {
+  return [idea?.title, idea?.messy, idea?.description, idea?.audience, idea?.industry, idea?.ideaType]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function isCrewDispatchIdea(idea: LightbulbIdea | undefined): boolean {
+  const context = ideaQuestionContext(idea);
+  return (
+    /\b(construction|contractor|jobsite|job site|foreman|crew|worker manager)\b/i.test(context) &&
+    /\b(job address|job location|schedule|dispatch|assign|worker|employee|crew|text message|notification|accept|decline)\b/i.test(
+      context,
+    )
+  );
+}
+
 function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  if (isCrewDispatchIdea(idea)) {
+    const questions: Partial<Record<string, string>> = {
+      "version-one": `For version one of ${name}, should it only suggest the best-fit workers for a job address, only send schedule-update messages, or do both?`,
+      "who-does-work": `Who makes the final crew assignment in ${name}: the system, the manager, a foreman, or the system suggesting and a human approving?`,
+      "trust-first": `What should the manager trust first in ${name}: distance to the job, worker skill tags, availability, past reliability, acceptance status, or something else?`,
+      "first-paid-version": `What would make ${name} worth paying for first: saving manager scheduling time, reducing drive time, avoiding missed updates, or improving crew utilization?`,
+      "most-important-detail": `What detail matters most for ${name}: accurate worker locations, skill matching, fast schedule updates, accept/decline tracking, or manager override control?`,
+      problem: `What scheduling or dispatch problem should ${name} solve first for the construction manager?`,
+      who: `Who uses ${name} first: the construction manager, foreman, office scheduler, crew workers, or all of them?`,
+      "look-like": `What should the manager and worker each see first when a new job address or schedule update is sent?`,
+    };
+    const personalized = questions[question.id];
+    if (personalized) return personalized;
+  }
   switch (question.id) {
     case "version-one":
       return `What is version one for ${name}? You gave me the bigger shape; what is the smallest useful version of it?`;
@@ -673,6 +703,20 @@ function requiredFollowupQuestionFor(
 
 function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  if (isCrewDispatchIdea(idea)) {
+    const questions: Record<CategoryKey, string> = {
+      "core-idea": `What is the strongest one-line purpose for ${name}: matching the right crew to each job address, sending schedule updates, or both?`,
+      clarity: `What is still undecided for ${name}: saved home base, daily worker location, accept/decline rules, override rules, or notification style?`,
+      problem: `What problem should ${name} solve first: finding nearby workers, matching the right skills, preventing schedule confusion, reducing drive time, or something else?`,
+      audience: `Who exactly needs ${name} first: the construction manager, foreman, office scheduler, crew workers receiving updates, or all of them?`,
+      features: `What matching rules matter most for ${name}: distance to the job address, skill, availability, seniority, overtime, or manager choice?`,
+      workflow: `When a new job address comes in, what should happen from entering the address to assigning the crew and sending updates?`,
+      design: `What should the manager and worker each see so job assignments and schedule updates are easy to understand?`,
+      business: `What cost should ${name} reduce first: manager scheduling time, crew drive time, wrong assignments, delays, or missed updates?`,
+      concerns: `What should happen if the best-fit worker declines, is unavailable, lacks the right skill, or the manager needs to override the suggestion?`,
+    };
+    return questions[cat];
+  }
   const questions: Record<CategoryKey, string> = {
     "core-idea": `What is the strongest one-line purpose for ${name}?`,
     clarity: `What still feels unclear, undecided, or worth sharpening in ${name}?`,
@@ -690,6 +734,20 @@ function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefin
 // Premade Clarity questions per category — used when a user clicks a category folder
 function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  if (isCrewDispatchIdea(idea)) {
+    const questions: Record<CategoryKey, string> = {
+      "core-idea": `What is the clearest one-line promise for ${name}?`,
+      clarity: `What is still undecided for ${name}: location source, skill rules, availability, accept/decline flow, or manager override?`,
+      problem: `What construction scheduling problem hurts most right now: picking the wrong crew, too much drive time, missed updates, or slow manual dispatch?`,
+      audience: `Who is the first user for ${name}: manager, foreman, office scheduler, crew worker, or company owner?`,
+      features: `Which first feature matters most: job-address matching, worker profiles, skill tags, availability, schedule-update texts, accept/decline, or manager override?`,
+      workflow: `What should happen step by step when a new job address is entered and the crew assignment goes out?`,
+      design: `What should the manager screen and worker phone message each show so the assignment is clear?`,
+      business: `What business result should ${name} prove first: saved scheduling time, lower travel cost, faster dispatch, fewer missed updates, or better crew fit?`,
+      concerns: `What edge case should ${name} handle first: workers declining, location changes, bad addresses, no available skilled workers, or manual overrides?`,
+    };
+    return questions[cat];
+  }
   const label = postItCategoryPalette[cat].label;
   const prefix = `Clarity opened the ${label} book for ${name}:`;
   const questions: Record<CategoryKey, string> = {
