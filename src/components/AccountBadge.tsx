@@ -34,14 +34,12 @@ export function AccountBadge({ placement = "fixed", prominence = "normal" }: Acc
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<Profile>({ authed: false, name: "", email: "", photo: "" });
-  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   // Re-read on route change & on storage events. Defer to client to avoid SSR/CSR mismatch.
   useEffect(() => {
     setProfile(readProfile());
-    setMounted(true);
     setOpen(false);
   }, [pathname]);
 
