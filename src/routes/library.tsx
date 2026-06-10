@@ -526,25 +526,29 @@ function LibraryPage() {
               const stage = idea.stage
                 ? `Stage: ${stageLabels[idea.stage]}`
                 : "Stage: Idea";
+              const notebookEntryCount = notebookEntriesFor(
+                idea,
+                loadExtrasMap()[idea.id] ?? {},
+              ).length;
               return (
                 <li
                   key={idea.id}
-                  className="rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
+                  className="flex h-full flex-col rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
                 >
                   <div className="font-serif text-[15px] font-semibold text-amber-50">
                     {idea.title || "Untitled"}
                   </div>
-                  <div className="mt-1 line-clamp-3 font-serif text-[12px] italic text-amber-100/85">
+                  <div className="mt-1 font-serif text-[12px] italic leading-relaxed text-amber-100/85">
                     {nextStepSummary(idea)}
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-4">
                     <button
                       type="button"
                       onClick={() => openIdea(idea.id)}
                       className="inline-flex items-center gap-1 rounded-sm border border-emerald-200/60 bg-gradient-to-b from-[#68a15a] to-[#2f6b35] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-50 shadow-[0_0_18px_-8px_rgba(165,255,180,0.95)] transition hover:from-[#77b86a] hover:to-[#387a40]"
                     >
                       <BookOpen className="h-3 w-3" />
-                      Continue Project
+                      Let's Build
                     </button>
                     <button
                       type="button"
@@ -552,7 +556,7 @@ function LibraryPage() {
                       className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#a8763d] to-[#7a4f24] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#b78449] hover:to-[#8b5a2a]"
                     >
                       <FileText className="h-3 w-3" />
-                      Notebook
+                      Notebook ({notebookEntryCount})
                     </button>
                     <button
                       type="button"
@@ -564,7 +568,7 @@ function LibraryPage() {
                       className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-gradient-to-b from-[#8a7350] to-[#5a4024] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#9b825c] hover:to-[#6a4d2c]"
                     >
                       <Plus className="h-3 w-3" />
-                      Add Note
+                      Add Another Note
                     </button>
                     <button
                       type="button"
