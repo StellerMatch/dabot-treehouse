@@ -3693,6 +3693,10 @@ function LibraryStartCreditModal({
   );
 }
 
+// Source of truth: docs/clarity-library-process.md (step 10 + Final Review wording).
+// The master review is built from folder notes and folder ratings. The original
+// intake is shown unchanged in the "Original intake saved by Clarity" panel; the
+// review never rewrites it or pretends unresolved folders are solved.
 function LibraryLevelReportModal({
   idea,
   extras,
