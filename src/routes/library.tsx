@@ -145,11 +145,16 @@ function titleFromDraft(text: string, ideaType?: string): string {
 
 function shouldCleanSavedTitle(title: string): boolean {
   const t = title.trim();
+  const hits = [
+    /\b(shirt|tee|tshirt|t-shirt)\b/i,
+    /\b(qr|code|scan|scanned|scans)\b/i,
+    /\b(coupon|credit|credits|reward|rewards|discount)\b/i,
+  ].reduce((n, re) => (re.test(t) ? n + 1 : n), 0);
   return (
     /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
     /^an\s+(app|tool|website)\b/i.test(t) ||
     /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
-    (/\b(shirt|tee|tshirt)\b/i.test(t) && /\b(code|scan|coupon|credit)\b/i.test(t)) ||
+    hits >= 2 ||
     t.length > 54
   );
 }
