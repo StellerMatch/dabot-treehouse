@@ -33,11 +33,11 @@ type AccountBadgeProps = {
 export function AccountBadge({ placement = "fixed", prominence = "normal" }: AccountBadgeProps) {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [profile, setProfile] = useState<Profile>(() => readProfile());
+  const [profile, setProfile] = useState<Profile>({ authed: false, name: "", email: "", photo: "" });
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  // Re-read on route change & on storage events.
+  // Re-read on route change & on storage events. Defer to client to avoid SSR/CSR mismatch.
   useEffect(() => {
     setProfile(readProfile());
     setOpen(false);
