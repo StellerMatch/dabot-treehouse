@@ -27,7 +27,7 @@ export type LightbulbIdea = {
 };
 
 export const stageLabels: Record<IdeaStage, string> = {
-  lightbulb: "New Idea",
+  lightbulb: "Library",
   "pre-clarity": "Building",
   "paid-creation": "Paid Creation",
   "clean-packet": "Clean Packet",

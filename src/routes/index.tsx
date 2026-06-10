@@ -482,7 +482,7 @@ function Index() {
                       sessionStorage.removeItem("dabottree:reportPath");
                     } catch {}
                     // Prototype gate: send to login/sign-up first. The draft idea is
-                    // preserved in sessionStorage and saved to My Account after sign-in.
+                    // preserved in sessionStorage and saved to the Idea Shelf after sign-in.
                     navigate({ to: "/signin", search: { next: "/library" } as any });
                     return;
                   }
@@ -498,7 +498,7 @@ function Index() {
                     }
                   } catch {}
                   setConfirmationMessage(
-                    "Idea saved to your library. Open it from your profile when you're ready to move forward.",
+                    "Idea saved to your Idea Shelf. Open it from your profile when you're ready to move forward.",
                   );
                   window.setTimeout(() => {
                     navigate({ to: "/library" });

@@ -208,10 +208,10 @@ function nextStepSummary(idea: LightbulbIdea): string {
 export const Route = createFileRoute("/library")({
   head: () => ({
     meta: [
-      { title: "Library — DaBotTree" },
+      { title: "Idea Shelf — DaBotTree" },
       {
         name: "description",
-        content: "Your saved ideas, ready to open from the DaBotTree library.",
+        content: "Your saved ideas, ready to open from the DaBotTree idea shelf.",
       },
     ],
   }),
@@ -298,7 +298,7 @@ function LibraryPage() {
       className="relative flex w-full max-w-[100vw] flex-col overflow-x-hidden text-amber-50"
       style={{ minHeight: "100dvh" }}
     >
-      {/* Library scene background — distinct from the idea dashboard. */}
+      {/* Idea Shelf scene background — distinct from the idea dashboard. */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
@@ -321,7 +321,7 @@ function LibraryPage() {
             className="h-9 w-9 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
           />
           <span className="font-serif text-[14px] uppercase tracking-[0.25em] text-amber-50/90">
-            Library
+            Idea Shelf
           </span>
         </Link>
         <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
@@ -339,7 +339,7 @@ function LibraryPage() {
 
       <section className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <h1 className="mb-6 font-serif text-2xl text-amber-50 drop-shadow-[0_2px_3px_rgba(0,0,0,0.6)]">
-          My Saved Ideas
+          Saved Ideas
         </h1>
 
         {ideas.length === 0 ? (

@@ -386,7 +386,7 @@ function RootRoom() {
           to="/dashboard"
           className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-amber-200/40 bg-black/35 px-3.5 py-1.5 text-xs text-amber-50/90 backdrop-blur-md transition hover:bg-black/55"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Library
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Idea Shelf
         </Link>
         <RootRoomNextButton
           unlocked={rootRoomComplete}

@@ -33,6 +33,7 @@ import {
   FileText,
   LayoutDashboard,
   Trash2,
+  Coins,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
@@ -41,6 +42,7 @@ import { CreditsPill } from "@/components/AccountBadge";
 
 type ReportTier = "good" | "better" | "best";
 type LibraryDoorId = "door1" | "door2";
+const LIBRARY_START_CREDIT_COST = 10;
 
 const LIBRARY_DOOR_QUESTIONS: Record<LibraryDoorId, string[]> = {
   door1: [
@@ -67,6 +69,20 @@ function readReportTier(): ReportTier {
   } catch {
     return "good";
   }
+}
+
+function readCreditsBalance(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const value = Number(localStorage.getItem("dabottree:credits") ?? "0");
+    return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function libraryStartPaidKey(ideaId: string) {
+  return `dabottree:libraryStartPaid:${ideaId}`;
 }
 
 export const Route = createFileRoute("/dashboard")({
@@ -1751,6 +1767,7 @@ function Dashboard() {
   // a saved project from their library. The Library n8n test webhook fires
   // only after that selection — not automatically on page load.
   const [tierPickerOpen, setTierPickerOpen] = useState(false);
+  const [libraryStartOpen, setLibraryStartOpen] = useState(false);
 
 
   const selectedExtras: IdeaExtras = selected
@@ -2181,6 +2198,46 @@ function Dashboard() {
       ))
     );
 
+  const openReportPath = () => {
+    if (!selected) return;
+    let existingTier: string | null = null;
+    try {
+      existingTier =
+        sessionStorage.getItem(`dabottree:reportPath:${selected.id}`) ??
+        sessionStorage.getItem("dabottree:reportPath");
+    } catch {}
+    if (!existingTier) {
+      setTierPickerOpen(true);
+      return;
+    }
+    setLibraryReportOpen(true);
+  };
+
+  const hasPaidLibraryStart = () => {
+    if (!selected || typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem(libraryStartPaidKey(selected.id)) === "1";
+    } catch {
+      return false;
+    }
+  };
+
+  const confirmLibraryStart = () => {
+    if (!selected || typeof window === "undefined") return;
+    const balance = readCreditsBalance();
+    if (balance < LIBRARY_START_CREDIT_COST) return;
+    try {
+      localStorage.setItem(
+        "dabottree:credits",
+        String(balance - LIBRARY_START_CREDIT_COST),
+      );
+      localStorage.setItem(libraryStartPaidKey(selected.id), "1");
+      window.dispatchEvent(new Event("storage"));
+    } catch {}
+    setLibraryStartOpen(false);
+    openReportPath();
+  };
+
   return (
     <main
       className="relative flex w-full max-w-[100vw] flex-col overflow-x-hidden text-amber-950"
@@ -2278,20 +2335,11 @@ function Dashboard() {
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             onClick={() => {
               if (!selected) return;
-              // Gate: ask Good / Better / Best the first time the user moves
-              // forward with this saved project. Once chosen, fire the Library
-              // n8n test webhook and open the report.
-              let existingTier: string | null = null;
-              try {
-                existingTier =
-                  sessionStorage.getItem(`dabottree:reportPath:${selected.id}`) ??
-                  sessionStorage.getItem("dabottree:reportPath");
-              } catch {}
-              if (!existingTier) {
-                setTierPickerOpen(true);
+              if (!hasPaidLibraryStart()) {
+                setLibraryStartOpen(true);
                 return;
               }
-              setLibraryReportOpen(true);
+              openReportPath();
             }}
           />
         </div>
@@ -2384,6 +2432,15 @@ function Dashboard() {
             saveLibraryDoorAnswer(activeLibraryDoor, answer);
             setActiveLibraryDoor(null);
           }}
+        />
+      )}
+      {selected && libraryStartOpen && (
+        <LibraryStartCreditModal
+          idea={selected}
+          balance={readCreditsBalance()}
+          cost={LIBRARY_START_CREDIT_COST}
+          onClose={() => setLibraryStartOpen(false)}
+          onConfirm={confirmLibraryStart}
         />
       )}
       {selected && tierPickerOpen && (
@@ -2996,7 +3053,7 @@ function ProfileAvatarButton({
                 >
                   <BookOpen className="h-5 w-5 text-amber-50" />
                 </span>
-                <span>My Library</span>
+                <span>Idea Shelf</span>
               </button>
               <button
                 type="button"
@@ -3038,7 +3095,7 @@ function ProfileAvatarButton({
               ← Back
             </button>
             <div className="mb-2 font-serif text-[13px] font-semibold text-amber-950">
-              My Library
+              Idea Shelf
             </div>
             <button
               type="button"
@@ -3049,7 +3106,7 @@ function ProfileAvatarButton({
               className="mb-3 flex w-full items-center gap-2 rounded-md border border-amber-900/35 bg-amber-100/70 px-3 py-2 text-left font-serif text-[12px] font-semibold text-amber-950 transition hover:bg-amber-100"
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" />
-              <span>Open Library</span>
+              <span>Open Idea Shelf</span>
             </button>
             <ul className="max-h-[50vh] space-y-1 overflow-y-auto pr-1">
               {ideas.map((idea) => {
@@ -3225,7 +3282,7 @@ function LibraryPopover({
       <PopoverTrigger asChild>
         <button type="button" className="bg-transparent p-0">
           <LaidBook
-            label="My Library"
+            label="Idea Shelf"
             variant="leather"
             open={open}
             size="md"
@@ -3441,6 +3498,95 @@ function OrganizeButton({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function LibraryStartCreditModal({
+  idea,
+  balance,
+  cost,
+  onClose,
+  onConfirm,
+}: {
+  idea: LightbulbIdea;
+  balance: number;
+  cost: number;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const canAfford = balance >= cost;
+  return (
+    <div
+      className="fixed inset-0 z-[95] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Start Library stage"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+      />
+      <div
+        className="relative w-full max-w-[480px] rounded-[18px] border border-amber-200/60 px-6 py-6 text-amber-50 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9),0_0_70px_-10px_rgba(255,190,90,0.55)]"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(150,100,30,0.94) 0%, rgba(74,43,13,0.97) 58%, rgba(38,21,7,0.99) 100%)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
+        >
+          x
+        </button>
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/50 bg-black/25">
+          <Coins className="h-6 w-6 text-amber-200" />
+        </div>
+        <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
+          Start Library Stage
+        </p>
+        <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
+          Spend {cost} credits to open this report step?
+        </h2>
+        <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
+          <p>
+            <strong>{idea.title || "Untitled idea"}</strong> is ready to move from Clarity into
+            the Library report checkpoint. This confirms the credit spend before the report path
+            opens.
+          </p>
+          <div className="mt-3 flex items-center justify-between rounded-sm border border-amber-200/20 bg-black/25 px-3 py-2 text-[12px]">
+            <span>Available credits</span>
+            <span className="font-semibold tabular-nums">{balance}</span>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-amber-200/30 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-200/10"
+          >
+            Not yet
+          </button>
+          <button
+            type="button"
+            disabled={!canAfford}
+            onClick={onConfirm}
+            className={
+              "rounded-full border px-4 py-2 text-sm font-semibold transition " +
+              (canAfford
+                ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
+                : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/45")
+            }
+          >
+            {canAfford ? `Spend ${cost} credits` : "Add credits first"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -5041,7 +5187,7 @@ function ClarityGuide({
 
   const fallbackTip = useMemo(() => {
     if (!selected)
-      return "Welcome to the Creator Library. Open My Library and choose a spark to begin.";
+      return "Welcome to the Creator Library. Open the Idea Shelf and choose a spark to begin.";
     if (!currentQuestion)
       return "You've answered my three biggest questions. The idea is over 90% now, so View Report is ready.";
     return null;
