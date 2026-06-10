@@ -153,7 +153,10 @@ export function AccountBadge({ placement = "fixed", prominence = "normal" }: Acc
         type="button"
         onClick={() => setOpen((v) => !v)}
         title={displayName}
-        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-amber-200/40 bg-gradient-to-b from-[#a8763d] to-[#5c4421] text-sm font-semibold text-amber-50 shadow-md backdrop-blur-md transition hover:from-[#b78449] hover:to-[#6b5128]"
+        className={
+          "flex items-center justify-center overflow-hidden rounded-full border border-amber-200/40 bg-gradient-to-b from-[#a8763d] to-[#5c4421] font-semibold text-amber-50 shadow-md backdrop-blur-md transition hover:from-[#b78449] hover:to-[#6b5128] " +
+          (prominence === "large" ? "h-11 w-11 text-base" : "h-9 w-9 text-sm")
+        }
       >
         {profile.photo ? (
           <img src={profile.photo} alt={displayName} className="h-full w-full object-cover" />

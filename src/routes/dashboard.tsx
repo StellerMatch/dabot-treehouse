@@ -37,6 +37,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 import { ChoosePathModal } from "@/routes/index";
+import { CreditsPill } from "@/components/AccountBadge";
 
 type ReportTier = "good" | "better" | "best";
 type LibraryDoorId = "door1" | "door2";
@@ -378,13 +379,13 @@ function emptyExtras(): IdeaExtras {
 }
 
 // ——— Clarity's clarifying questions ———
-const MIN_CLARITY_FOLLOWUPS = 5;
+const MIN_CLARITY_FOLLOWUPS = 3;
 const MIN_FOLLOWUP_SEQUENCE: CategoryKey[] = [
   "problem",
   "audience",
+  "features",
   "business",
   "concerns",
-  "features",
 ];
 
 type ClarityQuestion = {
@@ -2216,12 +2217,13 @@ function Dashboard() {
 
         {/* RIGHT: Avatar + Organize / Next Stage */}
         <div className="order-2 flex items-center justify-end gap-2 sm:gap-3 lg:order-3">
-          <NewLightbulbPopover onCreate={addIdea} />
+          <CreditsPill />
           <ProfileAvatarButton
             ideas={ideas}
             selectedId={selected?.id ?? ""}
             onSelectIdea={openIdeaDashboard}
             onOpenDashboard={openIdeasDashboard}
+            onCreateIdea={addIdea}
             onShowSummary={(idea) => setSummaryIdea(idea)}
             onDeleteIdea={deleteIdea}
           />
@@ -2814,6 +2816,7 @@ function ProfileAvatarButton({
   selectedId,
   onSelectIdea,
   onOpenDashboard,
+  onCreateIdea,
   onShowSummary,
   onDeleteIdea,
 }: {
@@ -2821,6 +2824,7 @@ function ProfileAvatarButton({
   selectedId: string;
   onSelectIdea: (id: string) => void;
   onOpenDashboard: () => void;
+  onCreateIdea: (type?: string) => void;
   onShowSummary: (idea: LightbulbIdea) => void;
   onDeleteIdea: (id: string) => void;
 }) {
@@ -2886,7 +2890,7 @@ function ProfileAvatarButton({
           type="button"
           title="My Account"
           aria-label="Open account menu"
-          className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-amber-950/70 bg-gradient-to-br from-amber-100 to-amber-300 text-amber-950 shadow-[0_4px_10px_-3px_rgba(20,8,2,0.7),inset_0_1px_0_rgba(255,250,235,0.6)] transition hover:scale-[1.04]"
+          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-amber-950/70 bg-gradient-to-br from-amber-100 to-amber-300 text-amber-950 shadow-[0_4px_10px_-3px_rgba(20,8,2,0.7),inset_0_1px_0_rgba(255,250,235,0.6)] transition hover:scale-[1.04]"
         >
           {photo ? (
             <img src={photo} alt="Profile" className="h-full w-full object-cover" />
@@ -2895,7 +2899,7 @@ function ProfileAvatarButton({
               {initials}
             </span>
           ) : (
-            <User className="mx-auto h-5 w-5" />
+            <User className="mx-auto h-6 w-6" />
           )}
         </button>
       </PopoverTrigger>
@@ -2911,6 +2915,26 @@ function ProfileAvatarButton({
               My Account
             </div>
             <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onCreateIdea();
+                }}
+                className="flex w-full items-center gap-3 rounded-md border border-amber-900/25 bg-amber-50/70 px-4 py-3 text-left font-serif text-[15px] font-semibold text-amber-950 shadow-sm transition hover:bg-amber-100/90 hover:shadow-md active:translate-y-[1px]"
+              >
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: "linear-gradient(180deg, #f5d27a 0%, #d99a32 60%, #a86614 100%)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,245,210,0.4), 0 2px 4px rgba(100,60,10,0.25)",
+                  }}
+                >
+                  <Plus className="h-5 w-5 text-amber-950" />
+                </span>
+                <span>New Idea</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setPanel("library")}
@@ -4986,7 +5010,7 @@ function ClarityGuide({
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `Beautiful work. This idea already has a strong base, and you have clearly put real thought into it. Before we move to Next Stage, I want to ask five quick questions to strengthen the few parts that still need a little more foundation.\n\n${currentQuestion!.prompt}`
+        ? `Beautiful work. This idea already has a strong base, and you have clearly put real thought into it. Before we move to Next Stage, I want to ask three focused questions to strengthen the few parts that still need a little more foundation.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;

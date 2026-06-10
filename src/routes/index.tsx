@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Mic } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
-import { AccountBadge } from "@/components/AccountBadge";
+import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import { seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
 
@@ -132,11 +132,11 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
     id: `idea-${ts}`,
     title: titleFromIdea(text, ideaType),
     messy: summaryFromIdea(text),
-    shelfReadiness: isStrongIntake ? 96 : 32,
+    shelfReadiness: isStrongIntake ? 90 : 32,
     updatedAt: ts,
     stage: "lightbulb",
     nextAction: isStrongIntake
-      ? "Review idea progress, then move to the next step"
+      ? "Answer three Clarity questions before moving to the next step"
       : "Answer the next clarity question",
     ideaType: ideaType || undefined,
     description: cleanIdeaText(text),
@@ -163,20 +163,9 @@ function createIntakeExtras(text: string, ts: number) {
       categories: [category],
       source: "generated-folder",
     })),
-    answeredQuestions: isStrongIntake
-      ? [
-          "problem",
-          "who",
-          "version-one",
-          "who-does-work",
-          "trust-first",
-          "most-important-detail",
-          "first-paid-version",
-          "look-like",
-        ]
-      : [],
+    answeredQuestions: [],
     skippedQuestions: [],
-    clarityFollowupCount: isStrongIntake ? 5 : 0,
+    clarityFollowupCount: 0,
   };
 }
 
@@ -363,6 +352,7 @@ function Index() {
               >
                 Levels
               </Link>
+              <CreditsPill />
             </>
           )}
           <AccountBadge placement="inline" prominence={isAuthed ? "normal" : "large"} />
