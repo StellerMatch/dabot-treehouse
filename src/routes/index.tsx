@@ -32,6 +32,7 @@ function Index() {
   const navigate = useNavigate();
   const [idea, setIdea] = useState("");
   const [ideaType, setIdeaType] = useState<string>(type ?? "");
+  const [isAuthed, setIsAuthed] = useState(false);
   const [pathOpen, setPathOpen] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
@@ -47,6 +48,21 @@ function Index() {
     setVoiceSupported(
       Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
     );
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncAuth = () => {
+      try {
+        setIsAuthed(localStorage.getItem("dabottree:authed") === "1");
+      } catch {
+        setIsAuthed(false);
+      }
+    };
+
+    syncAuth();
+    window.addEventListener("storage", syncAuth);
+    return () => window.removeEventListener("storage", syncAuth);
   }, []);
 
   const startVoice = useCallback(() => {
@@ -129,19 +145,23 @@ function Index() {
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-end px-5 pt-5 sm:px-8 sm:pt-6">
         <nav className="pointer-events-auto flex items-center gap-2 text-xs">
-          <Link
-            to="/library"
-            className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
-          >
-            Library
-          </Link>
-          <Link
-            to="/levels"
-            className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
-          >
-            Levels
-          </Link>
-          <AccountBadge placement="inline" />
+          {isAuthed && (
+            <>
+              <Link
+                to="/library"
+                className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
+              >
+                Library
+              </Link>
+              <Link
+                to="/levels"
+                className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
+              >
+                Levels
+              </Link>
+            </>
+          )}
+          <AccountBadge placement="inline" prominence={isAuthed ? "normal" : "large"} />
         </nav>
       </header>
 

@@ -27,9 +27,10 @@ function readProfile(): Profile {
 
 type AccountBadgeProps = {
   placement?: "fixed" | "inline";
+  prominence?: "normal" | "large";
 };
 
-export function AccountBadge({ placement = "fixed" }: AccountBadgeProps) {
+export function AccountBadge({ placement = "fixed", prominence = "normal" }: AccountBadgeProps) {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<Profile>(() => readProfile());
@@ -74,15 +75,20 @@ export function AccountBadge({ placement = "fixed" }: AccountBadgeProps) {
       : "relative z-[60]";
 
   if (!profile.authed) {
+    const signInClass =
+      prominence === "large"
+        ? "inline-flex items-center gap-2 rounded-full border border-amber-200/60 bg-[rgba(24,13,7,0.78)] px-6 py-2.5 text-sm font-bold uppercase tracking-[0.22em] text-amber-50 shadow-[0_0_26px_-5px_rgba(255,180,90,0.75)] backdrop-blur-md transition hover:bg-[rgba(40,22,10,0.9)] sm:px-8 sm:py-3"
+        : "inline-flex items-center gap-1.5 rounded-full border border-amber-200/40 bg-[rgba(24,13,7,0.7)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-50 shadow-sm backdrop-blur-md transition hover:bg-[rgba(40,22,10,0.85)]";
+
     return (
       <div className={containerClass}>
         <Link
           to="/signin"
           search={{ next: pathname }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/40 bg-[rgba(24,13,7,0.7)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-50 shadow-sm backdrop-blur-md transition hover:bg-[rgba(40,22,10,0.85)]"
+          className={signInClass}
         >
-          <UserIcon className="h-3.5 w-3.5" />
-          Sign in
+          <UserIcon className={prominence === "large" ? "h-4 w-4" : "h-3.5 w-3.5"} />
+          Login
         </Link>
       </div>
     );
