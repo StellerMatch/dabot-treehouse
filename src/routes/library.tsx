@@ -270,7 +270,11 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     const raw = localStorage.getItem(IDEAS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle);
+    if (Array.isArray(parsed)) {
+      return (parsed as LightbulbIdea[])
+        .map(cleanStoredIdeaTitle)
+        .map(syncLibraryStageFromPaidStart);
+    }
   } catch {}
   return null;
 }
@@ -313,6 +317,21 @@ function writeCreditsBalance(value: number) {
 
 function libraryStartPaidKey(ideaId: string) {
   return `dabottree:libraryStartPaid:${ideaId}`;
+}
+
+function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
+  if (idea.stage !== "lightbulb" || typeof window === "undefined") return idea;
+  try {
+    if (localStorage.getItem(libraryStartPaidKey(idea.id)) !== "1") return idea;
+  } catch {
+    return idea;
+  }
+  return {
+    ...idea,
+    stage: "pre-clarity",
+    shelfReadiness: Math.max(idea.shelfReadiness, 45),
+    nextAction: "Answer three Library questions before creating the project brief",
+  };
 }
 
 function shortEntryTitle(text: string): string {
@@ -587,6 +606,11 @@ function LibraryPage() {
       setCreditBalance(readCreditsBalance());
       return;
     }
+    if (idea.stage === "lightbulb" && hasPaidLibraryStart(idea.id)) {
+      setIdeas((prev) =>
+        prev.map((i) => (i.id === idea.id ? syncLibraryStageFromPaidStart(i) : i)),
+      );
+    }
     openIdea(idea.id);
   };
 
@@ -609,6 +633,9 @@ function LibraryPage() {
       localStorage.setItem(libraryStartPaidKey(libraryStartIdea.id), "1");
     } catch {}
     const id = libraryStartIdea.id;
+    setIdeas((prev) =>
+      prev.map((idea) => (idea.id === id ? syncLibraryStageFromPaidStart(idea) : idea)),
+    );
     setLibraryStartIdea(null);
     openIdea(id);
   };
@@ -1112,7 +1139,7 @@ function LibraryStartCreditModal({
           First Real Step
         </p>
         <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
-          Start Building This Idea?
+          Start Library Stage?
         </h2>
         <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
           <p>

@@ -28,7 +28,7 @@ export type LightbulbIdea = {
 
 export const stageLabels: Record<IdeaStage, string> = {
   lightbulb: "Idea Shelf",
-  "pre-clarity": "Building",
+  "pre-clarity": "Library",
   "paid-creation": "Paid Creation",
   "clean-packet": "Clean Packet",
   "operating-path": "Operating Path",
@@ -60,7 +60,7 @@ export const seedIdeas: LightbulbIdea[] = [
     shelfReadiness: 54,
     updatedAt: STABLE_SEED_NOW - 1000 * 60 * 60 * 26,
     stage: "pre-clarity",
-    nextAction: "Gather info, then move to Library",
+    nextAction: "Answer three Library questions before creating the project brief",
 
     signals: {
       shape: "weekly digest tool",
