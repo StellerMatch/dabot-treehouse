@@ -356,6 +356,7 @@ type PostIt = {
   source?: "generated-folder" | "captured-note";
 };
 type IdeaExtras = {
+  sourceText?: string;
   notes: CategoryNotes;
   attachments: Attachment[];
   posts: PostIt[];
@@ -366,6 +367,7 @@ type IdeaExtras = {
 
 function emptyExtras(): IdeaExtras {
   return {
+    sourceText: "",
     notes: {},
     attachments: [],
     posts: [],
@@ -1412,6 +1414,10 @@ function ideaContextText(idea: LightbulbIdea, posts: PostIt[]): string {
     .join("\n");
 }
 
+function selectedIdeaContextText(idea: LightbulbIdea, extras: IdeaExtras): string {
+  return [extras.sourceText, ideaContextText(idea, extras.posts)].filter(Boolean).join("\n");
+}
+
 function lightbulbSummaryFrom(text: string): string {
   const first = splitSentences(text)[0] ?? text.trim();
   return first.length > 160 ? first.slice(0, 158).replace(/\s+\S*$/, "") + "…" : first;
@@ -1670,6 +1676,7 @@ function Dashboard() {
       setExtras((prev) => ({
         ...prev,
         [id]: {
+          sourceText: draft,
           notes: {},
           attachments: [],
           posts,
@@ -1735,6 +1742,7 @@ function Dashboard() {
         ...prev,
         [selected.id]: {
           notes: { ...current.notes, ...(patch.notes ?? {}) },
+          sourceText: patch.sourceText ?? current.sourceText,
           attachments: patch.attachments ?? current.attachments,
           posts: patch.posts ?? current.posts,
           answeredQuestions: patch.answeredQuestions ?? current.answeredQuestions,
@@ -1747,7 +1755,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (!selected) return;
-    const context = ideaContextText(selected, selectedExtras.posts);
+    const context = selectedIdeaContextText(selected, selectedExtras);
     if (!context.trim()) return;
     const metadata = ideaMetadataFromText(context, selected.ideaType);
     const patch: Partial<LightbulbIdea> = {};

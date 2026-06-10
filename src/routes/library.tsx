@@ -89,6 +89,7 @@ function extrasFromDraft(text: string, ts: number) {
     : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
 
   return {
+    sourceText: text,
     notes: {},
     attachments: [],
     posts: INTAKE_CATEGORY_KEYS.map((category, index) => ({
