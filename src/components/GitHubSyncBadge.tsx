@@ -140,7 +140,16 @@ export function GitHubSyncBadge() {
       {status === "error" && (
         <div className="mt-1 text-red-300">{error || "Failed to reach GitHub"}</div>
       )}
-      <div className="mt-1 text-[10px] text-white/40">?debug=0 to hide</div>
+      <div className="mt-2 flex items-center justify-between">
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="rounded bg-white/10 px-2 py-1 text-[10px] text-white/70 transition-colors hover:bg-white/20 hover:text-white disabled:opacity-50"
+        >
+          {refreshing ? "refreshing…" : "refresh"}
+        </button>
+        <span className="text-[10px] text-white/40">?debug=0 to hide</span>
+      </div>
     </div>
   );
 }
