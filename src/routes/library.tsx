@@ -137,12 +137,11 @@ function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
 }
 
 function extrasFromDraft(text: string, ts: number) {
-  const clean = cleanDraftText(text);
   return {
     sourceText: text,
     notes: {},
     attachments: [],
-    posts: buildIntakeFolderPosts(clean, ts),
+    posts: buildIntakeFolderPosts(text, ts),
     answeredQuestions: [],
     skippedQuestions: [],
     clarityFollowupCount: 0,

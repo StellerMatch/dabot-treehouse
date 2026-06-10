@@ -152,13 +152,29 @@ export function bodyForIntakeFolder(folder: IntakeFolderKey, items: string[]): s
   );
 }
 
+function coreIdeaBody(rawIntake: string, items: string[]): string {
+  const sections = [`Raw intake archive:\n${rawIntake.trim()}`];
+  if (items.length) {
+    sections.push(
+      [
+        "Best-matched core idea signals:",
+        items.map((item) => `• ${item}`).join("\n"),
+      ].join("\n"),
+    );
+  }
+  return sections.join("\n\n");
+}
+
 export function buildIntakeFolderPosts(text: string, ts: number) {
   const buckets = parseIntakeIntoFolderBuckets(text);
   return INTAKE_FOLDER_ORDER.map((folder, index) => ({
     id: `post-${ts}-${folder}`,
     kind: "idea-notes",
     text: intakeFolderLabels[folder],
-    fullText: bodyForIntakeFolder(folder, buckets[folder]),
+    fullText:
+      folder === "core-idea"
+        ? coreIdeaBody(text, buckets[folder])
+        : bodyForIntakeFolder(folder, buckets[folder]),
     ts: ts - index,
     categories: [folder],
     source: "generated-folder" as const,

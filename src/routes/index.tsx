@@ -42,7 +42,7 @@ function createIntakeExtras(text: string, ts: number) {
     sourceText: text,
     notes: {},
     attachments: [],
-    posts: buildIntakeFolderPosts(cleanIdeaText(text), ts),
+    posts: buildIntakeFolderPosts(text, ts),
     answeredQuestions: [],
     skippedQuestions: [],
     clarityFollowupCount: 0,
