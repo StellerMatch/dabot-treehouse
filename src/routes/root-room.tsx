@@ -113,26 +113,12 @@ function RootRoom() {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [ascending, setAscending] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [packageTier, setPackageTier] = useState<"good" | "better" | "best">("good");
   const navigate = useNavigate();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
-    // Source order: URL ?package=... overrides sessionStorage selection.
-    const params = new URLSearchParams(window.location.search);
-    const urlTier = params.get("package");
-    if (urlTier === "good" || urlTier === "better" || urlTier === "best") {
-      setPackageTier(urlTier);
-    } else {
-      try {
-        const stored = sessionStorage.getItem("dabottree:packageTier");
-        if (stored === "good" || stored === "better" || stored === "best") {
-          setPackageTier(stored);
-        }
-      } catch {}
-    }
 
   }, []);
 
@@ -880,8 +866,6 @@ function RootRoom() {
 
       {reportOpen && (
         <RootRoomReport
-          tier={packageTier}
-          onTierChange={setPackageTier}
           onClose={() => setReportOpen(false)}
           onComplete={handleAscend}
         />
@@ -1110,8 +1094,6 @@ function SmokeColumn({
 
 // ============= Root Room — Completion Report Modal =============
 
-type PackageTier = "good" | "better" | "best";
-
 const ROOT_ROOM_REPORT_SUMMARY =
   "Your packet completed all five root checks — Foundation, Possibilities, Safety, Record, and Da Stamp. Below are the opportunity doors the roots surfaced before the packet rises to the Trunk.";
 
@@ -1143,13 +1125,9 @@ const DOOR_QUESTIONS: { door1: string[]; door2: string[] } = {
 };
 
 function RootRoomReport({
-  tier,
-  onTierChange,
   onClose,
   onComplete,
 }: {
-  tier: PackageTier;
-  onTierChange: (t: PackageTier) => void;
   onClose: () => void;
   onComplete: () => void;
 }) {
@@ -1157,35 +1135,12 @@ function RootRoomReport({
   const door1Qs = DOOR_QUESTIONS.door1.filter((q) => q.trim().length > 0).slice(0, 10);
   const door2Qs = DOOR_QUESTIONS.door2.filter((q) => q.trim().length > 0).slice(0, 10);
 
-  // Per-tier door behavior
-  // good: both locked
-  // better: one key — user picks which door to unlock; the other stays locked
-  // best: both cracked open, both can open fully
   const [openedDoors, setOpenedDoors] = useState<Record<"door1" | "door2", boolean>>({
-    door1: tier === "best",
-    door2: tier === "best",
+    door1: false,
+    door2: false,
   });
-  const [keyUsedOn, setKeyUsedOn] = useState<"door1" | "door2" | null>(null);
-
-  useEffect(() => {
-    setOpenedDoors({ door1: tier === "best", door2: tier === "best" });
-    setKeyUsedOn(null);
-  }, [tier]);
-
-  const canOpen = (id: "door1" | "door2") => {
-    if (tier === "best") return true;
-    if (tier === "better") return keyUsedOn === null || keyUsedOn === id;
-    return false;
-  };
 
   const handleDoorClick = (id: "door1" | "door2") => {
-    if (tier === "good") return;
-    if (tier === "better") {
-      if (keyUsedOn && keyUsedOn !== id) return;
-      setKeyUsedOn(id);
-      setOpenedDoors((prev) => ({ ...prev, [id]: !prev[id] }));
-      return;
-    }
     setOpenedDoors((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
@@ -1255,42 +1210,11 @@ function RootRoomReport({
           {ROOT_ROOM_REPORT_SUMMARY}
         </p>
 
-        {/* Tier indicator (small, on-brand) */}
-        <div className="relative mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-amber-100/80">
-          <span>Package:</span>
-          {(["good", "better", "best"] as PackageTier[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => onTierChange(t)}
-              className={`rounded-full border px-2 py-0.5 transition ${
-                tier === t
-                  ? "border-amber-200/80 bg-amber-200/15 text-amber-50"
-                  : "border-amber-200/25 text-amber-100/60 hover:border-amber-200/50"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {tier === "better" && (
-          <div className="relative mt-3 flex items-center justify-center gap-2 text-[11px] text-amber-100/90">
-            <span aria-hidden>🗝️</span>
-            <span>
-              {keyUsedOn
-                ? "You used your key. The other door stays sealed."
-                : "You hold one key — pick a door to unlock."}
-            </span>
-          </div>
-        )}
-
         {/* Two doors */}
         <div className="relative mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
           {(["door1", "door2"] as const).map((doorId) => {
             const open = openedDoors[doorId];
-            const enabled = canOpen(doorId);
-            const cracked = tier === "best" && !open;
+            const enabled = true;
             const questions = doorId === "door1" ? door1Qs : door2Qs;
             return (
               <div key={doorId} className="rr-door-wrap">
@@ -1298,7 +1222,7 @@ function RootRoomReport({
                   type="button"
                   onClick={() => handleDoorClick(doorId)}
                   disabled={!enabled}
-                  className={`rr-door ${open ? "is-open" : ""} ${cracked ? "is-cracked" : ""} ${
+                  className={`rr-door ${open ? "is-open" : ""} ${
                     enabled ? "is-enabled" : "is-locked"
                   }`}
                   aria-pressed={open}

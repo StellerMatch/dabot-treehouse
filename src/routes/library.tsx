@@ -483,8 +483,6 @@ function LibraryPage() {
         } catch {}
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
-        sessionStorage.removeItem("dabottree:packageTier");
-        sessionStorage.removeItem("dabottree:reportPath");
       }
     } catch {}
     nextIdeas = backfillMissingIntakeExtras(nextIdeas);

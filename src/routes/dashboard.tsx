@@ -47,10 +47,8 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
-import { ChoosePathModal } from "@/routes/index";
 import { CreditsPill } from "@/components/AccountBadge";
 
-type ReportTier = "good" | "better" | "best";
 type LibraryDoorId = "door1" | "door2";
 type BuildProjectKind = "tool" | "app" | "website" | "automation" | "dashboard";
 const LIBRARY_START_CREDIT_COST = 10;
@@ -107,18 +105,6 @@ const LIBRARY_DOOR_QUESTIONS: Record<LibraryDoorId, string[]> = {
     "What would make this project feel exciting instead of just practical?",
   ],
 };
-
-function readReportTier(): ReportTier {
-  if (typeof window === "undefined") return "good";
-  try {
-    const value =
-      sessionStorage.getItem("dabottree:reportPath") ??
-      sessionStorage.getItem("dabottree:packageTier");
-    return value === "better" || value === "best" ? value : "good";
-  } catch {
-    return "good";
-  }
-}
 
 function readCreditsBalance(): number {
   if (typeof window === "undefined") return 0;
@@ -872,13 +858,13 @@ function categoryStatusForIdea(
   key: CategoryKey,
 ) {
   const strength = categoryStrengthForIdea(idea, extras, key);
-  const labels = ["Empty", "Very Weak", "Needs Help", "Good", "Ready"];
+  const labels = ["Empty", "Very Weak", "Needs Help", "Solid", "Ready"];
   const pcts = [0, 35, 65, 90, 100];
   return { pct: pcts[strength.stars], label: labels[strength.stars] };
 }
 
 // Source of truth: docs/clarity-library-process.md (Folder Rating Rubric).
-// 1 Very Weak / 2 Needs Help / 3 Good / 4 Ready. Generated-only folders are
+// 1 Very Weak / 2 Needs Help / 3 Solid / 4 Ready. Generated-only folders are
 // capped until the user adds real follow-up notes so weak intake cannot inflate
 // itself into Review.
 function categoryStrengthForIdea(
@@ -1786,7 +1772,6 @@ function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [descending, setDescending] = useState(false);
   const [libraryReportOpen, setLibraryReportOpen] = useState(false);
-  const [libraryReportTier, setLibraryReportTier] = useState<ReportTier>(() => readReportTier());
   const [activeLibraryDoor, setActiveLibraryDoor] = useState<LibraryDoorId | null>(null);
   const [libraryDoorAnswers, setLibraryDoorAnswers] = useState<
     Partial<Record<LibraryDoorId, string>>
@@ -1818,7 +1803,6 @@ function Dashboard() {
             action: "auto_run_level_chunk",
             runScope: "level_chunk_only",
             userIdea: selected.title || selected.messy || "",
-            qualityPath: readReportTier(),
             attemptNumber,
             timestamp: new Date().toISOString(),
           }),
@@ -1842,7 +1826,6 @@ function Dashboard() {
     try {
       draft = sessionStorage.getItem("dabottree:draftIdea") ?? "";
       draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";
-      setLibraryReportTier(readReportTier());
     } catch {}
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
@@ -1909,10 +1892,6 @@ function Dashboard() {
     navigate({ to: "/dashboard", search: { ideaId: id } });
   };
 
-  // Good/Better/Best is chosen when the user intentionally starts/continues
-  // a saved project from their library. The Library n8n test webhook fires
-  // only after that selection — not automatically on page load.
-  const [tierPickerOpen, setTierPickerOpen] = useState(false);
   const [libraryStartOpen, setLibraryStartOpen] = useState(false);
 
   const selectedExtras: IdeaExtras = selected
@@ -2366,16 +2345,7 @@ function Dashboard() {
 
   const openReportPath = () => {
     if (!selected) return;
-    let existingTier: string | null = null;
-    try {
-      existingTier =
-        sessionStorage.getItem(`dabottree:reportPath:${selected.id}`) ??
-        sessionStorage.getItem("dabottree:reportPath");
-    } catch {}
-    if (!existingTier) {
-      setTierPickerOpen(true);
-      return;
-    }
+    void sendLibraryWebhook(1);
     setLibraryReportOpen(true);
   };
 
@@ -2583,7 +2553,6 @@ function Dashboard() {
           idea={selected}
           extras={selectedExtras}
           readiness={libraryReadiness}
-          tier={libraryReportTier}
           doorAnswers={libraryDoorAnswers}
           redoUsed={libraryRedoUsed}
           onClose={() => setLibraryReportOpen(false)}
@@ -2620,22 +2589,6 @@ function Dashboard() {
           balance={readCreditsBalance()}
           onClose={() => setBuildConfirmOpen(false)}
           onConfirm={confirmBuildStart}
-        />
-      )}
-      {selected && tierPickerOpen && (
-        <ChoosePathModal
-          onClose={() => setTierPickerOpen(false)}
-          onChoose={(tier) => {
-            try {
-              sessionStorage.setItem("dabottree:packageTier", tier);
-              sessionStorage.setItem("dabottree:reportPath", tier);
-              sessionStorage.setItem(`dabottree:reportPath:${selected.id}`, tier);
-            } catch {}
-            setLibraryReportTier(tier);
-            setTierPickerOpen(false);
-            void sendLibraryWebhook(1);
-            setLibraryReportOpen(true);
-          }}
         />
       )}
       {summaryIdea && (
@@ -3788,7 +3741,6 @@ function LibraryLevelReportModal({
   idea,
   extras,
   readiness,
-  tier,
   doorAnswers,
   redoUsed,
   onClose,
@@ -3800,7 +3752,6 @@ function LibraryLevelReportModal({
   idea: LightbulbIdea;
   extras: IdeaExtras;
   readiness: ReturnType<typeof libraryReadinessForIdea>;
-  tier: ReportTier;
   doorAnswers: Partial<Record<LibraryDoorId, string>>;
   redoUsed: boolean;
   onClose: () => void;
@@ -3825,14 +3776,11 @@ function LibraryLevelReportModal({
   });
   const canOpenDoor = (doorId: LibraryDoorId) => {
     if (redoUsed) return false;
-    if (tier === "good") return false;
-    if (tier === "best") return true;
     return answeredDoors.length === 0 || Boolean(doorAnswers[doorId]?.trim());
   };
   const reportText = [
     `Library Report: ${idea.title}`,
     `Readiness: ${readiness.pct}%`,
-    `Report path: ${tier}`,
     "",
     "Master Library Review",
     ...categoryReview.map((item) => `${item.label} (${item.stars}/4 stars)\n${item.body}`),
@@ -3897,14 +3845,6 @@ function LibraryLevelReportModal({
             <strong>{idea.title}</strong> now has enough Library clarity to move forward because
             every category has reached 3 or 4 stars. Clarity keeps the original intake below, then
             uses the folder notes to build this master review.
-          </p>
-          <p className="mt-3 text-amber-100/75">
-            Report path: <span className="font-semibold uppercase">{tier}</span>.{" "}
-            {tier === "good"
-              ? "Opportunity doors are visible but locked on this path."
-              : tier === "better"
-                ? "You can open one opportunity door for this level."
-                : "Both opportunity doors are available for this level."}
           </p>
           <button
             type="button"
@@ -5636,7 +5576,7 @@ function ClarityGuide({
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `Good, we have a starting point. I’ll ask personalized Clarity questions based on what is still weak or missing before this turns into a project brief.\n\n${currentQuestion!.prompt}`
+        ? `We have a starting point. I’ll ask personalized Clarity questions based on what is still weak or missing before this turns into a project brief.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;
