@@ -3539,7 +3539,6 @@ function OrganizeButton({
   const [showLockMsg, setShowLockMsg] = useState(false);
 
   const handleClick = () => {
-    if (stageAdvanced) return;
     if (!unlocked) {
       setShowLockMsg(true);
       window.setTimeout(() => setShowLockMsg(false), 2400);
@@ -3562,12 +3561,10 @@ function OrganizeButton({
           variant={variant}
           glow={unlocked}
           size={size}
-          disabled={stageAdvanced}
+          disabled={false}
           onClick={handleClick}
           title={
-            stageAdvanced
-              ? "Already organized"
-              : unlocked
+            unlocked
                 ? `Ready! View the Library report (${overall}%)`
                 : weakFolderCount > 0
                   ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
