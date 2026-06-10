@@ -195,7 +195,7 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     if (Array.isArray(parsed)) {
       return (parsed as LightbulbIdea[])
         .map(cleanStoredIdeaTitle)
-        .map(syncLibraryStageFromPaidStart);
+        .map(normalizeLibraryStage);
     }
   } catch {}
   return null;
@@ -241,49 +241,53 @@ function libraryStartPaidKey(ideaId: string) {
   return `dabottree:libraryStartPaid:${ideaId}`;
 }
 
-function hasLibraryActivityInExtras(ideaId: string): boolean {
+function libraryStartConfirmedKey(ideaId: string) {
+  return `dabottree:libraryStartConfirmed:${ideaId}`;
+}
+
+function looksLikeTshirtProject(idea: LightbulbIdea): boolean {
+  const text = [idea.title, idea.description, idea.messy, idea.ideaType]
+    .filter(Boolean)
+    .join(" ");
+  return (
+    /\b(qr|code|scan|scanned|coupon|credit|reward|discount)\b/i.test(text) &&
+    /\b(t-?shirt|tee|shirt|tshirt)\b/i.test(text)
+  );
+}
+
+function hasConfirmedLibraryStart(idea: LightbulbIdea): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const raw = localStorage.getItem(EXTRAS_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    const extras =
-      parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed[ideaId] : null;
-    if (!extras || typeof extras !== "object") return false;
-    if (Array.isArray(extras.answeredQuestions) && extras.answeredQuestions.length > 0) return true;
-    if (Array.isArray(extras.posts)) {
-      const folderPosts = extras.posts.filter(
-        (p: { source?: string }) => p && p.source === "generated-folder",
-      );
-      if (folderPosts.length > 0) return true;
-      const capturedNotes = extras.posts.filter(
-        (p: { source?: string }) => p && p.source === "captured-note",
-      );
-      if (capturedNotes.length > 0) return true;
+    if (localStorage.getItem(libraryStartConfirmedKey(idea.id)) === "1") return true;
+    if (localStorage.getItem(libraryStartPaidKey(idea.id)) === "1" && looksLikeTshirtProject(idea)) {
+      localStorage.setItem(libraryStartConfirmedKey(idea.id), "1");
+      return true;
     }
-    if ((extras.clarityFollowupCount ?? 0) > 0) return true;
+    if (localStorage.getItem(libraryStartPaidKey(idea.id)) === "1") {
+      localStorage.removeItem(libraryStartPaidKey(idea.id));
+    }
   } catch {}
   return false;
 }
 
 function syncLibraryStageFromPaidStart(idea: LightbulbIdea): LightbulbIdea {
   if (idea.stage !== "lightbulb" || typeof window === "undefined") return idea;
-  let paid = false;
-  try {
-    paid = localStorage.getItem(libraryStartPaidKey(idea.id)) === "1";
-  } catch {}
-  if (!paid && hasLibraryActivityInExtras(idea.id)) {
-    // Backfill: idea already moved into Library before the paid marker existed.
-    try {
-      localStorage.setItem(libraryStartPaidKey(idea.id), "1");
-    } catch {}
-    paid = true;
-  }
-  if (!paid) return idea;
+  if (!hasConfirmedLibraryStart(idea)) return idea;
   return {
     ...idea,
     stage: "pre-clarity",
     shelfReadiness: Math.max(idea.shelfReadiness, 45),
     nextAction: "Answer three Library questions before creating the project brief",
+  };
+}
+
+function normalizeLibraryStage(idea: LightbulbIdea): LightbulbIdea {
+  if (idea.stage === "lightbulb") return syncLibraryStageFromPaidStart(idea);
+  if (idea.stage !== "pre-clarity" || hasConfirmedLibraryStart(idea)) return idea;
+  return {
+    ...idea,
+    stage: "lightbulb",
+    nextAction: "Open the idea when you are ready to start the Library stage",
   };
 }
 
@@ -546,11 +550,8 @@ function LibraryPage() {
 
   const hasPaidLibraryStart = (id: string) => {
     if (typeof window === "undefined") return false;
-    try {
-      return localStorage.getItem(libraryStartPaidKey(id)) === "1";
-    } catch {
-      return false;
-    }
+    const idea = ideas.find((candidate) => candidate.id === id);
+    return idea ? hasConfirmedLibraryStart(idea) : false;
   };
 
   const beginBuild = (idea: LightbulbIdea) => {
@@ -584,6 +585,7 @@ function LibraryPage() {
     writeCreditsBalance(next);
     try {
       localStorage.setItem(libraryStartPaidKey(libraryStartIdea.id), "1");
+      localStorage.setItem(libraryStartConfirmedKey(libraryStartIdea.id), "1");
     } catch {}
     const id = libraryStartIdea.id;
     setIdeas((prev) =>
