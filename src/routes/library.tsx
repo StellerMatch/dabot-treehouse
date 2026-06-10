@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
@@ -129,11 +129,57 @@ function shouldCleanSavedTitle(title: string): boolean {
   );
 }
 
+function isPlaceholderIdeaType(value: string | undefined): boolean {
+  return /^(idea type|undecided|unknown|new idea|project type)$/i.test((value ?? "").trim());
+}
+
+function inferIdeaType(text: string, fallback?: string): string | undefined {
+  const existing = fallback?.trim();
+  if (existing && !isPlaceholderIdeaType(existing)) return existing;
+  if (/\btv\s*show|television show|series\b/i.test(text)) return "TV show";
+  if (/\bwebsite|web\s*site|site\b/i.test(text)) {
+    return /\bapp|application|program\s*\/\s*site|site\s*\/\s*program|web app\b/i.test(text)
+      ? "App / website"
+      : "Website";
+  }
+  if (/\bweb app|app|application|program\b/i.test(text)) return "App";
+  if (
+    /\btool librar(?:y|ies)|shared (?:tool|tools)|tool sharing|share (?:a )?tool|share tools\b/i.test(
+      text,
+    )
+  ) {
+    return "App";
+  }
+  if (
+    /\bneighborhood|community|block\b/i.test(text) &&
+    /\b(tool|share|shared|borrow|lend|library|shelf|shed)\b/i.test(text)
+  ) {
+    return "App";
+  }
+  if (/\bservice|business\b/i.test(text)) return "Business";
+  if (/\bcourse|class|training\b/i.test(text)) return "Course";
+  if (/\bbook|novel|memoir\b/i.test(text)) return "Book";
+  if (/\bgame\b/i.test(text)) return "Game";
+  return undefined;
+}
+
+function ideaTypeFor(idea: LightbulbIdea): string {
+  const context = [idea.ideaType, idea.title, idea.description, idea.messy]
+    .filter(Boolean)
+    .join(" ");
+  return inferIdeaType(context, idea.ideaType) ?? "Project";
+}
+
 function cleanStoredIdeaTitle(idea: LightbulbIdea): LightbulbIdea {
-  if (!shouldCleanSavedTitle(idea.title)) return idea;
-  const context = [idea.description, idea.messy, idea.title].filter(Boolean).join(" ");
-  const title = titleFromDraft(context, idea.ideaType);
-  return title && title !== idea.title ? { ...idea, title } : idea;
+  const type = ideaTypeFor(idea);
+  const typedIdea =
+    idea.ideaType && !isPlaceholderIdeaType(idea.ideaType) ? idea : { ...idea, ideaType: type };
+  if (!shouldCleanSavedTitle(typedIdea.title)) return typedIdea;
+  const context = [typedIdea.description, typedIdea.messy, typedIdea.title]
+    .filter(Boolean)
+    .join(" ");
+  const title = titleFromDraft(context, typedIdea.ideaType);
+  return title && title !== typedIdea.title ? { ...typedIdea, title } : typedIdea;
 }
 
 function summaryFromDraft(text: string): string {
@@ -144,7 +190,8 @@ function summaryFromDraft(text: string): string {
 
 function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
   const ts = Date.now();
-  const title = titleFromDraft(text, ideaType);
+  const type = inferIdeaType(text, ideaType);
+  const title = titleFromDraft(text, type);
   const isStrongIntake = cleanDraftText(text).length >= 220;
   return {
     id: `idea-${ts}`,
@@ -156,7 +203,7 @@ function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
     nextAction: isStrongIntake
       ? "Answer three Clarity questions before moving to the next step"
       : "Answer the next clarity question",
-    ideaType: ideaType || undefined,
+    ideaType: type,
     description: cleanDraftText(text),
   };
 }
@@ -269,7 +316,8 @@ function notebookEntriesFor(idea: LightbulbIdea, extras: IdeaExtrasRecord): Note
     if (!body) continue;
     entries.push({
       id: post.id,
-      title: post.text?.trim() && post.text.trim() !== body ? post.text.trim() : shortEntryTitle(body),
+      title:
+        post.text?.trim() && post.text.trim() !== body ? post.text.trim() : shortEntryTitle(body),
       body,
       ts: post.ts || idea.updatedAt || Date.now(),
     });
@@ -288,10 +336,8 @@ function notebookEntriesFor(idea: LightbulbIdea, extras: IdeaExtrasRecord): Note
 
 function stagePillClass(stage: LightbulbIdea["stage"]) {
   const classes: Record<LightbulbIdea["stage"], string> = {
-    lightbulb:
-      "border-emerald-200/50 bg-gradient-to-b from-[#5f7d4a] to-[#324a26] text-emerald-50",
-    "pre-clarity":
-      "border-sky-200/50 bg-gradient-to-b from-[#6a8ca8] to-[#36556f] text-sky-50",
+    lightbulb: "border-emerald-200/50 bg-gradient-to-b from-[#5f7d4a] to-[#324a26] text-emerald-50",
+    "pre-clarity": "border-sky-200/50 bg-gradient-to-b from-[#6a8ca8] to-[#36556f] text-sky-50",
     "paid-creation":
       "border-amber-200/60 bg-gradient-to-b from-[#b78449] to-[#7a4f24] text-amber-50",
     "clean-packet":
@@ -414,6 +460,15 @@ function LibraryPage() {
   const [noteText, setNoteText] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [listening, setListening] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("All");
+
+  const ideaTypes = useMemo(() => {
+    return Array.from(new Set(ideas.map(ideaTypeFor))).sort((a, b) => a.localeCompare(b));
+  }, [ideas]);
+  const visibleIdeas = useMemo(() => {
+    if (typeFilter === "All") return ideas;
+    return ideas.filter((idea) => ideaTypeFor(idea) === typeFilter);
+  }, [ideas, typeFilter]);
 
   useEffect(() => {
     const stored = loadStoredIdeas();
@@ -473,6 +528,12 @@ function LibraryPage() {
       localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
     } catch {}
   }, [ideas, ready]);
+
+  useEffect(() => {
+    if (typeFilter !== "All" && !ideaTypes.includes(typeFilter)) {
+      setTypeFilter("All");
+    }
+  }, [ideaTypes, typeFilter]);
 
   const openIdea = (id: string) => {
     navigate({ to: "/dashboard", search: { ideaId: id } });
@@ -584,9 +645,7 @@ function LibraryPage() {
 
   const deleteIdea = (id: string) => {
     const target = ideas.find((i) => i.id === id);
-    const ok = window.confirm(
-      `Delete "${target?.title || "Untitled"}" from your library?`,
-    );
+    const ok = window.confirm(`Delete "${target?.title || "Untitled"}" from your library?`);
     if (!ok) return;
     setIdeas((prev) => prev.filter((i) => i.id !== id));
     if (typeof window !== "undefined") {
@@ -652,16 +711,42 @@ function LibraryPage() {
           Saved Ideas
         </h1>
 
+        {ideas.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {["All", ...ideaTypes].map((type) => {
+              const active = typeFilter === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setTypeFilter(type)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] shadow-sm transition ${
+                    active
+                      ? "border-amber-100/70 bg-amber-100/20 text-amber-50"
+                      : "border-amber-200/25 bg-amber-950/35 text-amber-100/70 hover:border-amber-100/50 hover:text-amber-50"
+                  }`}
+                >
+                  <Tag className="h-3 w-3" />
+                  {type}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {ideas.length === 0 ? (
           <div className="rounded-md border border-amber-200/30 bg-amber-950/40 px-4 py-6 text-center font-serif italic text-amber-100/80">
             No ideas yet. Head to the start screen to capture one.
           </div>
+        ) : visibleIdeas.length === 0 ? (
+          <div className="rounded-md border border-amber-200/30 bg-amber-950/40 px-4 py-6 text-center font-serif italic text-amber-100/80">
+            No ideas match this filter yet.
+          </div>
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ideas.map((idea) => {
-              const stage = idea.stage
-                ? `Stage: ${stageLabels[idea.stage]}`
-                : "Stage: Idea";
+            {visibleIdeas.map((idea) => {
+              const stage = idea.stage ? `Stage: ${stageLabels[idea.stage]}` : "Stage: Idea";
+              const ideaType = ideaTypeFor(idea);
               const notebookEntryCount = notebookEntriesFor(
                 idea,
                 loadExtrasMap()[idea.id] ?? {},
@@ -669,9 +754,13 @@ function LibraryPage() {
               return (
                 <li
                   key={idea.id}
-                  className="flex h-full flex-col rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
+                  className="relative flex h-full flex-col rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
                 >
-                  <div className="font-serif text-[15px] font-semibold text-amber-50">
+                  <div className="absolute right-3 top-3 inline-flex max-w-[45%] items-center gap-1 rounded-full border border-cyan-100/40 bg-cyan-950/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-cyan-50 shadow-sm">
+                    <Tag className="h-2.5 w-2.5 shrink-0" />
+                    <span className="truncate">{ideaType}</span>
+                  </div>
+                  <div className="pr-[46%] font-serif text-[15px] font-semibold text-amber-50">
                     {idea.title || "Untitled"}
                   </div>
                   <div className="mt-1 font-serif text-[12px] italic leading-relaxed text-amber-100/85">
@@ -925,8 +1014,8 @@ function LibraryStartCreditModal({
         </h2>
         <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
           <p>
-            <strong>{idea.title || "Untitled idea"}</strong> will move into the Library stage,
-            where Clarity shapes the idea and prepares the first review step. This costs{" "}
+            <strong>{idea.title || "Untitled idea"}</strong> will move into the Library stage, where
+            Clarity shapes the idea and prepares the first review step. This costs{" "}
             <strong>{cost} credits</strong>.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
