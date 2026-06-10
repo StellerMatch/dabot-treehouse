@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { BookOpen, FileText, Trash2, Tag } from "lucide-react";
+import { BookOpen, FileText, Trash2, Tag, Plus } from "lucide-react";
 
 const libraryBg = libraryBgAsset.url;
 
