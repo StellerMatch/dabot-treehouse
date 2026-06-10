@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { BookOpen, FileText, Trash2, Tag } from "lucide-react";
+import { BookOpen, FileText, Trash2, Tag, Plus } from "lucide-react";
 
 const libraryBg = libraryBgAsset.url;
 
@@ -132,6 +132,13 @@ function LibraryPage() {
           <span className="font-serif text-[14px] uppercase tracking-[0.25em] text-amber-50/90">
             Library
           </span>
+        </Link>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/30 bg-emerald-900/40 px-3.5 py-1.5 text-[11px] font-semibold text-emerald-50 shadow-sm backdrop-blur-sm transition hover:bg-emerald-800/50 hover:border-emerald-200/50"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          New Idea
         </Link>
       </header>
 
