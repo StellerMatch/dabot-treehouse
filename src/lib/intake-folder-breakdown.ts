@@ -37,7 +37,6 @@ export const intakeFolderMissing: Record<IntakeFolderKey, string> = {
 };
 
 const SORTABLE_FOLDERS: IntakeFolderKey[] = [
-  "core-idea",
   "problem",
   "audience",
   "features",
@@ -103,7 +102,6 @@ function bestFolderFor(value: string): IntakeFolderKey | null {
     "design",
     "business",
     "concerns",
-    "core-idea",
   ];
   return priority.find((folder) => matches.includes(folder)) ?? matches[0];
 }
@@ -114,8 +112,6 @@ export function parseIntakeIntoFolderBuckets(text: string): Record<IntakeFolderK
     {} as Record<IntakeFolderKey, string[]>,
   );
   const lines = splitMeaningfulLines(text);
-  const firstLine = lines[0];
-  if (firstLine) pushUnique(out, "core-idea", firstLine);
 
   for (const line of lines) {
     const clauses = splitClauses(line);
@@ -129,12 +125,12 @@ export function parseIntakeIntoFolderBuckets(text: string): Record<IntakeFolderK
   const covered = SORTABLE_FOLDERS.filter((folder) => out[folder].length > 0);
   const missing = SORTABLE_FOLDERS.filter((folder) => out[folder].length === 0);
   out.clarity = [
-    `Captured ${lines.length || 1} intake note${lines.length === 1 ? "" : "s"} and sorted each useful piece into its strongest folder.`,
+    `Captured ${lines.length || 1} intake note${lines.length === 1 ? "" : "s"} and sorted each useful piece into its single best-fit folder.`,
     covered.length
       ? `Starting signals in: ${covered.map((folder) => intakeFolderLabels[folder]).join(", ")}.`
       : "No folder has a strong signal yet.",
     missing.length
-      ? `Still fuzzy on: ${missing.map((folder) => intakeFolderLabels[folder]).join(", ")}.`
+      ? `Still missing foundation for: ${missing.map((folder) => intakeFolderLabels[folder]).join(", ")}. These folders stay weak until you add notes.`
       : "Every main folder has at least one starting note.",
   ];
 
@@ -152,17 +148,8 @@ export function bodyForIntakeFolder(folder: IntakeFolderKey, items: string[]): s
   );
 }
 
-function coreIdeaBody(rawIntake: string, items: string[]): string {
-  const sections = [`Raw intake archive:\n${rawIntake.trim()}`];
-  if (items.length) {
-    sections.push(
-      [
-        "Best-matched core idea signals:",
-        items.map((item) => `• ${item}`).join("\n"),
-      ].join("\n"),
-    );
-  }
-  return sections.join("\n\n");
+function coreIdeaBody(rawIntake: string): string {
+  return `Raw intake (preserved exactly as you wrote it):\n${rawIntake.trim()}`;
 }
 
 export function buildIntakeFolderPosts(text: string, ts: number) {
@@ -173,7 +160,7 @@ export function buildIntakeFolderPosts(text: string, ts: number) {
     text: intakeFolderLabels[folder],
     fullText:
       folder === "core-idea"
-        ? coreIdeaBody(text, buckets[folder])
+        ? coreIdeaBody(text)
         : bodyForIntakeFolder(folder, buckets[folder]),
     ts: ts - index,
     categories: [folder],

@@ -400,15 +400,13 @@ function nextStepSummary(idea: LightbulbIdea): string {
   const action = idea.nextAction?.trim();
   if (action) return `Next step: ${action}`;
   const stageHint =
-    idea.stage === "lightbulb"
-      ? "Add a few more notes so we can start shaping this idea."
-      : idea.stage === "pre-clarity"
-        ? "Answer the next Library question to keep moving forward."
-        : idea.stage === "paid-creation"
-          ? "Review the paid creation packet and confirm the next move."
-          : idea.stage === "clean-packet"
-            ? "Open the clean packet and decide what to build first."
-            : "Continue along the operating path.";
+    idea.stage === "pre-clarity"
+      ? "Answer the next Library question to keep moving forward."
+      : idea.stage === "paid-creation"
+        ? "Review the paid creation packet and confirm the next move."
+        : idea.stage === "clean-packet"
+          ? "Open the clean packet and decide what to build first."
+          : "Continue along the operating path.";
   return `Next step: ${stageHint}`;
 }
 
