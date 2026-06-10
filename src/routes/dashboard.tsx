@@ -695,33 +695,82 @@ function categoryStatus(value: string | undefined) {
   return { pct: 100, label: "Ready" };
 }
 
-function cappedInitialProgress(rawPct: number, followupCount: number) {
-  if (rawPct < 80 || followupCount >= MIN_CLARITY_FOLLOWUPS) return rawPct;
-  const capByFollowup = [82, 86, 89][Math.min(followupCount, 2)];
-  return Math.min(rawPct, capByFollowup);
-}
-
 function categoryStatusForIdea(
   idea: LightbulbIdea | undefined,
   extras: IdeaExtras,
   key: CategoryKey,
 ) {
-  const base = categoryStatus(categoryProgressTextFor(idea, extras, key));
-  const generatedOnly =
-    extras.posts.some(
-      (post) => post.categories?.includes(key) && post.source === "generated-folder",
-    ) &&
-    !extras.posts.some(
-      (post) => post.categories?.includes(key) && post.source === "captured-note",
-    ) &&
-    !extras.notes[key]?.trim();
+  const strength = categoryStrengthForIdea(idea, extras, key);
+  const labels = ["Empty", "Very Weak", "Needs Help", "Good", "Ready"];
+  const pcts = [0, 35, 65, 90, 100];
+  return { pct: pcts[strength.stars], label: labels[strength.stars] };
+}
+
+function categoryStrengthForIdea(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+  key: CategoryKey,
+) {
+  const text = categoryProgressTextFor(idea, extras, key);
+  const cleaned = text.trim();
+  if (!idea || !cleaned) return { stars: 0, generatedOnly: false };
+
+  const generatedPosts = extras.posts.filter(
+    (post) =>
+      post.categories?.includes(key) &&
+      post.source === "generated-folder" &&
+      extractCategorySourceBody(post, key),
+  );
+  const capturedPosts = extras.posts.filter(
+    (post) => post.categories?.includes(key) && post.source === "captured-note",
+  );
+  const hasManualNote = Boolean(extras.notes[key]?.trim());
+  const generatedOnly = generatedPosts.length > 0 && capturedPosts.length === 0 && !hasManualNote;
+  const usefulLines = cleaned
+    .split("\n")
+    .map((line) => line.replace(/^[-•·\s]+/, "").trim())
+    .filter((line) => line.length >= 12);
+
+  let stars = 1;
+  if (cleaned.length >= 90 || usefulLines.length >= 2) stars = 2;
+  if (
+    cleaned.length >= 320 ||
+    usefulLines.length >= 4 ||
+    hasManualNote ||
+    capturedPosts.length >= 2
+  ) {
+    stars = 3;
+  }
+  if (
+    cleaned.length >= 700 ||
+    usefulLines.length >= 7 ||
+    (hasManualNote && capturedPosts.length >= 3)
+  ) {
+    stars = 4;
+  }
 
   if (generatedOnly && (extras.clarityFollowupCount ?? 0) < MIN_CLARITY_FOLLOWUPS) {
-    const followupCount = extras.clarityFollowupCount ?? 0;
-    const generatedCap = [55, 65, 72][Math.min(followupCount, 2)];
-    return { pct: Math.min(base.pct, generatedCap), label: "Building" };
+    stars = Math.min(stars, cleaned.length >= 450 && usefulLines.length >= 4 ? 3 : 2);
   }
-  return base;
+  return { stars, generatedOnly };
+}
+
+function libraryReadinessForIdea(idea: LightbulbIdea | undefined, extras: IdeaExtras) {
+  const strengths = CATEGORY_ORDER.map((cat) => ({
+    category: cat,
+    ...categoryStrengthForIdea(idea, extras, cat),
+  }));
+  const weak = strengths.filter((item) => item.stars < 3);
+  const averagePct = Math.round(
+    strengths.reduce((sum, item) => sum + [0, 35, 65, 90, 100][item.stars], 0) /
+      strengths.length,
+  );
+  return {
+    strengths,
+    weak,
+    allFoldersReady: weak.length === 0,
+    pct: weak.length === 0 ? Math.max(90, averagePct) : Math.min(89, averagePct),
+  };
 }
 
 // ——— Title generator ———
@@ -1176,7 +1225,12 @@ function parsePromptIntoCategories(text: string): Record<CategoryKey, string[]> 
 
 function bodyForCategoryItems(cat: CategoryKey, items: string[]): string {
   return items.length
-    ? items.map((s) => (cat === "clarity" ? s : `• ${s}`)).join("\n")
+    ? [
+        cat === "clarity"
+          ? "Clarity readout:"
+          : "Verbatim intake notes Clarity found for this folder:",
+        items.map((s) => (cat === "clarity" ? s : `• ${s}`)).join("\n"),
+      ].join("\n")
     : CATEGORY_MISSING[cat];
 }
 
@@ -2153,23 +2207,14 @@ function Dashboard() {
   // chunk categories into shelves of 4
   const categoryShelves = chunk(categoryDefs, 4);
 
-  // overall progress = average category status across all categories
-  const overallPct = useMemo(() => {
-    if (!selected) return 0;
-    const sum = categoryDefs.reduce(
-      (acc, c) => acc + categoryStatusForIdea(selected, selectedExtras, c.key).pct,
-      0,
-    );
-    const rawPct = Math.round(sum / categoryDefs.length);
-    const followupCount = selectedExtras.clarityFollowupCount ?? 0;
-    const stagedPct = cappedInitialProgress(rawPct, followupCount);
-    return Math.min(
-      96,
-      followupCount >= MIN_CLARITY_FOLLOWUPS && rawPct >= 80
-        ? Math.max(stagedPct, 91)
-        : stagedPct,
-    );
-  }, [selected, selectedExtras, categoryDefs]);
+  const libraryReadiness = useMemo(
+    () => libraryReadinessForIdea(selected, selectedExtras),
+    [selected, selectedExtras],
+  );
+
+  // overall progress follows the folder stars: every category needs 3+ stars
+  // before Clarity can honestly call the Library 90% ready.
+  const overallPct = libraryReadiness.pct;
 
   const leftWidths = [60, 70, 90];
   const rightWidths = [60, 70, 85];
@@ -2366,6 +2411,7 @@ function Dashboard() {
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
+            weakFolderCount={libraryReadiness.weak.length}
             onClick={() => {
               if (!selected) return;
               if (!hasPaidLibraryStart()) {
@@ -2446,6 +2492,8 @@ function Dashboard() {
       {selected && libraryReportOpen && (
         <LibraryLevelReportModal
           idea={selected}
+          extras={selectedExtras}
+          readiness={libraryReadiness}
           tier={libraryReportTier}
           doorAnswers={libraryDoorAnswers}
           redoUsed={libraryRedoUsed}
@@ -3461,15 +3509,17 @@ function OrganizeButton({
   overall,
   stage,
   followupsAnswered,
+  weakFolderCount,
   onClick,
 }: {
   overall: number;
   stage: LightbulbIdea["stage"];
   followupsAnswered: number;
+  weakFolderCount: number;
   onClick: () => void;
 }) {
   const remainingFollowups = Math.max(0, MIN_CLARITY_FOLLOWUPS - followupsAnswered);
-  const unlocked = overall >= 90 && remainingFollowups === 0;
+  const unlocked = overall >= 90 && remainingFollowups === 0 && weakFolderCount === 0;
   const stageAdvanced = stage !== "lightbulb";
   const label = unlocked ? "View Report" : "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
@@ -3503,10 +3553,12 @@ function OrganizeButton({
           title={
             stageAdvanced
               ? "Already organized"
-              : unlocked
-                ? `Ready! View the Library report (${overall}%)`
-                : remainingFollowups > 0
-                  ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
+                : unlocked
+                  ? `Ready! View the Library report (${overall}%)`
+                  : weakFolderCount > 0
+                    ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
+                  : remainingFollowups > 0
+                    ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
                   : `Asleep — unlocks at 90% (currently ${overall}%)`
           }
           trailing={unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null}
@@ -3523,6 +3575,11 @@ function OrganizeButton({
             <>
               Answer <strong>{remainingFollowups}</strong> more Clarity follow-up
               {remainingFollowups === 1 ? "" : "s"} first.
+            </>
+          ) : weakFolderCount > 0 ? (
+            <>
+              Get every folder to <strong>3 or 4 stars</strong> first. {weakFolderCount} still
+              need more.
             </>
           ) : (
             <>
@@ -3630,6 +3687,8 @@ function LibraryStartCreditModal({
 
 function LibraryLevelReportModal({
   idea,
+  extras,
+  readiness,
   tier,
   doorAnswers,
   redoUsed,
@@ -3639,6 +3698,8 @@ function LibraryLevelReportModal({
   onNext,
 }: {
   idea: LightbulbIdea;
+  extras: IdeaExtras;
+  readiness: ReturnType<typeof libraryReadinessForIdea>;
   tier: ReportTier;
   doorAnswers: Partial<Record<LibraryDoorId, string>>;
   redoUsed: boolean;
@@ -3651,6 +3712,16 @@ function LibraryLevelReportModal({
     doorAnswers[doorId]?.trim(),
   );
   const hasAnswers = answeredDoors.length > 0;
+  const categoryReview = CATEGORY_ORDER.map((cat) => {
+    const body = categoryProgressTextFor(idea, extras, cat);
+    const strength = readiness.strengths.find((item) => item.category === cat);
+    return {
+      cat,
+      label: postItCategoryPalette[cat].label,
+      stars: strength?.stars ?? 0,
+      body: body.trim() || CATEGORY_MISSING[cat],
+    };
+  });
   const canOpenDoor = (doorId: LibraryDoorId) => {
     if (redoUsed) return false;
     if (tier === "good") return false;
@@ -3691,9 +3762,9 @@ function LibraryLevelReportModal({
             Summary review only
           </p>
           <p>
-            <strong>{idea.title}</strong> now has enough Library clarity to move forward. This
-            checkpoint gives you the short review for this level. The full detailed review will be
-            included in the final project report.
+            <strong>{idea.title}</strong> now has enough Library clarity to move forward because
+            every category has reached 3 or 4 stars. Clarity keeps the original intake below, then
+            uses the folder notes to build this master review.
           </p>
           <p className="mt-3 text-amber-100/75">
             Report path: <span className="font-semibold uppercase">{tier}</span>.{" "}
@@ -3704,6 +3775,48 @@ function LibraryLevelReportModal({
                 : "Both opportunity doors are available for this level."}
           </p>
         </div>
+
+        <div className="mt-5 rounded-xl border border-amber-200/20 bg-black/25 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-serif text-lg text-amber-50">Master Library review</h3>
+            <span className="rounded-full border border-amber-200/30 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-amber-100/70">
+              {readiness.pct}% ready
+            </span>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {categoryReview.map((item) => (
+              <div
+                key={item.cat}
+                className="rounded-lg border border-amber-200/15 bg-black/25 p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-serif text-sm font-semibold text-amber-100">
+                    {item.label}
+                  </span>
+                  <span
+                    className="shrink-0 text-[12px] leading-none text-amber-200"
+                    aria-label={`${item.stars} of 4 stars`}
+                  >
+                    {"★".repeat(item.stars)}
+                    <span className="text-amber-100/25">{"★".repeat(4 - item.stars)}</span>
+                  </span>
+                </div>
+                <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-amber-50/80">
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <details className="mt-4 rounded-xl border border-amber-200/15 bg-black/25 p-4">
+          <summary className="cursor-pointer font-serif text-sm font-semibold text-amber-100">
+            Original intake saved by Clarity
+          </summary>
+          <p className="mt-3 whitespace-pre-wrap break-words text-xs leading-relaxed text-amber-50/75">
+            {extras.sourceText?.trim() || idea.messy || "No original intake text saved."}
+          </p>
+        </details>
 
         {!redoUsed && (
           <>
