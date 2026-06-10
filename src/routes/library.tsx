@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
+import { AccountBadge } from "@/components/AccountBadge";
 import {
   Dialog,
   DialogContent,
@@ -133,13 +134,16 @@ function LibraryPage() {
             Library
           </span>
         </Link>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/30 bg-emerald-900/40 px-3.5 py-1.5 text-[11px] font-semibold text-emerald-50 shadow-sm backdrop-blur-sm transition hover:bg-emerald-800/50 hover:border-emerald-200/50"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          New Idea
-        </Link>
+        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
+          <Link
+            to="/"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-emerald-200/30 bg-emerald-900/40 px-3.5 text-[11px] font-semibold text-emerald-50 shadow-sm backdrop-blur-sm transition hover:border-emerald-200/50 hover:bg-emerald-800/50"
+          >
+            <Plus className="h-3.5 w-3.5 shrink-0" />
+            <span className="whitespace-nowrap">New Idea</span>
+          </Link>
+          <AccountBadge placement="inline" />
+        </div>
       </header>
 
       <section className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">

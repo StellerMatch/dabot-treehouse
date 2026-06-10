@@ -60,11 +60,14 @@ export function AccountBadge({ placement = "fixed", prominence = "normal" }: Acc
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  // Dashboard already has its full account/profile menu in the page header.
-  // The home page places this inside its own top navigation so it cannot overlap.
+  // These pages place account controls inside their own top navigation so the
+  // fixed badge cannot overlap page-level actions.
   if (
     placement === "fixed" &&
-    (pathname === "/" || pathname.startsWith("/signin") || pathname.startsWith("/dashboard"))
+    (pathname === "/" ||
+      pathname.startsWith("/signin") ||
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/library"))
   ) {
     return null;
   }
