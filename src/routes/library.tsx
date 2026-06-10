@@ -17,6 +17,31 @@ const libraryBg = libraryBgAsset.url;
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+const INTAKE_CATEGORY_KEYS = [
+  "core-idea",
+  "clarity",
+  "problem",
+  "audience",
+  "features",
+  "workflow",
+  "design",
+  "business",
+  "concerns",
+] as const;
+
+type IntakeCategoryKey = (typeof INTAKE_CATEGORY_KEYS)[number];
+
+const intakeCategoryLabels: Record<IntakeCategoryKey, string> = {
+  "core-idea": "Core Idea",
+  clarity: "Clarity",
+  problem: "Problem",
+  audience: "Audience",
+  features: "Features",
+  workflow: "Workflow",
+  design: "Design",
+  business: "Business",
+  concerns: "Concerns",
+};
 
 function cleanDraftText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
@@ -40,16 +65,55 @@ function summaryFromDraft(text: string): string {
 function ideaFromDraft(text: string, ideaType?: string): LightbulbIdea {
   const ts = Date.now();
   const title = titleFromDraft(text, ideaType);
+  const isStrongIntake = cleanDraftText(text).length >= 220;
   return {
     id: `idea-${ts}`,
     title,
     messy: summaryFromDraft(text),
-    shelfReadiness: 32,
+    shelfReadiness: isStrongIntake ? 96 : 32,
     updatedAt: ts,
     stage: "lightbulb",
-    nextAction: "Answer the next clarity question",
+    nextAction: isStrongIntake
+      ? "Review idea progress, then move to the next step"
+      : "Answer the next clarity question",
     ideaType: ideaType || undefined,
     description: cleanDraftText(text),
+  };
+}
+
+function extrasFromDraft(text: string, ts: number) {
+  const clean = cleanDraftText(text);
+  const isStrongIntake = clean.length >= 220;
+  const clarityText = isStrongIntake
+    ? `Captured a strong front-screen idea intake. Direction reads about 90% because the prompt gives the library enough detail to start across the main folders.\n\n-- Source Notes --\n${clean}`
+    : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
+
+  return {
+    notes: {},
+    attachments: [],
+    posts: INTAKE_CATEGORY_KEYS.map((category, index) => ({
+      id: `post-${ts}-${category}`,
+      kind: "idea-notes",
+      text: intakeCategoryLabels[category],
+      fullText: category === "clarity" ? clarityText : clean,
+      ts: ts - index,
+      categories: [category],
+      source: "generated-folder",
+    })),
+    answeredQuestions: isStrongIntake
+      ? [
+          "problem",
+          "who",
+          "version-one",
+          "who-does-work",
+          "trust-first",
+          "most-important-detail",
+          "first-paid-version",
+          "look-like",
+        ]
+      : [],
+    skippedQuestions: [],
+    clarityFollowupCount: isStrongIntake ? 5 : 0,
   };
 }
 
@@ -62,6 +126,52 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     if (Array.isArray(parsed)) return parsed as LightbulbIdea[];
   } catch {}
   return null;
+}
+
+function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
+  if (typeof window === "undefined") return ideas;
+  try {
+    const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
+    const parsedExtras = rawExtras ? JSON.parse(rawExtras) : null;
+    const existingExtras =
+      parsedExtras && typeof parsedExtras === "object" && !Array.isArray(parsedExtras)
+        ? parsedExtras
+        : {};
+    let changedExtras = false;
+    let changedIdeas = false;
+
+    const nextIdeas = ideas.map((idea) => {
+      const fullText = cleanDraftText([idea.description, idea.messy].filter(Boolean).join(" "));
+      const hasUsefulText = fullText.length >= 220;
+      const currentExtras = existingExtras[idea.id];
+      const hasPosts =
+        currentExtras &&
+        typeof currentExtras === "object" &&
+        Array.isArray(currentExtras.posts) &&
+        currentExtras.posts.length > 0;
+
+      if (hasUsefulText && !hasPosts) {
+        existingExtras[idea.id] = extrasFromDraft(fullText, idea.updatedAt || Date.now());
+        changedExtras = true;
+        if (idea.shelfReadiness < 90 || idea.nextAction === "Answer the next clarity question") {
+          changedIdeas = true;
+          return {
+            ...idea,
+            shelfReadiness: Math.max(idea.shelfReadiness, 96),
+            nextAction: "Review idea progress, then move to the next step",
+          };
+        }
+      }
+      return idea;
+    });
+
+    if (changedExtras) {
+      localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(existingExtras));
+    }
+    return changedIdeas ? nextIdeas : ideas;
+  } catch {
+    return ideas;
+  }
 }
 
 function nextStepSummary(idea: LightbulbIdea): string {
@@ -107,13 +217,30 @@ function LibraryPage() {
       const draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";
       if (draft.trim().length > 0) {
         const newIdea = ideaFromDraft(draft, draftType);
+        const ts = Number(newIdea.id.replace("idea-", "")) || Date.now();
         nextIdeas = [newIdea, ...nextIdeas];
+        try {
+          const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
+          const parsedExtras = rawExtras ? JSON.parse(rawExtras) : null;
+          const existingExtras =
+            parsedExtras && typeof parsedExtras === "object" && !Array.isArray(parsedExtras)
+              ? parsedExtras
+              : {};
+          localStorage.setItem(
+            EXTRAS_STORAGE_KEY,
+            JSON.stringify({
+              ...existingExtras,
+              [newIdea.id]: extrasFromDraft(draft, ts),
+            }),
+          );
+        } catch {}
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
         sessionStorage.removeItem("dabottree:packageTier");
         sessionStorage.removeItem("dabottree:reportPath");
       }
     } catch {}
+    nextIdeas = backfillMissingIntakeExtras(nextIdeas);
     setIdeas(nextIdeas);
     setReady(true);
   }, []);

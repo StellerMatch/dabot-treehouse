@@ -8,6 +8,31 @@ import { seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+const INTAKE_CATEGORY_KEYS = [
+  "core-idea",
+  "clarity",
+  "problem",
+  "audience",
+  "features",
+  "workflow",
+  "design",
+  "business",
+  "concerns",
+] as const;
+
+type IntakeCategoryKey = (typeof INTAKE_CATEGORY_KEYS)[number];
+
+const intakeCategoryLabels: Record<IntakeCategoryKey, string> = {
+  "core-idea": "Core Idea",
+  clarity: "Clarity",
+  problem: "Problem",
+  audience: "Audience",
+  features: "Features",
+  workflow: "Workflow",
+  design: "Design",
+  business: "Business",
+  concerns: "Concerns",
+};
 
 function cleanIdeaText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
@@ -102,16 +127,55 @@ function summaryFromIdea(text: string): string {
 
 function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
   const ts = Date.now();
+  const isStrongIntake = cleanIdeaText(text).length >= 220;
   return {
     id: `idea-${ts}`,
     title: titleFromIdea(text, ideaType),
     messy: summaryFromIdea(text),
-    shelfReadiness: 32,
+    shelfReadiness: isStrongIntake ? 96 : 32,
     updatedAt: ts,
     stage: "lightbulb",
-    nextAction: "Answer the next clarity question",
+    nextAction: isStrongIntake
+      ? "Review idea progress, then move to the next step"
+      : "Answer the next clarity question",
     ideaType: ideaType || undefined,
     description: cleanIdeaText(text),
+  };
+}
+
+function createIntakeExtras(text: string, ts: number) {
+  const clean = cleanIdeaText(text);
+  const isStrongIntake = clean.length >= 220;
+  const clarityText = isStrongIntake
+    ? `Captured a strong front-screen idea intake. Direction reads about 90% because the prompt gives the library enough detail to start across the main folders.\n\n-- Source Notes --\n${clean}`
+    : `Captured the front-screen idea intake. Add more answers to strengthen the category folders.\n\n-- Source Notes --\n${clean}`;
+
+  return {
+    notes: {},
+    attachments: [],
+    posts: INTAKE_CATEGORY_KEYS.map((category, index) => ({
+      id: `post-${ts}-${category}`,
+      kind: "idea-notes",
+      text: intakeCategoryLabels[category],
+      fullText: category === "clarity" ? clarityText : clean,
+      ts: ts - index,
+      categories: [category],
+      source: "generated-folder",
+    })),
+    answeredQuestions: isStrongIntake
+      ? [
+          "problem",
+          "who",
+          "version-one",
+          "who-does-work",
+          "trust-first",
+          "most-important-detail",
+          "first-paid-version",
+          "look-like",
+        ]
+      : [],
+    skippedQuestions: [],
+    clarityFollowupCount: isStrongIntake ? 5 : 0,
   };
 }
 
@@ -122,6 +186,7 @@ function saveIdeaToLibraryStorage(text: string, ideaType?: string): boolean {
     const parsedIdeas = rawIdeas ? JSON.parse(rawIdeas) : null;
     const existingIdeas = Array.isArray(parsedIdeas) ? (parsedIdeas as LightbulbIdea[]) : seedIdeas;
     const newIdea = createLibraryIdea(text, ideaType);
+    const ts = Number(newIdea.id.replace("idea-", "")) || Date.now();
     localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify([newIdea, ...existingIdeas]));
 
     const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
@@ -134,14 +199,7 @@ function saveIdeaToLibraryStorage(text: string, ideaType?: string): boolean {
       EXTRAS_STORAGE_KEY,
       JSON.stringify({
         ...existingExtras,
-        [newIdea.id]: {
-          notes: {},
-          attachments: [],
-          posts: [],
-          answeredQuestions: [],
-          skippedQuestions: [],
-          clarityFollowupCount: 0,
-        },
+        [newIdea.id]: createIntakeExtras(text, ts),
       }),
     );
     return true;
