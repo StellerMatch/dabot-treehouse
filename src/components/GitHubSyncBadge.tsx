@@ -48,42 +48,58 @@ export function GitHubSyncBadge() {
   }, [search]);
 
   // Poll GitHub for the latest commit on main.
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchCommit = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO}/commits/${BRANCH}`,
+        { headers: { Accept: "application/vnd.github+json" } },
+      );
+      if (signal?.aborted) return;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (signal?.aborted) return;
+      setCommit({
+        sha: data.sha,
+        message: (data.commit?.message ?? "").split("\n")[0],
+        date: data.commit?.author?.date ?? data.commit?.committer?.date ?? "",
+        url: data.html_url,
+      });
+      setStatus("connected");
+      setError("");
+    } catch (e) {
+      if (signal?.aborted) return;
+      setStatus("error");
+      setError(e instanceof Error ? e.message : "unknown");
+    }
+  }, []);
+
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
-    const fetchCommit = async () => {
-      try {
-        const res = await fetch(
-          `https://api.github.com/repos/${REPO}/commits/${BRANCH}`,
-          { headers: { Accept: "application/vnd.github+json" } },
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (cancelled) return;
-        setCommit({
-          sha: data.sha,
-          message: (data.commit?.message ?? "").split("\n")[0],
-          date: data.commit?.author?.date ?? data.commit?.committer?.date ?? "",
-          url: data.html_url,
-        });
-        setStatus("connected");
-        setError("");
-      } catch (e) {
-        if (cancelled) return;
-        setStatus("error");
-        setError(e instanceof Error ? e.message : "unknown");
-      }
-    };
-    fetchCommit();
-    const id = setInterval(fetchCommit, POLL_MS);
+    const controller = new AbortController();
+    fetchCommit(controller.signal);
+    const id = setInterval(() => {
+      fetchCommit();
+    }, POLL_MS);
     // re-render every 30s so "Xs ago" stays fresh
     const tickId = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => {
       cancelled = true;
+      controller.abort();
       clearInterval(id);
       clearInterval(tickId);
     };
-  }, [enabled]);
+  }, [enabled, refreshTrigger]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchCommit();
+    setTick((t) => t + 1);
+    setRefreshing(false);
+  };
 
   if (!mounted || !enabled) return null;
 
