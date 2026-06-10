@@ -4,6 +4,79 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
 import { AccountBadge } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
+import { seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
+
+const IDEAS_STORAGE_KEY = "dabottree:ideas";
+const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+
+function cleanIdeaText(text: string): string {
+  return text.trim().replace(/\s+/g, " ");
+}
+
+function titleFromIdea(text: string, ideaType?: string): string {
+  const clean = cleanIdeaText(text);
+  const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
+  const words = firstSentence.split(/\s+/).filter(Boolean).slice(0, 7);
+  const title = words.join(" ");
+  if (title.length > 0) return title.charAt(0).toUpperCase() + title.slice(1);
+  return ideaType ? `${ideaType} idea` : "Untitled idea";
+}
+
+function summaryFromIdea(text: string): string {
+  const clean = cleanIdeaText(text);
+  if (clean.length <= 180) return clean;
+  return `${clean.slice(0, 177).trim()}...`;
+}
+
+function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
+  const ts = Date.now();
+  return {
+    id: `idea-${ts}`,
+    title: titleFromIdea(text, ideaType),
+    messy: summaryFromIdea(text),
+    shelfReadiness: 32,
+    updatedAt: ts,
+    stage: "lightbulb",
+    nextAction: "Answer the next clarity question",
+    ideaType: ideaType || undefined,
+    description: cleanIdeaText(text),
+  };
+}
+
+function saveIdeaToLibraryStorage(text: string, ideaType?: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const rawIdeas = localStorage.getItem(IDEAS_STORAGE_KEY);
+    const parsedIdeas = rawIdeas ? JSON.parse(rawIdeas) : null;
+    const existingIdeas = Array.isArray(parsedIdeas) ? (parsedIdeas as LightbulbIdea[]) : seedIdeas;
+    const newIdea = createLibraryIdea(text, ideaType);
+    localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify([newIdea, ...existingIdeas]));
+
+    const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
+    const parsedExtras = rawExtras ? JSON.parse(rawExtras) : null;
+    const existingExtras =
+      parsedExtras && typeof parsedExtras === "object" && !Array.isArray(parsedExtras)
+        ? parsedExtras
+        : {};
+    localStorage.setItem(
+      EXTRAS_STORAGE_KEY,
+      JSON.stringify({
+        ...existingExtras,
+        [newIdea.id]: {
+          notes: {},
+          attachments: [],
+          posts: [],
+          answeredQuestions: [],
+          skippedQuestions: [],
+          clarityFollowupCount: 0,
+        },
+      }),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -274,22 +347,35 @@ function Index() {
                   let authed = false;
                   if (typeof window !== "undefined") {
                     try {
-                      sessionStorage.setItem("dabottree:draftIdea", idea);
-                      if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
-                      else sessionStorage.removeItem("dabottree:draftIdeaType");
-                      sessionStorage.removeItem("dabottree:packageTier");
-                      sessionStorage.removeItem("dabottree:reportPath");
                       localStorage.removeItem("dabottree:selectedIdeaId");
                       authed = localStorage.getItem("dabottree:authed") === "1";
                     } catch {}
                   }
                   setPathOpen(false);
                   if (!authed) {
+                    try {
+                      sessionStorage.setItem("dabottree:draftIdea", idea);
+                      if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
+                      else sessionStorage.removeItem("dabottree:draftIdeaType");
+                      sessionStorage.removeItem("dabottree:packageTier");
+                      sessionStorage.removeItem("dabottree:reportPath");
+                    } catch {}
                     // Prototype gate: send to login/sign-up first. The draft idea is
                     // preserved in sessionStorage and saved to My Account after sign-in.
                     navigate({ to: "/signin", search: { next: "/library" } as any });
                     return;
                   }
+                  const saved = saveIdeaToLibraryStorage(idea, ideaType);
+                  try {
+                    sessionStorage.removeItem("dabottree:draftIdea");
+                    sessionStorage.removeItem("dabottree:draftIdeaType");
+                    sessionStorage.removeItem("dabottree:packageTier");
+                    sessionStorage.removeItem("dabottree:reportPath");
+                    if (!saved) {
+                      sessionStorage.setItem("dabottree:draftIdea", idea);
+                      if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
+                    }
+                  } catch {}
                   setConfirmationMessage(
                     "Idea saved to your library. Open it from your profile when you're ready to move forward.",
                   );
