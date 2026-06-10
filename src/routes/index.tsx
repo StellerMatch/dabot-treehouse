@@ -13,12 +13,84 @@ function cleanIdeaText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
 }
 
+const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
+  { match: /\bwedding\b/i, name: "Wedding" },
+  {
+    match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i,
+    name: "Photo",
+  },
+  { match: /\bclassroom|teacher|student|school\b/i, name: "Classroom" },
+  { match: /\brecipe|cook|kitchen\b/i, name: "Recipe" },
+  { match: /\bneighborhood|community\b/i, name: "Community" },
+  { match: /\bplant|garden\b/i, name: "Garden" },
+  { match: /\bworkout|fitness|gym\b/i, name: "Fitness" },
+];
+
+const TITLE_SUFFIXES: Array<{ match: RegExp; name: string }> = [
+  { match: /\blearn|training|course|teach|lesson/i, name: "Learning Site" },
+  { match: /\bproof|approval|approve|review/i, name: "Approval App" },
+  { match: /\bschedul/i, name: "Scheduler" },
+  { match: /\b(plan|planning)\b/i, name: "Planner" },
+  { match: /\btrack/i, name: "Tracker" },
+  { match: /\bjournal|diary\b/i, name: "Journal" },
+  { match: /\bboard\b/i, name: "Board" },
+  { match: /\bsite|website\b/i, name: "Site" },
+  { match: /\bapp\b/i, name: "App" },
+  { match: /\btool\b/i, name: "Tool" },
+];
+
+function titleCase(s: string) {
+  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+
 function titleFromIdea(text: string, ideaType?: string): string {
   const clean = cleanIdeaText(text);
+  if (!clean) return ideaType ? `${ideaType} idea` : "Untitled idea";
+  if (
+    /\bwedding\b/i.test(clean) &&
+    /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(clean)
+  ) {
+    if (/\blearn|training|course|teach|lesson/i.test(clean)) return "Wedding Photographer Learning Site";
+    if (/\bproof|approval|approve|review/i.test(clean)) return "Wedding Photo Approval App";
+    return "Wedding Photo App";
+  }
+  const domain = TITLE_DOMAINS.find((d) => d.match.test(clean))?.name;
+  const suffix =
+    TITLE_SUFFIXES.find((p) => p.match.test(clean))?.name ??
+    (ideaType && ideaType !== "Undecided" ? ideaType : "Idea");
+  if (domain) return `${domain} ${suffix}`;
+  const stop = new Set([
+    "a",
+    "an",
+    "the",
+    "to",
+    "for",
+    "of",
+    "and",
+    "or",
+    "with",
+    "that",
+    "this",
+    "program",
+    "site",
+    "website",
+    "app",
+    "tool",
+    "build",
+    "make",
+    "using",
+    "help",
+    "helps",
+    "learns",
+  ]);
   const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
-  const words = firstSentence.split(/\s+/).filter(Boolean).slice(0, 7);
-  const title = words.join(" ");
-  if (title.length > 0) return title.charAt(0).toUpperCase() + title.slice(1);
+  const words = firstSentence
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, ""))
+    .filter((word) => word.length > 2 && !stop.has(word.toLowerCase()))
+    .slice(0, 3)
+    .join(" ");
+  if (words.length > 0) return titleCase(`${words} ${suffix}`);
   return ideaType ? `${ideaType} idea` : "Untitled idea";
 }
 

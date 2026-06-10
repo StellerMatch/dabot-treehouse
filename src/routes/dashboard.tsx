@@ -692,12 +692,15 @@ const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
   { match: /\bneighborhood|community\b/i, name: "Neighborhood" },
 ];
 const TITLE_SUFFIXES: Array<{ match: RegExp; name: string }> = [
+  { match: /\blearn|training|course|teach|lesson/i, name: "Learning Site" },
+  { match: /\bproof|approval|approve|review/i, name: "Approval App" },
   { match: /\bschedul/i, name: "Scheduler" },
   { match: /\b(plan|planning)\b/i, name: "Planner" },
   { match: /\btrack/i, name: "Tracker" },
   { match: /\breminder/i, name: "Reminders" },
   { match: /\bjournal|diary\b/i, name: "Journal" },
   { match: /\bboard\b/i, name: "Board" },
+  { match: /\bsite|website\b/i, name: "Site" },
   { match: /\bapp\b/i, name: "App" },
   { match: /\btool\b/i, name: "Tool" },
 ];
@@ -711,6 +714,8 @@ function generateTitle(text: string, ideaType?: string): string {
     /\bwedding\b/i.test(t) &&
     /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(t)
   ) {
+    if (/\blearn|training|course|teach|lesson/i.test(t)) return "Wedding Photographer Learning Site";
+    if (!/\bproof|approval|approve|review/i.test(t)) return "Wedding Photo App";
     return "Wedding Photo Approval App";
   }
   const domain = TITLE_DOMAINS.find((d) => d.match.test(t))?.name;
@@ -743,6 +748,9 @@ function generateTitle(text: string, ideaType?: string): string {
     "are",
     "my",
     "new",
+    "program",
+    "site",
+    "website",
     "app",
     "tool",
     "build",
@@ -750,10 +758,12 @@ function generateTitle(text: string, ideaType?: string): string {
     "using",
     "help",
     "helps",
+    "learns",
   ]);
   const firstSentence = t.split(/[.!?]/)[0] ?? t;
   const words = firstSentence
     .split(/\s+/)
+    .map((w) => w.replace(/^[^\w]+|[^\w]+$/g, ""))
     .filter((w) => w.length > 2 && !stop.has(w.toLowerCase()))
     .slice(0, 3)
     .join(" ");
@@ -1497,13 +1507,29 @@ const spinePalettes: Array<[string, string, string]> = [
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+function shouldCleanSavedTitle(title: string): boolean {
+  const t = title.trim();
+  return (
+    /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
+    /^an\s+(app|tool|website)\b/i.test(t) ||
+    t.length > 54
+  );
+}
+
+function cleanStoredIdeaTitle(idea: LightbulbIdea): LightbulbIdea {
+  if (!shouldCleanSavedTitle(idea.title)) return idea;
+  const context = [idea.description, idea.messy, idea.title].filter(Boolean).join(" ");
+  const title = generateTitle(context, idea.ideaType);
+  return title && title !== idea.title ? { ...idea, title } : idea;
+}
+
 function loadStoredIdeas(): LightbulbIdea[] | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(IDEAS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as LightbulbIdea[];
+    if (Array.isArray(parsed)) return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle);
   } catch {}
   return null;
 }
