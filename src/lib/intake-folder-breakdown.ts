@@ -160,7 +160,7 @@ export function buildIntakeFolderPosts(text: string, ts: number) {
     text: intakeFolderLabels[folder],
     fullText:
       folder === "core-idea"
-        ? coreIdeaBody(text, buckets[folder])
+        ? coreIdeaBody(text)
         : bodyForIntakeFolder(folder, buckets[folder]),
     ts: ts - index,
     categories: [folder],
