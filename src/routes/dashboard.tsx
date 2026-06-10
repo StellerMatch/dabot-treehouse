@@ -706,6 +706,10 @@ function categoryStatusForIdea(
   return { pct: pcts[strength.stars], label: labels[strength.stars] };
 }
 
+// Source of truth: docs/clarity-library-process.md (Folder Rating Rubric).
+// 1 Very Weak / 2 Needs Help / 3 Good / 4 Ready. Generated-only folders are
+// capped until the user adds real follow-up notes so weak intake cannot inflate
+// itself into Review.
 function categoryStrengthForIdea(
   idea: LightbulbIdea | undefined,
   extras: IdeaExtras,
