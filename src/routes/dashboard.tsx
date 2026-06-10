@@ -42,6 +42,8 @@ import {
   LayoutDashboard,
   Trash2,
   Coins,
+  Download,
+  Hammer,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
@@ -50,7 +52,46 @@ import { CreditsPill } from "@/components/AccountBadge";
 
 type ReportTier = "good" | "better" | "best";
 type LibraryDoorId = "door1" | "door2";
+type BuildProjectKind = "tool" | "app" | "website" | "automation" | "dashboard";
 const LIBRARY_START_CREDIT_COST = 10;
+
+const BUILD_PROJECT_OPTIONS: Array<{
+  kind: BuildProjectKind;
+  label: string;
+  credits: number;
+  description: string;
+}> = [
+  {
+    kind: "tool",
+    label: "Tool / workflow",
+    credits: 25,
+    description: "Small usable helper, workflow, or first working version.",
+  },
+  {
+    kind: "website",
+    label: "Website",
+    credits: 35,
+    description: "Public-facing pages, copy, layout, and basic conversion path.",
+  },
+  {
+    kind: "app",
+    label: "App",
+    credits: 50,
+    description: "Interactive product flow with screens, states, and user actions.",
+  },
+  {
+    kind: "dashboard",
+    label: "Dashboard",
+    credits: 55,
+    description: "Operational view for tracking records, status, and decisions.",
+  },
+  {
+    kind: "automation",
+    label: "Automation",
+    credits: 60,
+    description: "Connected process with triggers, routing, and handoff logic.",
+  },
+];
 
 const LIBRARY_DOOR_QUESTIONS: Record<LibraryDoorId, string[]> = {
   door1: [
@@ -629,7 +670,14 @@ function projectQuestionName(idea: LightbulbIdea | undefined): string {
 }
 
 function ideaQuestionContext(idea: LightbulbIdea | undefined): string {
-  return [idea?.title, idea?.messy, idea?.description, idea?.audience, idea?.industry, idea?.ideaType]
+  return [
+    idea?.title,
+    idea?.messy,
+    idea?.description,
+    idea?.audience,
+    idea?.industry,
+    idea?.ideaType,
+  ]
     .filter(Boolean)
     .join("\n");
 }
@@ -1744,6 +1792,8 @@ function Dashboard() {
     Partial<Record<LibraryDoorId, string>>
   >({});
   const [libraryRedoUsed, setLibraryRedoUsed] = useState(false);
+  const [buildConfirmOpen, setBuildConfirmOpen] = useState(false);
+  const [descentTarget, setDescentTarget] = useState<"root-room" | null>(null);
   const [libraryWebhookStatus, setLibraryWebhookStatus] = useState<
     | { kind: "idle" }
     | { kind: "sending" }
@@ -2136,9 +2186,34 @@ function Dashboard() {
     });
   };
 
-  const moveFromLibraryReportToNextLevel = () => {
+  const finishLibraryReportForNow = () => {
+    setLibraryReportOpen(false);
+  };
+
+  const openBuildConfirmation = () => {
     if (!selected) return;
     setLibraryReportOpen(false);
+    setBuildConfirmOpen(true);
+  };
+
+  const confirmBuildStart = (kind: BuildProjectKind, credits: number) => {
+    if (!selected || typeof window === "undefined") return;
+    const balance = readCreditsBalance();
+    if (balance < credits) return;
+    try {
+      localStorage.setItem("dabottree:credits", String(balance - credits));
+      localStorage.setItem(`dabottree:buildProjectKind:${selected.id}`, kind);
+      localStorage.setItem(`dabottree:buildCreditsSpent:${selected.id}`, String(credits));
+      window.dispatchEvent(new Event("storage"));
+    } catch {}
+    updateSelected({
+      stage: "paid-creation",
+      ideaType:
+        BUILD_PROJECT_OPTIONS.find((option) => option.kind === kind)?.label ?? selected.ideaType,
+      nextAction: "Build credits confirmed. Move this project through the Root Room.",
+    });
+    setBuildConfirmOpen(false);
+    setDescentTarget("root-room");
     setDescending(true);
   };
 
@@ -2496,7 +2571,7 @@ function Dashboard() {
       {descending && (
         <RootDescentTransition
           onComplete={() => {
-            if (selected) {
+            if (selected && descentTarget !== "root-room") {
               moveToPreClarity(selected.id);
             }
             navigate({ to: "/root-room" });
@@ -2514,7 +2589,8 @@ function Dashboard() {
           onClose={() => setLibraryReportOpen(false)}
           onOpenDoor={(doorId) => setActiveLibraryDoor(doorId)}
           onRedo={redoLibraryWithDoorAnswers}
-          onNext={moveFromLibraryReportToNextLevel}
+          onFinish={finishLibraryReportForNow}
+          onBuild={openBuildConfirmation}
         />
       )}
       {activeLibraryDoor && (
@@ -2536,6 +2612,14 @@ function Dashboard() {
           cost={LIBRARY_START_CREDIT_COST}
           onClose={() => setLibraryStartOpen(false)}
           onConfirm={confirmLibraryStart}
+        />
+      )}
+      {selected && buildConfirmOpen && (
+        <BuildCreditConfirmModal
+          idea={selected}
+          balance={readCreditsBalance()}
+          onClose={() => setBuildConfirmOpen(false)}
+          onConfirm={confirmBuildStart}
         />
       )}
       {selected && tierPickerOpen && (
@@ -3565,12 +3649,12 @@ function OrganizeButton({
           onClick={handleClick}
           title={
             unlocked
-                ? `Ready! View the Library report (${overall}%)`
-                : weakFolderCount > 0
-                  ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
-                  : remainingFollowups > 0
-                    ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
-                    : `Asleep — unlocks at 90% (currently ${overall}%)`
+              ? `Ready! View the Library report (${overall}%)`
+              : weakFolderCount > 0
+                ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
+                : remainingFollowups > 0
+                  ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
+                  : `Asleep — unlocks at 90% (currently ${overall}%)`
           }
           trailing={unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null}
         />
@@ -3710,7 +3794,8 @@ function LibraryLevelReportModal({
   onClose,
   onOpenDoor,
   onRedo,
-  onNext,
+  onFinish,
+  onBuild,
 }: {
   idea: LightbulbIdea;
   extras: IdeaExtras;
@@ -3721,7 +3806,8 @@ function LibraryLevelReportModal({
   onClose: () => void;
   onOpenDoor: (doorId: LibraryDoorId) => void;
   onRedo: () => void;
-  onNext: () => void;
+  onFinish: () => void;
+  onBuild: () => void;
 }) {
   const answeredDoors = (Object.keys(doorAnswers) as LibraryDoorId[]).filter((doorId) =>
     doorAnswers[doorId]?.trim(),
@@ -3742,6 +3828,37 @@ function LibraryLevelReportModal({
     if (tier === "good") return false;
     if (tier === "best") return true;
     return answeredDoors.length === 0 || Boolean(doorAnswers[doorId]?.trim());
+  };
+  const reportText = [
+    `Library Report: ${idea.title}`,
+    `Readiness: ${readiness.pct}%`,
+    `Report path: ${tier}`,
+    "",
+    "Master Library Review",
+    ...categoryReview.map((item) => `${item.label} (${item.stars}/4 stars)\n${item.body}`),
+    "",
+    "Original Intake Saved By Clarity",
+    extras.sourceText?.trim() || idea.messy || "No original intake text saved.",
+    "",
+    "Next Choices",
+    "That's all I need. Thank you.",
+    "I'm ready to build the thing.",
+  ].join("\n\n");
+  const downloadReport = () => {
+    if (typeof window === "undefined") return;
+    const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const slug = (idea.title || "library-report")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    link.href = url;
+    link.download = `${slug || "library-report"}-clarity-report.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -3774,7 +3891,7 @@ function LibraryLevelReportModal({
         </h2>
         <div className="mx-auto mt-4 max-w-2xl rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
           <p className="mb-2 text-[11px] uppercase tracking-[0.22em] text-amber-100/60">
-            Summary review only
+            Full clarity report
           </p>
           <p>
             <strong>{idea.title}</strong> now has enough Library clarity to move forward because
@@ -3789,6 +3906,14 @@ function LibraryLevelReportModal({
                 ? "You can open one opportunity door for this level."
                 : "Both opportunity doors are available for this level."}
           </p>
+          <button
+            type="button"
+            onClick={downloadReport}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-200/50 bg-amber-200/10 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:bg-amber-200/20"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Download full report
+          </button>
         </div>
 
         <div className="mt-5 rounded-xl border border-amber-200/20 bg-black/25 p-4">
@@ -3880,15 +4005,164 @@ function LibraryLevelReportModal({
           </>
         )}
 
-        {redoUsed && (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
-            onClick={onNext}
-            className="mt-6 w-full rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-3 text-sm font-semibold text-amber-950 transition hover:from-amber-200 hover:to-amber-400"
+            onClick={onFinish}
+            className="rounded-full border border-amber-200/35 px-4 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
           >
-            I'm ready for the next level
+            That's all I need. Thank you.
           </button>
-        )}
+          <button
+            type="button"
+            onClick={onBuild}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-3 text-sm font-semibold text-amber-950 transition hover:from-amber-200 hover:to-amber-400"
+          >
+            <Hammer className="h-4 w-4" />
+            I'm ready to build the thing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function inferBuildProjectKind(idea: LightbulbIdea): BuildProjectKind {
+  const text = [idea.ideaType, idea.title, idea.description, idea.messy].filter(Boolean).join(" ");
+  if (/\b(automate|automation|workflow|trigger|text|sms|route|dispatch)\b/i.test(text)) {
+    return "automation";
+  }
+  if (/\b(dashboard|reporting|analytics|tracker|status)\b/i.test(text)) return "dashboard";
+  if (/\b(site|website|landing|page)\b/i.test(text)) return "website";
+  if (/\b(app|mobile|portal|platform)\b/i.test(text)) return "app";
+  return "tool";
+}
+
+function BuildCreditConfirmModal({
+  idea,
+  balance,
+  onClose,
+  onConfirm,
+}: {
+  idea: LightbulbIdea;
+  balance: number;
+  onClose: () => void;
+  onConfirm: (kind: BuildProjectKind, credits: number) => void;
+}) {
+  const [selectedKind, setSelectedKind] = useState<BuildProjectKind>(() =>
+    inferBuildProjectKind(idea),
+  );
+  const selectedOption =
+    BUILD_PROJECT_OPTIONS.find((option) => option.kind === selectedKind) ??
+    BUILD_PROJECT_OPTIONS[0];
+  const canAfford = balance >= selectedOption.credits;
+
+  return (
+    <div
+      className="fixed inset-0 z-[96] flex items-center justify-center px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Confirm build credits"
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+      />
+      <div
+        className="relative w-full max-w-[620px] rounded-[18px] border border-amber-200/60 px-6 py-6 text-amber-50 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9),0_0_70px_-10px_rgba(255,190,90,0.55)]"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(126,82,25,0.96) 0%, rgba(55,31,10,0.98) 58%, rgba(24,14,5,0.99) 100%)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
+        >
+          x
+        </button>
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/50 bg-black/25">
+          <Hammer className="h-6 w-6 text-amber-200" />
+        </div>
+        <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
+          Build Confirmation
+        </p>
+        <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
+          Pick the project type before credits are taken
+        </h2>
+        <p className="mx-auto mt-3 max-w-lg text-center text-sm leading-relaxed text-amber-50/80">
+          Choose the closest build shape for <strong>{idea.title}</strong>. The credit cost is shown
+          before anything starts.
+        </p>
+
+        <div className="mt-5 grid gap-2">
+          {BUILD_PROJECT_OPTIONS.map((option) => {
+            const active = option.kind === selectedKind;
+            return (
+              <button
+                key={option.kind}
+                type="button"
+                onClick={() => setSelectedKind(option.kind)}
+                className={
+                  "flex items-start justify-between gap-3 rounded-lg border px-3 py-3 text-left transition " +
+                  (active
+                    ? "border-amber-200/75 bg-amber-200/15"
+                    : "border-amber-200/20 bg-black/20 hover:bg-amber-200/10")
+                }
+              >
+                <span>
+                  <span className="block text-sm font-semibold text-amber-50">{option.label}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-amber-100/70">
+                    {option.description}
+                  </span>
+                </span>
+                <span className="shrink-0 rounded-full border border-amber-200/30 px-2.5 py-1 text-xs font-semibold tabular-nums text-amber-100">
+                  {option.credits} credits
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-3 text-xs text-amber-50/80">
+          <div className="flex items-center justify-between gap-3">
+            <span>Available credits</span>
+            <span className="font-semibold tabular-nums">{balance}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <span>Selected build cost</span>
+            <span className="font-semibold tabular-nums">{selectedOption.credits}</span>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-amber-200/30 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-200/10"
+          >
+            Not yet
+          </button>
+          <button
+            type="button"
+            disabled={!canAfford}
+            onClick={() => onConfirm(selectedOption.kind, selectedOption.credits)}
+            className={
+              "rounded-full border px-4 py-2 text-sm font-semibold transition " +
+              (canAfford
+                ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
+                : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/45")
+            }
+          >
+            {canAfford
+              ? `Spend ${selectedOption.credits} credits and start build`
+              : "Add credits before building"}
+          </button>
+        </div>
       </div>
     </div>
   );
