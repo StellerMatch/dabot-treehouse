@@ -5,6 +5,7 @@ import logoImage from "@/assets/dabottree-logo.png";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import { seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
+import { generateWorkingProjectTitle } from "@/lib/project-naming";
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
@@ -38,121 +39,6 @@ function cleanIdeaText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
 }
 
-const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
-  { match: /\bwedding\b/i, name: "Wedding" },
-  {
-    match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i,
-    name: "Photo",
-  },
-  { match: /\bclassroom|teacher|student|school\b/i, name: "Classroom" },
-  { match: /\brecipe|cook|kitchen\b/i, name: "Recipe" },
-  { match: /\bneighborhood|community\b/i, name: "Community" },
-  { match: /\bplant|garden\b/i, name: "Garden" },
-  { match: /\bworkout|fitness|gym\b/i, name: "Fitness" },
-];
-
-const TITLE_SUFFIXES: Array<{ match: RegExp; name: string }> = [
-  { match: /\blearn|training|course|teach|lesson/i, name: "Learning Site" },
-  { match: /\bproof|approval|approve|review/i, name: "Approval App" },
-  { match: /\bschedul/i, name: "Scheduler" },
-  { match: /\b(plan|planning)\b/i, name: "Planner" },
-  { match: /\btrack/i, name: "Tracker" },
-  { match: /\bjournal|diary\b/i, name: "Journal" },
-  { match: /\bboard\b/i, name: "Board" },
-  { match: /\bsite|website\b/i, name: "Site" },
-  { match: /\bapp\b/i, name: "App" },
-  { match: /\btool\b/i, name: "Tool" },
-];
-
-function titleCase(s: string) {
-  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
-}
-
-function titleFromIdea(text: string, ideaType?: string): string {
-  const clean = cleanIdeaText(text);
-  if (!clean) return ideaType ? `${ideaType} idea` : "Untitled idea";
-  if (
-    /\b(qr|code|scan)\b/i.test(clean) &&
-    /\b(t-?shirt|tee|shirt)\b/i.test(clean) &&
-    /\b(coupon|reward|credit|discount)\b/i.test(clean)
-  ) {
-    return "QR Tee Rewards";
-  }
-  if (
-    /\bwedding\b/i.test(clean) &&
-    /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(clean)
-  ) {
-    if (/\blearn|training|course|teach|lesson/i.test(clean)) return "Wedding Photographer Learning Site";
-    if (/\bproof|approval|approve|review/i.test(clean)) return "Wedding Photo Approval App";
-    return "Wedding Photo App";
-  }
-  const domain = TITLE_DOMAINS.find((d) => d.match.test(clean))?.name;
-  const suffix =
-    TITLE_SUFFIXES.find((p) => p.match.test(clean))?.name ??
-    (ideaType && ideaType !== "Undecided" ? ideaType : "Idea");
-  if (domain) return `${domain} ${suffix}`;
-  const stop = new Set([
-    "a",
-    "an",
-    "the",
-    "to",
-    "for",
-    "of",
-    "and",
-    "or",
-    "with",
-    "that",
-    "this",
-    "have",
-    "has",
-    "having",
-    "want",
-    "wants",
-    "need",
-    "needs",
-    "new",
-    "idea",
-    "project",
-    "program",
-    "site",
-    "website",
-    "app",
-    "tool",
-    "build",
-    "make",
-    "using",
-    "help",
-    "helps",
-    "learns",
-    "user",
-    "users",
-    "someone",
-    "people",
-    "person",
-    "walking",
-    "phone",
-    "account",
-    "credit",
-    "coupon",
-    "scan",
-    "scans",
-    "scanned",
-    "code",
-    "shirt",
-    "tshirt",
-    "tee",
-  ]);
-  const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
-  const words = firstSentence
-    .split(/\s+/)
-    .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, ""))
-    .filter((word) => word.length > 2 && !stop.has(word.toLowerCase()))
-    .slice(0, 3)
-    .join(" ");
-  if (words.length > 0) return titleCase(`${words} ${suffix}`);
-  return ideaType ? `${ideaType} idea` : "Untitled idea";
-}
-
 function summaryFromIdea(text: string): string {
   const clean = cleanIdeaText(text);
   if (clean.length <= 180) return clean;
@@ -164,7 +50,7 @@ function createLibraryIdea(text: string, ideaType?: string): LightbulbIdea {
   const isStrongIntake = cleanIdeaText(text).length >= 650;
   return {
     id: `idea-${ts}`,
-    title: titleFromIdea(text, ideaType),
+    title: generateWorkingProjectTitle(text, ideaType),
     messy: summaryFromIdea(text),
     shelfReadiness: isStrongIntake ? 82 : 32,
     updatedAt: ts,

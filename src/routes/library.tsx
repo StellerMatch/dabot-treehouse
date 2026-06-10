@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
@@ -73,90 +74,11 @@ function cleanDraftText(text: string): string {
 }
 
 function titleFromDraft(text: string, ideaType?: string): string {
-  const clean = cleanDraftText(text);
-  if (
-    /\b(qr|code|scan)\b/i.test(clean) &&
-    /\b(t-?shirt|tee|shirt)\b/i.test(clean) &&
-    /\b(coupon|reward|credit|discount)\b/i.test(clean)
-  ) {
-    return "QR Tee Rewards";
-  }
-  const firstSentence = clean.split(/[.!?]/)[0]?.trim() || clean;
-  const stop = new Set([
-    "a",
-    "an",
-    "the",
-    "to",
-    "for",
-    "of",
-    "and",
-    "or",
-    "with",
-    "that",
-    "this",
-    "have",
-    "has",
-    "having",
-    "want",
-    "wants",
-    "need",
-    "needs",
-    "new",
-    "idea",
-    "project",
-    "program",
-    "site",
-    "website",
-    "app",
-    "tool",
-    "build",
-    "make",
-    "using",
-    "help",
-    "helps",
-    "learns",
-    "user",
-    "users",
-    "someone",
-    "people",
-    "person",
-    "walking",
-    "phone",
-    "account",
-    "credit",
-    "coupon",
-    "scan",
-    "scans",
-    "scanned",
-    "code",
-    "shirt",
-    "tshirt",
-    "tee",
-  ]);
-  const words = firstSentence
-    .split(/\s+/)
-    .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, ""))
-    .filter((word) => word.length > 2 && !stop.has(word.toLowerCase()))
-    .slice(0, 3);
-  const title = words.join(" ");
-  if (title.length > 0) return title.charAt(0).toUpperCase() + title.slice(1);
-  return ideaType ? `${ideaType} idea` : "Untitled idea";
+  return generateWorkingProjectTitle(text, ideaType);
 }
 
 function shouldCleanSavedTitle(title: string): boolean {
-  const t = title.trim();
-  const hits = [
-    /\b(shirt|tee|tshirt|t-shirt)\b/i,
-    /\b(qr|code|scan|scanned|scans)\b/i,
-    /\b(coupon|credit|credits|reward|rewards|discount)\b/i,
-  ].reduce((n, re) => (re.test(t) ? n + 1 : n), 0);
-  return (
-    /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
-    /^an\s+(app|tool|website)\b/i.test(t) ||
-    /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
-    hits >= 2 ||
-    t.length > 54
-  );
+  return shouldCleanWorkingProjectTitle(title);
 }
 
 function isPlaceholderIdeaType(value: string | undefined): boolean {

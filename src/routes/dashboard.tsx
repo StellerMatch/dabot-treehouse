@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
+import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
@@ -826,127 +827,8 @@ function libraryReadinessForIdea(idea: LightbulbIdea | undefined, extras: IdeaEx
   };
 }
 
-// ——— Title generator ———
-const TITLE_DOMAINS: Array<{ match: RegExp; name: string }> = [
-  { match: /\b(construction|jobsite|job site|crew|contractor)\b/i, name: "Construction Crew" },
-  {
-    match: /\b(photo|photos|photographer|photography|camera|photoshop|editing|raw-vs-edited)\b/i,
-    name: "Photo Editing",
-  },
-  { match: /\brecipe|cook|kitchen\b/i, name: "Family Recipe" },
-  { match: /\bpet|dog|cat\b/i, name: "Pet Care" },
-  { match: /\bplant|garden\b/i, name: "Garden" },
-  { match: /\bworkout|fitness|gym\b/i, name: "Fitness" },
-  { match: /\bclassroom|teacher|student|school\b/i, name: "Classroom" },
-  { match: /\bstory|bedtime\b/i, name: "Storybook" },
-  { match: /\bneighborhood|community\b/i, name: "Neighborhood" },
-];
-const TITLE_SUFFIXES: Array<{ match: RegExp; name: string }> = [
-  { match: /\blearn|training|course|teach|lesson/i, name: "Learning Site" },
-  { match: /\bproof|approval|approve|review/i, name: "Approval App" },
-  { match: /\bschedul/i, name: "Scheduler" },
-  { match: /\b(plan|planning)\b/i, name: "Planner" },
-  { match: /\btrack/i, name: "Tracker" },
-  { match: /\breminder/i, name: "Reminders" },
-  { match: /\bjournal|diary\b/i, name: "Journal" },
-  { match: /\bboard\b/i, name: "Board" },
-  { match: /\bsite|website\b/i, name: "Site" },
-  { match: /\bapp\b/i, name: "App" },
-  { match: /\btool\b/i, name: "Tool" },
-];
-function titleCase(s: string) {
-  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
-}
 function generateTitle(text: string, ideaType?: string): string {
-  const t = text.trim();
-  if (!t) return "Untitled Idea";
-  if (
-    /\b(qr|code|scan)\b/i.test(t) &&
-    /\b(t-?shirt|tee|shirt)\b/i.test(t) &&
-    /\b(coupon|reward|credit|discount)\b/i.test(t)
-  ) {
-    return "QR Tee Rewards";
-  }
-  if (
-    /\bwedding\b/i.test(t) &&
-    /\b(photo|photos|photographer|photography|editing|approval|proof)\b/i.test(t)
-  ) {
-    if (/\blearn|training|course|teach|lesson/i.test(t)) return "Wedding Photographer Learning Site";
-    if (!/\bproof|approval|approve|review/i.test(t)) return "Wedding Photo App";
-    return "Wedding Photo Approval App";
-  }
-  const domain = TITLE_DOMAINS.find((d) => d.match.test(t))?.name;
-  const suffix =
-    TITLE_SUFFIXES.find((p) => p.match.test(t))?.name ??
-    (ideaType && ideaType !== "Undecided" ? ideaType : "App");
-  if (domain) return `${domain} ${suffix}`;
-  const stop = new Set([
-    "a",
-    "an",
-    "the",
-    "to",
-    "for",
-    "of",
-    "and",
-    "or",
-    "with",
-    "this",
-    "that",
-    "want",
-    "wants",
-    "need",
-    "needs",
-    "i",
-    "we",
-    "you",
-    "they",
-    "it",
-    "is",
-    "are",
-    "my",
-    "have",
-    "has",
-    "having",
-    "new",
-    "idea",
-    "project",
-    "program",
-    "site",
-    "website",
-    "app",
-    "tool",
-    "build",
-    "make",
-    "using",
-    "help",
-    "helps",
-    "learns",
-    "user",
-    "users",
-    "someone",
-    "people",
-    "person",
-    "walking",
-    "phone",
-    "account",
-    "credit",
-    "coupon",
-    "scan",
-    "scans",
-    "scanned",
-    "code",
-    "shirt",
-    "tshirt",
-    "tee",
-  ]);
-  const firstSentence = t.split(/[.!?]/)[0] ?? t;
-  const words = firstSentence
-    .split(/\s+/)
-    .map((w) => w.replace(/^[^\w]+|[^\w]+$/g, ""))
-    .filter((w) => w.length > 2 && !stop.has(w.toLowerCase()))
-    .slice(0, 3)
-    .join(" ");
-  return titleCase(`${words || "New"} ${suffix}`);
+  return generateWorkingProjectTitle(text, ideaType);
 }
 
 // ——— Idea analyzer: semantically parse a pasted Clarity prompt into the
@@ -1580,9 +1462,7 @@ function ideaMetadataFromText(
 }
 
 function isWeakGeneratedTitle(title: string): boolean {
-  return /^(might create|program\s*\/\s*site|(?:have\s+)?new (?:app|tool|idea|project|idea app)|have new idea app|untitled idea)\b/i.test(
-    title.trim(),
-  );
+  return shouldCleanWorkingProjectTitle(title);
 }
 
 function ideaContextText(idea: LightbulbIdea, posts: PostIt[]): string {
@@ -1696,14 +1576,7 @@ const spinePalettes: Array<[string, string, string]> = [
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
 function shouldCleanSavedTitle(title: string): boolean {
-  const t = title.trim();
-  return (
-    /^a\s+(program|site|website|app|tool)\b/i.test(t) ||
-    /^an\s+(app|tool|website)\b/i.test(t) ||
-    /^(?:have\s+)?new (?:app|tool|idea|project|idea app)\b/i.test(t) ||
-    (/\b(shirt|tee|tshirt)\b/i.test(t) && /\b(code|scan|coupon|credit)\b/i.test(t)) ||
-    t.length > 54
-  );
+  return shouldCleanWorkingProjectTitle(title);
 }
 
 function cleanStoredIdeaTitle(idea: LightbulbIdea): LightbulbIdea {
