@@ -37,7 +37,6 @@ export const intakeFolderMissing: Record<IntakeFolderKey, string> = {
 };
 
 const SORTABLE_FOLDERS: IntakeFolderKey[] = [
-  "core-idea",
   "problem",
   "audience",
   "features",
