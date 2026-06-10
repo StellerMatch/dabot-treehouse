@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { seedIdeas, stageLabels, type LightbulbIdea } from "@/lib/dabottree-state";
 import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
-import { AccountBadge } from "@/components/AccountBadge";
+import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import {
   Dialog,
   DialogContent,
@@ -190,6 +190,7 @@ function LibraryPage() {
             <Plus className="h-3.5 w-3.5 shrink-0" />
             <span className="whitespace-nowrap">New Idea</span>
           </Link>
+          <CreditsPill />
           <AccountBadge placement="inline" />
         </div>
       </header>

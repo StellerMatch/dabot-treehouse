@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { Coins, LogOut, User as UserIcon } from "lucide-react";
 
 type Profile = {
   authed: boolean;
@@ -29,6 +29,44 @@ type AccountBadgeProps = {
   placement?: "fixed" | "inline";
   prominence?: "normal" | "large";
 };
+
+function readCredits(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const value = Number(localStorage.getItem("dabottree:credits") ?? "0");
+    return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function CreditsPill() {
+  const [credits, setCredits] = useState(0);
+
+  useEffect(() => {
+    const syncCredits = () => setCredits(readCredits());
+    syncCredits();
+    window.addEventListener("storage", syncCredits);
+    window.addEventListener("focus", syncCredits);
+    document.addEventListener("visibilitychange", syncCredits);
+    return () => {
+      window.removeEventListener("storage", syncCredits);
+      window.removeEventListener("focus", syncCredits);
+      document.removeEventListener("visibilitychange", syncCredits);
+    };
+  }, []);
+
+  return (
+    <div
+      title={`${credits} credits available`}
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-amber-200/40 bg-[rgba(24,13,7,0.74)] px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-50 shadow-sm backdrop-blur-md"
+    >
+      <Coins className="h-3.5 w-3.5 shrink-0 text-amber-200" />
+      <span className="tabular-nums">{credits}</span>
+      <span className="hidden sm:inline">Credits</span>
+    </div>
+  );
+}
 
 export function AccountBadge({ placement = "fixed", prominence = "normal" }: AccountBadgeProps) {
   const router = useRouter();
