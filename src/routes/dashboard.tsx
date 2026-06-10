@@ -5379,7 +5379,7 @@ function ClarityGuide({
     <div
       className={[
         "pointer-events-none absolute z-30",
-        "right-0 bottom-[calc(100%-2px)] sm:right-0 lg:right-0",
+        "right-0 bottom-[25%] sm:right-0 lg:right-0",
       ].join(" ")}
     >
       <div className="pointer-events-auto relative flex flex-col items-end gap-1.5">
