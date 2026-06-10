@@ -759,6 +759,10 @@ function categoryStrengthForIdea(
   return { stars, generatedOnly };
 }
 
+// Source of truth: docs/clarity-library-process.md (steps 6 + 9).
+// Library readiness is capped at 89% while any required folder is under 3 stars,
+// which also keeps the Review/Next Step button locked. Only when every folder is
+// 3 or 4 stars can the score reach 90%+ and unlock the master review.
 function libraryReadinessForIdea(idea: LightbulbIdea | undefined, extras: IdeaExtras) {
   const strengths = CATEGORY_ORDER.map((cat) => ({
     category: cat,
