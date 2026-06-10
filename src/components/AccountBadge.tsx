@@ -25,7 +25,11 @@ function readProfile(): Profile {
   }
 }
 
-export function AccountBadge() {
+type AccountBadgeProps = {
+  placement?: "fixed" | "inline";
+};
+
+export function AccountBadge({ placement = "fixed" }: AccountBadgeProps) {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<Profile>(() => readProfile());
@@ -56,11 +60,22 @@ export function AccountBadge() {
   }, [open]);
 
   // Dashboard already has its full account/profile menu in the page header.
-  if (pathname.startsWith("/signin") || pathname.startsWith("/dashboard")) return null;
+  // The home page places this inside its own top navigation so it cannot overlap.
+  if (
+    placement === "fixed" &&
+    (pathname === "/" || pathname.startsWith("/signin") || pathname.startsWith("/dashboard"))
+  ) {
+    return null;
+  }
+
+  const containerClass =
+    placement === "fixed"
+      ? "fixed right-3 top-3 z-[60] sm:right-5 sm:top-5"
+      : "relative z-[60]";
 
   if (!profile.authed) {
     return (
-      <div className="fixed right-3 top-3 z-[60] sm:right-5 sm:top-5">
+      <div className={containerClass}>
         <Link
           to="/signin"
           search={{ next: pathname }}
@@ -86,7 +101,7 @@ export function AccountBadge() {
   };
 
   return (
-    <div ref={wrapRef} className="fixed right-3 top-3 z-[60] sm:right-5 sm:top-5">
+    <div ref={wrapRef} className={containerClass}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

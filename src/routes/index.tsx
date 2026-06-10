@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Mic } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
+import { AccountBadge } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 
 export const Route = createFileRoute("/")({
@@ -140,6 +141,7 @@ function Index() {
           >
             Levels
           </Link>
+          <AccountBadge placement="inline" />
         </nav>
       </header>
 
