@@ -3760,10 +3760,9 @@ function LibraryLevelReportModal({
   onFinish: () => void;
   onBuild: () => void;
 }) {
-  const answeredDoors = (Object.keys(doorAnswers) as LibraryDoorId[]).filter((doorId) =>
-    doorAnswers[doorId]?.trim(),
-  );
-  const hasAnswers = answeredDoors.length > 0;
+  void doorAnswers;
+  void onOpenDoor;
+  void onRedo;
   const categoryReview = CATEGORY_ORDER.map((cat) => {
     const body = categoryProgressTextFor(idea, extras, cat);
     const strength = readiness.strengths.find((item) => item.category === cat);
@@ -3774,10 +3773,6 @@ function LibraryLevelReportModal({
       body: body.trim() || CATEGORY_MISSING[cat],
     };
   });
-  const canOpenDoor = (doorId: LibraryDoorId) => {
-    if (redoUsed) return false;
-    return answeredDoors.length === 0 || Boolean(doorAnswers[doorId]?.trim());
-  };
   const reportText = [
     `Library Report: ${idea.title}`,
     `Readiness: ${readiness.pct}%`,
@@ -3864,8 +3859,9 @@ function LibraryLevelReportModal({
             </span>
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {categoryReview.map((item) => (
-              <div key={item.cat} className="rounded-lg border border-amber-200/15 bg-black/25 p-3">
+            {categoryReview.map((item) => {
+              const collapsible = ["Design / UX", "Business", "Concerns"].includes(item.label);
+              const header = (
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-serif text-sm font-semibold text-amber-100">
                     {item.label}
@@ -3878,11 +3874,29 @@ function LibraryLevelReportModal({
                     <span className="text-amber-100/25">{"★".repeat(4 - item.stars)}</span>
                   </span>
                 </div>
-                <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-amber-50/80">
-                  {item.body}
-                </p>
-              </div>
-            ))}
+              );
+              if (collapsible) {
+                return (
+                  <details
+                    key={item.cat}
+                    className="rounded-lg border border-amber-200/15 bg-black/25 p-3 sm:col-span-2"
+                  >
+                    <summary className="cursor-pointer list-none">{header}</summary>
+                    <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-amber-50/80">
+                      {item.body}
+                    </p>
+                  </details>
+                );
+              }
+              return (
+                <div key={item.cat} className="rounded-lg border border-amber-200/15 bg-black/25 p-3">
+                  {header}
+                  <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-amber-50/80">
+                    {item.body}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -3894,56 +3908,6 @@ function LibraryLevelReportModal({
             {extras.sourceText?.trim() || idea.messy || "No original intake text saved."}
           </p>
         </details>
-
-        {!redoUsed && (
-          <>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {(["door1", "door2"] as const).map((doorId) => {
-                const enabled = canOpenDoor(doorId);
-                const saved = Boolean(doorAnswers[doorId]?.trim());
-                return (
-                  <button
-                    key={doorId}
-                    type="button"
-                    disabled={!enabled}
-                    onClick={() => onOpenDoor(doorId)}
-                    className={
-                      "relative min-h-[190px] rounded-xl border p-4 text-center transition " +
-                      (enabled
-                        ? "border-amber-200/65 bg-gradient-to-b from-amber-900/40 to-black/55 text-amber-50 shadow-[0_0_26px_-10px_rgba(255,210,120,0.85)] hover:-translate-y-0.5"
-                        : "cursor-not-allowed border-amber-200/15 bg-black/40 text-amber-100/35 saturate-50")
-                    }
-                  >
-                    <span className="mx-auto flex h-28 w-20 items-center justify-center rounded-t-full border border-amber-200/45 bg-gradient-to-b from-amber-700 to-amber-950 shadow-inner">
-                      <span className="text-sm uppercase tracking-[0.18em]">
-                        {doorId === "door1" ? "Door 1" : "Door 2"}
-                      </span>
-                    </span>
-                    <span className="mt-3 block text-sm">
-                      {saved ? "Saved" : enabled ? "Open questions" : "Locked"}
-                    </span>
-                    <span className="mt-1 block text-[11px] text-amber-100/55">
-                      * Full review will be in the report
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              disabled={!hasAnswers}
-              onClick={onRedo}
-              className={
-                "mt-6 w-full rounded-full border px-4 py-3 text-sm font-semibold transition " +
-                (hasAnswers
-                  ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
-                  : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/40")
-              }
-            >
-              Redo Library level with new information
-            </button>
-          </>
-        )}
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <button
