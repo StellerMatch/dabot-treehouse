@@ -71,7 +71,12 @@ export function CreditsPill() {
 export function AccountBadge({ placement = "fixed", prominence = "normal" }: AccountBadgeProps) {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [profile, setProfile] = useState<Profile>({ authed: false, name: "", email: "", photo: "" });
+  const [profile, setProfile] = useState<Profile>({
+    authed: false,
+    name: "",
+    email: "",
+    photo: "",
+  });
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -111,9 +116,7 @@ export function AccountBadge({ placement = "fixed", prominence = "normal" }: Acc
   }
 
   const containerClass =
-    placement === "fixed"
-      ? "fixed right-3 top-3 z-[60] sm:right-5 sm:top-5"
-      : "relative z-[60]";
+    placement === "fixed" ? "fixed right-3 top-3 z-[60] sm:right-5 sm:top-5" : "relative z-[60]";
 
   if (!profile.authed) {
     const signInClass =
@@ -123,11 +126,7 @@ export function AccountBadge({ placement = "fixed", prominence = "normal" }: Acc
 
     return (
       <div className={containerClass}>
-        <Link
-          to="/signin"
-          search={{ next: pathname }}
-          className={signInClass}
-        >
+        <Link to="/signin" search={{ next: pathname }} className={signInClass}>
           <UserIcon className={prominence === "large" ? "h-4 w-4" : "h-3.5 w-3.5"} />
           Login
         </Link>
@@ -141,7 +140,9 @@ export function AccountBadge({ placement = "fixed", prominence = "normal" }: Acc
   const signOut = () => {
     try {
       localStorage.removeItem("dabottree:authed");
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     setProfile(readProfile());
     setOpen(false);
     router.navigate({ to: "/" });

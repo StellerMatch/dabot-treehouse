@@ -6,6 +6,11 @@ type NamingRule = {
 const SUBJECT_RULES: NamingRule[] = [
   {
     match:
+      /\b(real\s*estate|realtor|realty|property|properties|home\s+listing|house\s+listing|listing\s+agent|homebuyer|home\s+buyer)\b/i,
+    name: "Real Estate",
+  },
+  {
+    match:
       /\b(robotic\s+(?:lawn\s+)?mower|robot\s+mower|lawn\s+robot|robotic\s+lawn|mow(?:ing|er)?|lawn\s+care)\b/i,
     name: (_text, functionName) => {
       if (/booking/i.test(functionName)) return "Mower";
@@ -37,6 +42,11 @@ const SUBJECT_RULES: NamingRule[] = [
 ];
 
 const FUNCTION_RULES: NamingRule[] = [
+  {
+    match:
+      /(?=.*\b(real\s*estate|realtor|realty|property|properties|home\s+listing|house\s+listing|listing\s+agent|homebuyer|home\s+buyer)\b)(?=.*\b(virtual\s+staging|staging|360|three\s*sixty|photo|photos|photographer|photography|video|tour|walkthrough|media|listing\s+visuals)\b)/i,
+    name: "Media Tool",
+  },
   { match: /\bbooking\s+service\b/i, name: "Booking Service" },
   { match: /\b(book|booking|reservation|appointment)\b/i, name: "Booking App" },
   {
@@ -138,8 +148,8 @@ function fallbackSubject(text: string): string {
   return words ? titleCase(words) : "Working";
 }
 
-function trimToFiveWords(title: string): string {
-  return title.split(/\s+/).filter(Boolean).slice(0, 5).join(" ");
+function trimToFourWords(title: string): string {
+  return title.split(/\s+/).filter(Boolean).slice(0, 4).join(" ");
 }
 
 export function generateWorkingProjectTitle(text: string, ideaType?: string): string {
@@ -169,7 +179,7 @@ export function generateWorkingProjectTitle(text: string, ideaType?: string): st
     pickRuleName(FUNCTION_RULES, clean, "") ??
     (isUsableIdeaType(ideaType) ? titleCase(ideaType!.trim()) : "Tool");
   const subject = pickRuleName(SUBJECT_RULES, clean, functionName) ?? fallbackSubject(clean);
-  return trimToFiveWords(`${subject} ${functionName}`);
+  return trimToFourWords(`${subject} ${functionName}`);
 }
 
 export function shouldCleanWorkingProjectTitle(title: string): boolean {

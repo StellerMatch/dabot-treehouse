@@ -643,10 +643,9 @@ function TrunkNextButton({ unlocked }: { unlocked: boolean }) {
           style={{
             background: palette.cover,
             border: unlocked ? "2px solid rgba(255,245,185,0.98)" : `1px solid ${palette.stroke}`,
-            boxShadow:
-              unlocked
-                ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
-                : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+            boxShadow: unlocked
+              ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
+              : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
           }}
         >
           <span

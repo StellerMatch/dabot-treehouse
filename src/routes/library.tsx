@@ -9,8 +9,12 @@ import {
 } from "@/lib/dabottree-state";
 import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
-import libraryBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
+import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
+import libraryBgImage from "@/assets/dabottree-library.jpg";
+import echoPresentingAsset from "@/assets/echo-presenting.png.asset.json";
+import ledgerPresentingAsset from "@/assets/ledger-presenting.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
+import stampPresentingAsset from "@/assets/stamp-presenting.png.asset.json";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import {
   Dialog,
@@ -21,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { BookOpen, Coins, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
 
-const libraryBg = libraryBgAsset.url;
+const libraryBg = libraryBgImage;
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
@@ -50,6 +54,30 @@ type NotebookEntry = {
   body: string;
   ts: number;
 };
+type BrowserSpeechRecognitionResultEvent = {
+  results?: ArrayLike<ArrayLike<{ transcript?: string }>>;
+};
+type BrowserSpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  onresult: ((event: BrowserSpeechRecognitionResultEvent) => void) | null;
+  start: () => void;
+};
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+  webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+};
+
+function getSpeechRecognitionConstructor() {
+  if (typeof window === "undefined") return undefined;
+  const speechWindow = window as SpeechRecognitionWindow;
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+}
 
 function cleanDraftText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
@@ -167,7 +195,9 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     if (Array.isArray(parsed)) {
       return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle).map(normalizeLibraryStage);
     }
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
   return null;
 }
 
@@ -186,7 +216,9 @@ function saveExtrasMap(extras: Record<string, IdeaExtrasRecord>) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
 }
 
 function readCreditsBalance(): number {
@@ -204,7 +236,9 @@ function writeCreditsBalance(value: number) {
   try {
     localStorage.setItem("dabottree:credits", String(Math.max(0, Math.floor(value))));
     window.dispatchEvent(new Event("storage"));
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
 }
 
 function libraryStartPaidKey(ideaId: string) {
@@ -237,7 +271,9 @@ function hasConfirmedLibraryStart(idea: LightbulbIdea): boolean {
     if (localStorage.getItem(libraryStartPaidKey(idea.id)) === "1") {
       localStorage.removeItem(libraryStartPaidKey(idea.id));
     }
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
   return false;
 }
 
@@ -329,6 +365,73 @@ function stagePillClass(stage: LightbulbIdea["stage"]) {
       "border-rose-200/50 bg-gradient-to-b from-[#a76565] to-[#683737] text-rose-50",
   };
   return classes[stage];
+}
+
+function isCompletedIdea(idea: LightbulbIdea): boolean {
+  return idea.stage === "clean-packet" || idea.stage === "operating-path";
+}
+
+const stageCharacterMap: Record<LightbulbIdea["stage"], { name: string; src: string }> = {
+  lightbulb: { name: "Clarity", src: clarityPresentingAsset.url },
+  "pre-clarity": { name: "Clarity", src: clarityPresentingAsset.url },
+  "paid-creation": { name: "Echo", src: echoPresentingAsset.url },
+  "clean-packet": { name: "Ledger", src: ledgerPresentingAsset.url },
+  "operating-path": { name: "Chief", src: stampPresentingAsset.url },
+};
+
+function ideaCardStatus(idea: LightbulbIdea): {
+  label: string;
+  detail: string;
+  tone: "ready" | "working" | "waiting" | "complete";
+} {
+  if (isCompletedIdea(idea)) {
+    return {
+      label: "Completed",
+      detail: "This idea has a finished shelf record ready to review.",
+      tone: "complete",
+    };
+  }
+
+  if (idea.stage === "pre-clarity") {
+    return {
+      label: "Clarity is working",
+      detail: "Answer the next question so the idea can move forward.",
+      tone: "working",
+    };
+  }
+
+  if (idea.stage === "paid-creation") {
+    return {
+      label: "In creation",
+      detail: "This idea is being shaped into the next project packet.",
+      tone: "working",
+    };
+  }
+
+  if (idea.shelfReadiness < 25) {
+    return {
+      label: "Needs more notes",
+      detail: "Add a little more detail before it moves to the next stage.",
+      tone: "waiting",
+    };
+  }
+
+  return {
+    label: "Ready for next step",
+    detail: "Add notes or press Let's Build when you are ready.",
+    tone: "ready",
+  };
+}
+
+function ideaStatusClass(tone: ReturnType<typeof ideaCardStatus>["tone"]) {
+  const classes: Record<ReturnType<typeof ideaCardStatus>["tone"], string> = {
+    ready: "border-emerald-100/45 bg-emerald-950/45 text-emerald-50",
+    working: "border-sky-100/45 bg-sky-950/45 text-sky-50",
+    waiting: "border-amber-100/45 bg-amber-950/50 text-amber-50",
+    complete: "border-violet-100/45 bg-violet-950/45 text-violet-50",
+  };
+
+  return classes[tone];
 }
 
 function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
@@ -447,6 +550,7 @@ function LibraryPage() {
   const [noteTitle, setNoteTitle] = useState("");
   const [listening, setListening] = useState(false);
   const [typeFilter, setTypeFilter] = useState("All");
+  const [shelfView, setShelfView] = useState<"active" | "completed">("active");
 
   const ideaTypes = useMemo(() => {
     return Array.from(new Set(ideas.map(ideaTypeFor))).sort((a, b) => a.localeCompare(b));
@@ -455,6 +559,15 @@ function LibraryPage() {
     if (typeFilter === "All") return ideas;
     return ideas.filter((idea) => ideaTypeFor(idea) === typeFilter);
   }, [ideas, typeFilter]);
+  const activeIdeas = useMemo(
+    () => visibleIdeas.filter((idea) => !isCompletedIdea(idea)),
+    [visibleIdeas],
+  );
+  const completedIdeas = useMemo(
+    () => visibleIdeas.filter((idea) => isCompletedIdea(idea)),
+    [visibleIdeas],
+  );
+  const shelfIdeas = shelfView === "completed" ? completedIdeas : activeIdeas;
 
   useEffect(() => {
     const stored = loadStoredIdeas();
@@ -480,11 +593,15 @@ function LibraryPage() {
               [newIdea.id]: extrasFromDraft(draft, ts),
             }),
           );
-        } catch {}
+        } catch {
+          // Ignore storage access failures.
+        }
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
       }
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     nextIdeas = backfillMissingIntakeExtras(nextIdeas);
     setIdeas(nextIdeas);
     setCreditBalance(readCreditsBalance());
@@ -510,7 +627,9 @@ function LibraryPage() {
     if (!ready || typeof window === "undefined") return;
     try {
       localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
   }, [ideas, ready]);
 
   useEffect(() => {
@@ -561,7 +680,9 @@ function LibraryPage() {
     try {
       localStorage.setItem(libraryStartPaidKey(libraryStartIdea.id), "1");
       localStorage.setItem(libraryStartConfirmedKey(libraryStartIdea.id), "1");
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     const id = libraryStartIdea.id;
     setIdeas((prev) =>
       prev.map((idea) => (idea.id === id ? syncLibraryStageFromPaidStart(idea) : idea)),
@@ -614,8 +735,7 @@ function LibraryPage() {
 
   const startNoteVoice = () => {
     if (typeof window === "undefined") return;
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = getSpeechRecognitionConstructor();
     if (!SpeechRecognition) return;
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
@@ -624,7 +744,7 @@ function LibraryPage() {
     recognition.onstart = () => setListening(true);
     recognition.onend = () => setListening(false);
     recognition.onerror = () => setListening(false);
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       const transcript = event.results?.[0]?.[0]?.transcript;
       if (transcript) {
         setNoteText((prev) => [prev, transcript].filter(Boolean).join(prev ? "\n" : ""));
@@ -657,7 +777,9 @@ function LibraryPage() {
             localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(parsed));
           }
         }
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     }
     cancelDeleteIdea();
   };
@@ -708,8 +830,77 @@ function LibraryPage() {
 
       <section className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <h1 className="mb-6 font-serif text-2xl text-amber-50 drop-shadow-[0_2px_3px_rgba(0,0,0,0.6)]">
-          Saved Ideas
+          Idea Shelf
         </h1>
+
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:max-w-3xl">
+          <Link
+            to="/"
+            className="group flex aspect-square min-h-36 flex-col justify-between rounded-md border border-emerald-200/35 bg-emerald-950/55 p-4 shadow-lg backdrop-blur-sm transition hover:border-emerald-100/70 hover:bg-emerald-900/70"
+          >
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100/35 bg-emerald-100/12 text-emerald-50 shadow-sm">
+              <Plus className="h-5 w-5" />
+            </span>
+            <span>
+              <span className="block font-serif text-lg font-semibold text-emerald-50">
+                Create New Idea
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-emerald-50/70">
+                Start a fresh project shelf.
+              </span>
+            </span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setShelfView("completed")}
+            className={`group flex aspect-square min-h-36 flex-col justify-between rounded-md border p-4 text-left shadow-lg backdrop-blur-sm transition ${
+              shelfView === "completed"
+                ? "border-amber-100/70 bg-amber-900/70"
+                : "border-amber-200/35 bg-amber-950/55 hover:border-amber-100/70 hover:bg-amber-900/70"
+            }`}
+          >
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-100/35 bg-amber-100/12 text-amber-50 shadow-sm">
+              <BookOpen className="h-5 w-5" />
+            </span>
+            <span>
+              <span className="block font-serif text-lg font-semibold text-amber-50">
+                Completed Ideas
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-amber-50/70">
+                {completedIdeas.length} finished shelf{" "}
+                {completedIdeas.length === 1 ? "card" : "cards"}.
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex rounded-full border border-amber-200/25 bg-amber-950/45 p-1 shadow-sm backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setShelfView("active")}
+              className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] transition ${
+                shelfView === "active"
+                  ? "bg-amber-100/20 text-amber-50"
+                  : "text-amber-100/65 hover:text-amber-50"
+              }`}
+            >
+              Active Ideas
+            </button>
+            <button
+              type="button"
+              onClick={() => setShelfView("completed")}
+              className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] transition ${
+                shelfView === "completed"
+                  ? "bg-amber-100/20 text-amber-50"
+                  : "text-amber-100/65 hover:text-amber-50"
+              }`}
+            >
+              Completed
+            </button>
+          </div>
+        </div>
 
         {ideas.length > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -738,15 +929,19 @@ function LibraryPage() {
           <div className="rounded-md border border-amber-200/30 bg-amber-950/40 px-4 py-6 text-center font-serif italic text-amber-100/80">
             No ideas yet. Head to the start screen to capture one.
           </div>
-        ) : visibleIdeas.length === 0 ? (
+        ) : shelfIdeas.length === 0 ? (
           <div className="rounded-md border border-amber-200/30 bg-amber-950/40 px-4 py-6 text-center font-serif italic text-amber-100/80">
-            No ideas match this filter yet.
+            {shelfView === "completed"
+              ? "No completed ideas yet."
+              : "No active ideas match this filter yet."}
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleIdeas.map((idea) => {
+            {shelfIdeas.map((idea) => {
               const stage = idea.stage ? `Stage: ${stageLabels[idea.stage]}` : "Stage: Idea";
               const ideaType = ideaTypeFor(idea);
+              const character = stageCharacterMap[idea.stage] ?? stageCharacterMap.lightbulb;
+              const status = ideaCardStatus(idea);
               const notebookEntryCount = notebookEntriesFor(
                 idea,
                 loadExtrasMap()[idea.id] ?? {},
@@ -754,64 +949,93 @@ function LibraryPage() {
               return (
                 <li
                   key={idea.id}
-                  className="relative flex h-full flex-col rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
+                  className="relative flex min-h-64 overflow-hidden rounded-md border border-amber-200/30 bg-amber-950/60 p-4 shadow-lg backdrop-blur-sm"
                 >
-                  <div
-                    title={stage}
-                    className={`absolute left-3 top-3 inline-flex max-w-[48%] items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] shadow-sm ${stagePillClass(idea.stage)}`}
-                  >
-                    <Tag className="h-2.5 w-2.5 shrink-0" />
-                    <span className="truncate">{stage}</span>
-                  </div>
-                  <div className="absolute right-3 top-3 inline-flex max-w-[45%] items-center gap-1 rounded-full border border-cyan-100/40 bg-cyan-950/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-cyan-50 shadow-sm">
-                    <Tag className="h-2.5 w-2.5 shrink-0" />
-                    <span className="truncate">{ideaType}</span>
-                  </div>
-                  <div className="pt-7 font-serif text-[15px] font-semibold text-amber-50">
-                    {idea.title || "Untitled"}
-                  </div>
-                  <div className="mt-1 font-serif text-[12px] italic leading-relaxed text-amber-100/85">
-                    {nextStepSummary(idea)}
-                  </div>
-                  <div className="mt-auto space-y-2 pt-4">
-                    <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="relative z-10 flex min-w-0 flex-1 flex-col pr-24 sm:pr-28">
+                    <div className="flex flex-wrap gap-1.5">
+                      <div
+                        title={stage}
+                        className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] shadow-sm ${stagePillClass(idea.stage)}`}
+                      >
+                        <Tag className="h-2.5 w-2.5 shrink-0" />
+                        <span className="truncate">{stage}</span>
+                      </div>
+                      <div className="inline-flex max-w-full items-center gap-1 rounded-full border border-cyan-100/40 bg-cyan-950/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-cyan-50 shadow-sm">
+                        <Tag className="h-2.5 w-2.5 shrink-0" />
+                        <span className="truncate">{ideaType}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 text-left font-serif text-xl font-semibold leading-tight text-amber-50">
+                      {idea.title || "Untitled"}
+                    </div>
+                    <div
+                      className={`mt-3 inline-flex w-fit max-w-full rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.11em] ${ideaStatusClass(status.tone)}`}
+                    >
+                      {status.label}
+                    </div>
+                    <div className="mt-2 text-left text-[12px] leading-relaxed text-amber-100/82">
+                      {status.detail}
+                    </div>
+                    <div className="mt-2 text-left text-[11px] leading-relaxed text-amber-100/62">
+                      {nextStepSummary(idea)}
+                    </div>
+
+                    <div className="mt-auto space-y-2 pt-4">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setNotebookIdea(idea)}
+                          className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#a8763d] to-[#7a4f24] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#b78449] hover:to-[#8b5a2a]"
+                        >
+                          <FileText className="h-3 w-3" />
+                          Notebook ({notebookEntryCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddNoteIdea(idea);
+                            setNoteTitle("");
+                            setNoteText("");
+                          }}
+                          className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-gradient-to-b from-[#8a7350] to-[#5a4024] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#9b825c] hover:to-[#6a4d2c]"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add More Notes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => requestDeleteIdea(idea)}
+                          title="Delete idea"
+                          className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-200/45 bg-red-950/45 text-red-50 shadow-sm transition hover:border-red-100/70 hover:bg-red-900/65"
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </button>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => setNotebookIdea(idea)}
-                        className="inline-flex items-center gap-1 rounded-sm border border-amber-900/40 bg-gradient-to-b from-[#a8763d] to-[#7a4f24] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#b78449] hover:to-[#8b5a2a]"
+                        onClick={() => beginBuild(idea)}
+                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
                       >
-                        <FileText className="h-3 w-3" />
-                        Notebook ({notebookEntryCount})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAddNoteIdea(idea);
-                          setNoteTitle("");
-                          setNoteText("");
-                        }}
-                        className="inline-flex items-center gap-1 rounded-sm border border-amber-200/40 bg-gradient-to-b from-[#8a7350] to-[#5a4024] px-2.5 py-1 text-[10px] font-semibold text-amber-50 shadow-sm transition hover:from-[#9b825c] hover:to-[#6a4d2c]"
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add More Notes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => requestDeleteIdea(idea)}
-                        title="Delete idea"
-                        className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-200/45 bg-red-950/45 text-red-50 shadow-sm transition hover:border-red-100/70 hover:bg-red-900/65"
-                      >
-                        <XCircle className="h-4 w-4" />
+                        <BookOpen className="h-4 w-4" />
+                        <span>Let's Build</span>
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => beginBuild(idea)}
-                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
-                    >
-                      <BookOpen className="h-4 w-4" />
-                      <span>Let's Build</span>
-                    </button>
+                  </div>
+
+                  <div className="pointer-events-none absolute bottom-2 right-2 top-6 flex w-28 flex-col items-center justify-end sm:w-32">
+                    <div className="mb-1 rounded-full border border-amber-100/25 bg-black/25 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-50/80 shadow-sm backdrop-blur-sm">
+                      {character.name}
+                    </div>
+                    <img
+                      src={character.src}
+                      alt=""
+                      className="max-h-40 w-full object-contain object-bottom drop-shadow-[0_12px_18px_rgba(0,0,0,0.5)]"
+                      onError={(event) => {
+                        event.currentTarget.style.display = "none";
+                      }}
+                    />
+                    <div className="absolute bottom-8 right-5 -z-10 h-24 w-24 rounded-full bg-amber-200/15 blur-2xl" />
                   </div>
                 </li>
               );

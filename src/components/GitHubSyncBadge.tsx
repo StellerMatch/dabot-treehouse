@@ -53,10 +53,9 @@ export function GitHubSyncBadge() {
 
   const fetchCommit = useCallback(async (signal?: AbortSignal) => {
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/${REPO}/commits/${BRANCH}`,
-        { headers: { Accept: "application/vnd.github+json" } },
-      );
+      const res = await fetch(`https://api.github.com/repos/${REPO}/commits/${BRANCH}`, {
+        headers: { Accept: "application/vnd.github+json" },
+      });
       if (signal?.aborted) return;
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -104,11 +103,7 @@ export function GitHubSyncBadge() {
   if (!mounted || !enabled) return null;
 
   const dotColor =
-    status === "connected"
-      ? "bg-emerald-400"
-      : status === "error"
-        ? "bg-red-400"
-        : "bg-amber-300";
+    status === "connected" ? "bg-emerald-400" : status === "error" ? "bg-red-400" : "bg-amber-300";
 
   return (
     <div
@@ -121,7 +116,9 @@ export function GitHubSyncBadge() {
           GitHub · {status === "connected" ? "synced" : status === "error" ? "error" : "checking…"}
         </span>
       </div>
-      <div className="mt-1 text-white/60">{REPO}@{BRANCH}</div>
+      <div className="mt-1 text-white/60">
+        {REPO}@{BRANCH}
+      </div>
       {commit && (
         <a
           href={commit.url}

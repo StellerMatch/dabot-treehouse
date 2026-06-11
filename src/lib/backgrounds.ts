@@ -1,4 +1,5 @@
 import doorwayImage from "@/assets/dabottree-doorway.jpg";
+import libraryImage from "@/assets/dabottree-library.jpg";
 
 export type BackgroundConfig = {
   type: "image" | "video";
@@ -39,6 +40,15 @@ export type BackgroundConfig = {
 export const frontPageBackground: BackgroundConfig = {
   type: "image",
   src: doorwayImage,
+  objectFit: "cover",
+  muted: true,
+  autoplay: true,
+  loop: true,
+};
+
+export const accountEntryBackground: BackgroundConfig = {
+  type: "image",
+  src: libraryImage,
   objectFit: "cover",
   muted: true,
   autoplay: true,

@@ -12,7 +12,7 @@ not from random words in the intake.
    - Examples: scheduler, tracker, planner, booking app, booking service,
      dispatch tool, marketplace, builder, journal, dashboard.
 3. Combine them into a readable working title.
-   - Keep the title 2-5 words.
+   - Keep the title 2-4 words when possible.
    - Prefer concrete words over vague words.
    - Remove filler such as where, own, my, we, our, and new unless the word is
      truly part of the product.

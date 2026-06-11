@@ -83,7 +83,11 @@ function splitClauses(line: string): string[] {
     .filter((clause) => clause.length >= 6);
 }
 
-function pushUnique(out: Record<IntakeFolderKey, string[]>, folder: IntakeFolderKey, value: string) {
+function pushUnique(
+  out: Record<IntakeFolderKey, string[]>,
+  folder: IntakeFolderKey,
+  value: string,
+) {
   const cleaned = value.replace(/^[-•·\s]+/, "").trim();
   if (cleaned.length < 3) return;
   if (!out[folder].some((existing) => existing.toLowerCase() === cleaned.toLowerCase())) {
@@ -143,9 +147,10 @@ export function bodyForIntakeFolder(folder: IntakeFolderKey, items: string[]): s
     folder === "clarity"
       ? "Clarity readout:"
       : "Best-matched intake notes Clarity found for this folder:";
-  return [heading, items.map((item) => (folder === "clarity" ? item : `• ${item}`)).join("\n")].join(
-    "\n",
-  );
+  return [
+    heading,
+    items.map((item) => (folder === "clarity" ? item : `• ${item}`)).join("\n"),
+  ].join("\n");
 }
 
 function coreIdeaBody(rawIntake: string): string {
@@ -159,9 +164,7 @@ export function buildIntakeFolderPosts(text: string, ts: number) {
     kind: "idea-notes",
     text: intakeFolderLabels[folder],
     fullText:
-      folder === "core-idea"
-        ? coreIdeaBody(text)
-        : bodyForIntakeFolder(folder, buckets[folder]),
+      folder === "core-idea" ? coreIdeaBody(text) : bodyForIntakeFolder(folder, buckets[folder]),
     ts: ts - index,
     categories: [folder],
     source: "generated-folder" as const,

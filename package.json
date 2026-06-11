@@ -9,6 +9,11 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "sync:levels": "node scripts/sync-level-system-data.mjs",
+    "prep:treehouse-dispatch": "node scripts/chief-manual-dispatch-prep.mjs",
+    "watch:treehouse-packets": "node scripts/steward-task-packet-watcher.mjs",
+    "test:treehouse-fake-project": "playwright test tests/treehouse-fake-project-proof.spec.ts",
+    "test:treehouse-naming": "playwright test tests/treehouse-intake-naming.spec.ts",
+    "test:treehouse-packets": "playwright test tests/treehouse-task-packets.spec.ts",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -69,6 +74,7 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.3.2",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

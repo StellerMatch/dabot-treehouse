@@ -1,15 +1,48 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Mic } from "lucide-react";
+import { BookOpen, LogIn, Mic, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
 import { IDEA_SHELF_NEXT_ACTION, seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
 import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
+import { accountEntryBackground } from "@/lib/backgrounds";
 import { generateWorkingProjectTitle } from "@/lib/project-naming";
 
 const IDEAS_STORAGE_KEY = "dabottree:ideas";
 const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
+
+type BrowserSpeechRecognitionEvent = {
+  resultIndex: number;
+  results: ArrayLike<{
+    isFinal: boolean;
+    0: { transcript: string };
+  }>;
+};
+
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+  webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+};
+
+function getSpeechRecognitionConstructor() {
+  if (typeof window === "undefined") return undefined;
+  const speechWindow = window as SpeechRecognitionWindow;
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+}
 
 function cleanIdeaText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
@@ -110,7 +143,7 @@ function Index() {
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceSupported, setVoiceSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
   useEffect(() => {
     if (type) setIdeaType(type);
@@ -118,9 +151,7 @@ function Index() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setVoiceSupported(
-      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
-    );
+    setVoiceSupported(Boolean(getSpeechRecognitionConstructor()));
   }, []);
 
   useEffect(() => {
@@ -141,7 +172,8 @@ function Index() {
   const startVoice = useCallback(() => {
     if (!voiceSupported) return;
 
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR = getSpeechRecognitionConstructor();
+    if (!SR) return;
     const rec = new SR();
     rec.continuous = true;
     rec.interimResults = true;
@@ -149,7 +181,7 @@ function Index() {
 
     const baseText = idea ? idea.replace(/\s+$/, "") + " " : "";
     let finalText = "";
-    rec.onresult = (e: any) => {
+    rec.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const result = e.results[i];
@@ -177,7 +209,9 @@ function Index() {
   const stopVoice = useCallback(() => {
     try {
       recognitionRef.current?.stop();
-    } catch {}
+    } catch {
+      // Ignore speech cleanup failures.
+    }
     setVoiceState("processing");
   }, []);
 
@@ -185,15 +219,89 @@ function Index() {
     () => () => {
       try {
         recognitionRef.current?.stop();
-      } catch {}
+      } catch {
+        // Ignore speech cleanup failures.
+      }
     },
     [],
   );
 
   const words = useMemo(() => idea.trim().split(/\s+/).filter(Boolean).length, [idea]);
   const ready = words >= 5;
+  const generatedTitle = useMemo(() => {
+    if (!idea.trim()) return "";
+    return generateWorkingProjectTitle(idea, ideaType);
+  }, [idea, ideaType]);
   const listening = voiceState === "listening";
   const processingVoice = voiceState === "processing";
+
+  if (!isAuthed) {
+    return (
+      <main
+        className="relative flex w-screen items-center justify-center overflow-hidden text-white"
+        style={{ height: "100dvh" }}
+      >
+        <BackgroundMedia config={accountEntryBackground} />
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex flex-col items-center px-4 sm:top-5">
+          <img
+            src={logoImage}
+            alt="DaBotTree"
+            className="h-auto w-[min(64vw,450px)]"
+            style={{
+              filter:
+                "drop-shadow(0 6px 18px rgba(0,0,0,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.45)) drop-shadow(0 0 30px rgba(255,170,70,0.35))",
+            }}
+          />
+          <p className="-mt-5 text-3xl font-semibold tracking-[0.22em] text-amber-50 drop-shadow-[0_2px_16px_rgba(255,170,70,0.5)] sm:text-5xl">
+            TREE HOUSE
+          </p>
+        </div>
+
+        <section className="relative z-10 mx-4 mt-32 w-full max-w-md rounded-2xl border border-amber-200/30 bg-[rgba(24,13,7,0.88)] p-6 text-center shadow-[0_0_60px_-10px_rgba(255,178,92,0.55)] backdrop-blur-xl sm:mt-40">
+          <p className="text-[10px] uppercase tracking-[0.32em] text-amber-100/70">
+            Free Treehouse account
+          </p>
+          <h1 className="mt-3 text-2xl font-semibold leading-tight text-amber-50">
+            Give every idea a place to live.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-white/70">
+            Sign in or create a free account so your ideas, receipts, and project path stay tied to
+            your shelf.
+          </p>
+
+          <div className="mt-5 grid gap-2">
+            <Link
+              to="/signin"
+              search={{ mode: "signup", next: "/library" }}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/60 bg-gradient-to-b from-amber-200/90 to-amber-400/80 px-4 text-sm font-semibold text-neutral-900 shadow-[0_0_22px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-100 hover:to-amber-300"
+            >
+              <Plus className="h-4 w-4" />
+              Create free account
+            </Link>
+            <Link
+              to="/signin"
+              search={{ next: "/library" }}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/25 bg-white/[0.06] px-4 text-sm font-semibold text-amber-50 transition hover:border-amber-200/50 hover:bg-white/[0.12]"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign in
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-2 rounded-md border border-amber-200/15 bg-black/24 p-3 text-left text-xs leading-5 text-amber-50/75">
+            <p className="flex gap-2">
+              <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" />
+              Open existing ideas from the Idea Shelf.
+            </p>
+            <p className="flex gap-2">
+              <Plus className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" />
+              Start a new idea after your shelf is ready.
+            </p>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main
@@ -232,6 +340,12 @@ function Index() {
               >
                 Levels
               </Link>
+              <Link
+                to="/trend-watch"
+                className="rounded-full border border-amber-200/25 bg-white/[0.06] px-3.5 py-1.5 text-white/85 shadow-[0_0_18px_-6px_rgba(255,170,80,0.45)] backdrop-blur-md transition hover:border-amber-200/50 hover:bg-white/[0.12] hover:text-white"
+              >
+                Trend Watch
+              </Link>
               <CreditsPill />
             </>
           )}
@@ -261,7 +375,7 @@ function Index() {
             Tell us the idea in your own words.
           </h1>
           <p className="mt-1.5 text-sm text-white/85">
-            Start messy. DaBotTree will help shape the path.
+            Start messy. DaBotTree will suggest the working name.
           </p>
           {ideaType && (
             <p className="mt-2 inline-block rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-0.5 text-[11px] uppercase tracking-[0.2em] text-amber-100/90">
@@ -287,6 +401,18 @@ function Index() {
             rows={4}
             className="block w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-amber-100/50 focus:outline-none"
           />
+          <div className="mt-2 min-h-7 rounded-lg border border-amber-200/10 bg-black/20 px-3 py-1.5 text-[12px] text-amber-50/85">
+            {generatedTitle ? (
+              <>
+                <span className="text-amber-100/55">Working name:</span>{" "}
+                <span className="font-semibold text-amber-50">{generatedTitle}</span>
+              </>
+            ) : (
+              <span className="text-amber-100/50">
+                The working name appears after you describe the idea.
+              </span>
+            )}
+          </div>
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-amber-200/10 pt-3">
             <div className="text-[11px] text-amber-100/70">
               {listening
@@ -350,7 +476,9 @@ function Index() {
                     try {
                       localStorage.removeItem("dabottree:selectedIdeaId");
                       authed = localStorage.getItem("dabottree:authed") === "1";
-                    } catch {}
+                    } catch {
+                      // Ignore storage access failures.
+                    }
                   }
                   setPathOpen(false);
                   if (!authed) {
@@ -358,10 +486,12 @@ function Index() {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
                       if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
                       else sessionStorage.removeItem("dabottree:draftIdeaType");
-                    } catch {}
+                    } catch {
+                      // Ignore storage access failures.
+                    }
                     // Prototype gate: send to login/sign-up first. The draft idea is
                     // preserved in sessionStorage and saved to the Idea Shelf after sign-in.
-                    navigate({ to: "/signin", search: { next: "/library" } as any });
+                    navigate({ to: "/signin", search: { next: "/library" } });
                     return;
                   }
                   const saved = saveIdeaToLibraryStorage(idea, ideaType);
@@ -372,9 +502,11 @@ function Index() {
                       sessionStorage.setItem("dabottree:draftIdea", idea);
                       if (ideaType) sessionStorage.setItem("dabottree:draftIdeaType", ideaType);
                     }
-                  } catch {}
+                  } catch {
+                    // Ignore storage access failures.
+                  }
                   setConfirmationMessage(
-                    "Idea saved to your Idea Shelf. Open it from your profile when you're ready to move forward.",
+                    `${generatedTitle || "Your idea"} was saved to your Idea Shelf. Open it from your profile when you're ready to move forward.`,
                   );
                   window.setTimeout(() => {
                     navigate({ to: "/library" });
@@ -397,9 +529,7 @@ function Index() {
       {confirmationMessage && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/35 px-4 backdrop-blur-sm">
           <div className="max-w-lg rounded-2xl border border-amber-200/30 bg-[rgba(24,13,7,0.95)] p-6 text-center shadow-[0_0_60px_-10px_rgba(255,178,92,0.75)]">
-            <p className="text-[10px] uppercase tracking-[0.32em] text-amber-100/70">
-              Idea saved
-            </p>
+            <p className="text-[10px] uppercase tracking-[0.32em] text-amber-100/70">Idea saved</p>
             <p className="mt-3 text-lg leading-relaxed text-amber-50">{confirmationMessage}</p>
           </div>
         </div>

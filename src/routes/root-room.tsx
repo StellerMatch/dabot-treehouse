@@ -119,7 +119,6 @@ function RootRoom() {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
-
   }, []);
 
   useEffect(() => {
@@ -133,7 +132,6 @@ function RootRoom() {
     setReportOpen(false);
     setAscending(true);
   };
-
 
   // Sequence after Start
   useEffect(() => {
@@ -366,7 +364,6 @@ function RootRoom() {
         />
       </div>
 
-
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
         <Link
           to="/dashboard"
@@ -379,7 +376,6 @@ function RootRoom() {
           label={rootRoomComplete ? "View Report" : "Next Step"}
           onClick={rootRoomComplete ? () => setReportOpen(true) : undefined}
         />
-
       </header>
 
       {ascending && (
@@ -431,14 +427,31 @@ function RootRoom() {
               <path d="M458,28 C 440,16 420,14 398,24 C 380,32 372,46 352,42" strokeWidth="1.6" />
               <path d="M452,6 C 438,22 432,42 436,64 C 440,82 452,92 458,96" strokeWidth="1.3" />
               {/* bottom-left wrapping lower edge */}
-              <path d="M2,170 C 24,178 50,180 78,176 C 110,172 140,182 170,184 C 210,186 250,178 290,182 C 330,186 370,184 410,176 C 436,172 452,178 458,190" strokeWidth="1.8" />
+              <path
+                d="M2,170 C 24,178 50,180 78,176 C 110,172 140,182 170,184 C 210,186 250,178 290,182 C 330,186 370,184 410,176 C 436,172 452,178 458,190"
+                strokeWidth="1.8"
+              />
               <path d="M14,196 C 40,188 70,194 96,190" strokeWidth="1.1" opacity="0.55" />
               {/* bottom corners curl-up */}
               <path d="M6,198 C 18,180 22,160 18,140" strokeWidth="1.3" />
               <path d="M454,198 C 442,180 438,160 444,138" strokeWidth="1.3" />
               {/* a few small leaves */}
-              <ellipse className="rr-leaf" cx="58" cy="22" rx="4" ry="2.2" transform="rotate(-25 58 22)" />
-              <ellipse className="rr-leaf" cx="402" cy="24" rx="4" ry="2.2" transform="rotate(25 402 24)" />
+              <ellipse
+                className="rr-leaf"
+                cx="58"
+                cy="22"
+                rx="4"
+                ry="2.2"
+                transform="rotate(-25 58 22)"
+              />
+              <ellipse
+                className="rr-leaf"
+                cx="402"
+                cy="24"
+                rx="4"
+                ry="2.2"
+                transform="rotate(25 402 24)"
+              />
               <ellipse className="rr-leaf" cx="170" cy="184" rx="3.5" ry="2" />
               <ellipse className="rr-leaf" cx="300" cy="182" rx="3.5" ry="2" />
             </svg>
@@ -865,13 +878,9 @@ function RootRoom() {
       `}</style>
 
       {reportOpen && (
-        <RootRoomReport
-          onClose={() => setReportOpen(false)}
-          onComplete={handleAscend}
-        />
+        <RootRoomReport onClose={() => setReportOpen(false)} onComplete={handleAscend} />
       )}
     </main>
-
   );
 }
 
@@ -911,11 +920,10 @@ function RootRoomNextButton({
         className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
         style={{
           background: palette.cover,
-            border: unlocked ? "2px solid rgba(255,245,185,0.98)" : `1px solid ${palette.stroke}`,
-            boxShadow:
-              unlocked
-                ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
-                : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+          border: unlocked ? "2px solid rgba(255,245,185,0.98)" : `1px solid ${palette.stroke}`,
+          boxShadow: unlocked
+            ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
+            : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
         }}
       >
         <span
@@ -1001,7 +1009,6 @@ function RootRoomNextButton({
     </button>
   );
 }
-
 
 function StepActivity({ phase }: { phase: Phase }) {
   if (phase === "smoke" || phase === "flying" || phase === "working") {
@@ -1130,13 +1137,7 @@ const DOOR_QUESTIONS: { door1: string[]; door2: string[] } = {
   ],
 };
 
-function RootRoomReport({
-  onClose,
-  onComplete,
-}: {
-  onClose: () => void;
-  onComplete: () => void;
-}) {
+function RootRoomReport({ onClose, onComplete }: { onClose: () => void; onComplete: () => void }) {
   // Cap to 20 questions total (10 per door). Filter empty/whitespace to honor "no filler".
   const door1Qs = DOOR_QUESTIONS.door1.filter((q) => q.trim().length > 0).slice(0, 10);
   const door2Qs = DOOR_QUESTIONS.door2.filter((q) => q.trim().length > 0).slice(0, 10);
@@ -1180,7 +1181,13 @@ function RootRoomReport({
       >
         {/* corner root tendrils — match library style */}
         <div className="pointer-events-none absolute inset-0 rounded-[18px] opacity-50">
-          <svg viewBox="0 0 460 200" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" fill="none" stroke="url(#rr-report-grad)">
+          <svg
+            viewBox="0 0 460 200"
+            preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full"
+            fill="none"
+            stroke="url(#rr-report-grad)"
+          >
             <defs>
               <linearGradient id="rr-report-grad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#e9c089" stopOpacity="0.85" />
@@ -1240,9 +1247,7 @@ function RootRoomReport({
                   <span className="rr-door-leaf rr-door-leaf-left" aria-hidden />
                   <span className="rr-door-leaf rr-door-leaf-right" aria-hidden />
                   <span className="rr-door-light" aria-hidden />
-                  <span className="rr-door-label">
-                    {doorId === "door1" ? "Door 1" : "Door 2"}
-                  </span>
+                  <span className="rr-door-label">{doorId === "door1" ? "Door 1" : "Door 2"}</span>
                   {!enabled && (
                     <span className="rr-door-lock" aria-hidden>
                       🔒

@@ -26,7 +26,9 @@ export function RootDescentTransition({ onComplete }: { onComplete: () => void }
   return (
     <div
       className="fixed inset-0 z-[100] overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at center, #2a1606 0%, #0a0502 75%, #000 100%)" }}
+      style={{
+        background: "radial-gradient(ellipse at center, #2a1606 0%, #0a0502 75%, #000 100%)",
+      }}
       aria-hidden
     >
       {/* Clarity walks forward presenting the packet */}

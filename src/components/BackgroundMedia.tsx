@@ -28,14 +28,15 @@ export function BackgroundMedia({ config, className }: Props) {
       v.pause();
       try {
         v.currentTime = Math.max(0, v.duration - 0.05);
-      } catch {}
+      } catch {
+        // Ignore browsers that reject seeking at media end.
+      }
     };
     v.addEventListener("ended", onEnded);
     return () => v.removeEventListener("ended", onEnded);
   }, [item.src, item.type, item.playOnce]);
 
-  const fitClass =
-    item.objectFit === "contain" ? "object-contain" : "object-cover";
+  const fitClass = item.objectFit === "contain" ? "object-contain" : "object-cover";
 
   return (
     <div

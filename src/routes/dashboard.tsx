@@ -49,6 +49,38 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 import { CreditsPill } from "@/components/AccountBadge";
 
+type BrowserSpeechRecognitionEvent = {
+  resultIndex: number;
+  results: ArrayLike<{
+    isFinal: boolean;
+    0: { transcript: string };
+  }>;
+};
+
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+  webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+};
+
+function getSpeechRecognitionConstructor() {
+  if (typeof window === "undefined") return undefined;
+  const speechWindow = window as SpeechRecognitionWindow;
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+}
+
 type LibraryDoorId = "door1" | "door2";
 type BuildProjectKind = "tool" | "app" | "website" | "automation" | "dashboard";
 const LIBRARY_START_CREDIT_COST = 10;
@@ -146,7 +178,9 @@ function hasConfirmedLibraryStart(idea: LightbulbIdea): boolean {
     if (localStorage.getItem(libraryStartPaidKey(idea.id)) === "1") {
       localStorage.removeItem(libraryStartPaidKey(idea.id));
     }
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
   return false;
 }
 
@@ -1713,7 +1747,9 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
     if (Array.isArray(parsed)) {
       return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle).map(normalizeLibraryStage);
     }
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
   return null;
 }
 
@@ -1724,7 +1760,9 @@ function loadStoredExtras(): Record<string, IdeaExtras> | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object") return parsed as Record<string, IdeaExtras>;
-  } catch {}
+  } catch {
+    // Ignore storage access failures.
+  }
   return null;
 }
 
@@ -1758,14 +1796,18 @@ function Dashboard() {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
   }, [ideas, storageReady]);
   useEffect(() => {
     if (!storageReady) return;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
   }, [extras, storageReady]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);
@@ -1826,7 +1868,9 @@ function Dashboard() {
     try {
       draft = sessionStorage.getItem("dabottree:draftIdea") ?? "";
       draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     if (draft.trim().length > 0) {
       const id = `idea-${Date.now()}`;
       const title = generateTitle(draft, draftType || undefined);
@@ -1866,7 +1910,9 @@ function Dashboard() {
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     }
   }, []);
 
@@ -2093,7 +2139,9 @@ function Dashboard() {
       } else {
         sessionStorage.removeItem("dabottree:draftIdeaType");
       }
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     navigate({ to: "/" });
   };
 
@@ -2121,7 +2169,9 @@ function Dashboard() {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem(libraryStartConfirmedKey(id), "1");
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     }
     setIdeas((prev) =>
       prev.map((i) =>
@@ -2184,7 +2234,9 @@ function Dashboard() {
       localStorage.setItem(`dabottree:buildProjectKind:${selected.id}`, kind);
       localStorage.setItem(`dabottree:buildCreditsSpent:${selected.id}`, String(credits));
       window.dispatchEvent(new Event("storage"));
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     updateSelected({
       stage: "paid-creation",
       ideaType:
@@ -2363,7 +2415,9 @@ function Dashboard() {
       localStorage.setItem(libraryStartPaidKey(selected.id), "1");
       localStorage.setItem(libraryStartConfirmedKey(selected.id), "1");
       window.dispatchEvent(new Event("storage"));
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     updateSelected({
       stage: "pre-clarity",
       shelfReadiness: Math.max(selected.shelfReadiness, 45),
@@ -2745,10 +2799,9 @@ function LaidBook({
         style={{
           background: pal.cover,
           border: ready ? "2px solid rgba(255,245,185,0.98)" : `1px solid ${pal.stroke}`,
-          boxShadow:
-            ready
-              ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
-              : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+          boxShadow: ready
+            ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
+            : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
         }}
       >
         {/* page edges showing along the bottom (the side of a laid book) */}
@@ -3083,7 +3136,9 @@ function ProfileAvatarButton({
       const n = localStorage.getItem("dabottree.profile.name") ?? "";
       if (p) setPhoto(p);
       if (n) setName(n);
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
   }, []);
 
   useEffect(() => {
@@ -3112,7 +3167,9 @@ function ProfileAvatarButton({
       setPhoto(url);
       try {
         localStorage.setItem("dabottree.profile.photo", url);
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -3122,7 +3179,9 @@ function ProfileAvatarButton({
     try {
       localStorage.removeItem("dabottree:authed");
       localStorage.removeItem("dabottree:accountEmail");
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     window.location.href = "/signin";
   };
 
@@ -3363,7 +3422,9 @@ function ProfileAvatarButton({
                   setName(e.target.value);
                   try {
                     localStorage.setItem("dabottree.profile.name", e.target.value);
-                  } catch {}
+                  } catch {
+                    // Ignore storage access failures.
+                  }
                 }}
                 placeholder="Your name"
                 className="flex-1 rounded-sm border border-amber-900/40 bg-amber-50/70 px-2 py-1 font-serif text-[12px] text-amber-950 outline-none focus:border-amber-950"
@@ -3391,7 +3452,9 @@ function ProfileAvatarButton({
                     setPhoto(null);
                     try {
                       localStorage.removeItem("dabottree.profile.photo");
-                    } catch {}
+                    } catch {
+                      // Ignore storage access failures.
+                    }
                   }}
                   className="rounded-sm border border-amber-950/60 bg-amber-50/70 px-2 py-1 font-serif text-[12px] hover:bg-amber-100"
                 >
@@ -3506,7 +3569,9 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
       try {
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     }
     onCreate(type);
   };
@@ -3896,7 +3961,10 @@ function LibraryLevelReportModal({
                 );
               }
               return (
-                <div key={item.cat} className="rounded-lg border border-amber-200/15 bg-black/25 p-3">
+                <div
+                  key={item.cat}
+                  className="rounded-lg border border-amber-200/15 bg-black/25 p-3"
+                >
                   {header}
                   <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-amber-50/80">
                     {item.body}
@@ -4112,13 +4180,11 @@ function LibraryDoorQuestionModal({
   const [voiceIdx, setVoiceIdx] = useState<number | null>(null);
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceSupported, setVoiceSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setVoiceSupported(
-      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
-    );
+    setVoiceSupported(Boolean(getSpeechRecognitionConstructor()));
   }, []);
 
   const composeAnswer = (slots: string[]) =>
@@ -4156,14 +4222,15 @@ function LibraryDoorQuestionModal({
   const startVoice = useCallback(
     (idx: number) => {
       if (!voiceSupported) return;
-      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SR = getSpeechRecognitionConstructor();
+      if (!SR) return;
       const rec = new SR();
       rec.continuous = true;
       rec.interimResults = true;
       rec.lang = navigator.language || "en-US";
       const baseText = answers[idx] ? answers[idx].replace(/\s+$/, "") + " " : "";
       let finalText = "";
-      rec.onresult = (e: any) => {
+      rec.onresult = (e) => {
         let interim = "";
         for (let i = e.resultIndex; i < e.results.length; i++) {
           const result = e.results[i];
@@ -4199,7 +4266,9 @@ function LibraryDoorQuestionModal({
   const stopVoice = useCallback(() => {
     try {
       recognitionRef.current?.stop();
-    } catch {}
+    } catch {
+      // Ignore speech cleanup failures.
+    }
     setVoiceState("processing");
   }, []);
 
@@ -4207,7 +4276,9 @@ function LibraryDoorQuestionModal({
     () => () => {
       try {
         recognitionRef.current?.stop();
-      } catch {}
+      } catch {
+        // Ignore speech cleanup failures.
+      }
     },
     [],
   );
@@ -4424,6 +4495,10 @@ function IdeaBookplate({
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const display = (idea.title || "Untitled Idea").trim();
+  const namingContext = [idea.description, idea.messy, idea.audience, idea.industry, idea.ideaType]
+    .filter(Boolean)
+    .join(" ");
+  const generatedTitle = generateWorkingProjectTitle(namingContext || idea.title, idea.ideaType);
   return (
     <>
       <button
@@ -4477,16 +4552,28 @@ function IdeaBookplate({
               Edit Idea
             </DialogTitle>
             <DialogDescription className="font-serif text-[11px] italic text-amber-900/70">
-              A few simple notes to give this idea shape.
+              Treehouse suggests a short working name from the idea notes. You can still edit it.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 space-y-3">
             <BookplateField
-              label="Idea name"
+              label="Working name"
               value={idea.title}
               onChange={(v) => onUpdate({ title: v })}
-              placeholder="Name this idea…"
+              placeholder="Suggested from the idea notes"
             />
+            <div className="flex items-center justify-between gap-3 rounded-sm border border-amber-950/20 bg-amber-50/45 px-2.5 py-2">
+              <div className="min-w-0 font-serif text-[11px] text-amber-900/75">
+                Suggested: <span className="font-semibold text-amber-950">{generatedTitle}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onUpdate({ title: generatedTitle })}
+                className="shrink-0 rounded-sm border border-amber-950/45 px-2.5 py-1 font-serif text-[11px] font-semibold text-amber-950 transition hover:bg-amber-100/70"
+              >
+                Use Suggestion
+              </button>
+            </div>
             <BookplateField
               label="Who does this serve?"
               value={idea.audience ?? ""}
@@ -5114,13 +5201,11 @@ function Journal(props: {
   // Voice dictation
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceSupported, setVoiceSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setVoiceSupported(
-      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
-    );
+    setVoiceSupported(Boolean(getSpeechRecognitionConstructor()));
   }, []);
 
   const startVoice = useCallback(() => {
@@ -5128,13 +5213,14 @@ function Journal(props: {
       window.alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
       return;
     }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR = getSpeechRecognitionConstructor();
+    if (!SR) return;
     const rec = new SR();
     rec.continuous = true;
     rec.interimResults = true;
     rec.lang = navigator.language || "en-US";
     let finalText = "";
-    rec.onresult = (e: any) => {
+    rec.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
@@ -5161,7 +5247,9 @@ function Journal(props: {
   const stopVoice = useCallback(() => {
     try {
       recognitionRef.current?.stop();
-    } catch {}
+    } catch {
+      // Ignore speech cleanup failures.
+    }
     setVoiceState("processing");
   }, []);
 
@@ -5169,7 +5257,9 @@ function Journal(props: {
     () => () => {
       try {
         recognitionRef.current?.stop();
-      } catch {}
+      } catch {
+        // Ignore speech cleanup failures.
+      }
     },
     [],
   );
@@ -5247,7 +5337,7 @@ function Journal(props: {
                 value={selected.title}
                 onChange={(e) => updateSelected({ title: e.target.value })}
                 className="w-full bg-transparent font-serif text-xl font-semibold leading-tight text-amber-950 focus:outline-none"
-                placeholder="Name this idea…"
+                placeholder="Working name appears from your idea notes"
               />
             </div>
             <span className="hidden shrink-0 rounded-sm border border-amber-900/30 bg-amber-200/60 px-2 py-0.5 font-serif text-[10px] uppercase tracking-wider text-amber-900 sm:inline">
@@ -5722,10 +5812,10 @@ function NoteDesk(props: {
   const [kind, setKind] = useState<PostIt["kind"]>("idea-notes");
 
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "processing">("idle");
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const voiceSupported = useMemo(() => {
     if (typeof window === "undefined") return false;
-    return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    return Boolean(getSpeechRecognitionConstructor());
   }, []);
 
   const startVoice = useCallback(() => {
@@ -5733,13 +5823,14 @@ function NoteDesk(props: {
       window.alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
       return;
     }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR = getSpeechRecognitionConstructor();
+    if (!SR) return;
     const rec = new SR();
     rec.continuous = true;
     rec.interimResults = true;
     rec.lang = navigator.language || "en-US";
     let finalText = "";
-    rec.onresult = (e: any) => {
+    rec.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
@@ -5768,7 +5859,9 @@ function NoteDesk(props: {
   const stopVoice = useCallback(() => {
     try {
       recognitionRef.current?.stop();
-    } catch {}
+    } catch {
+      // Ignore speech cleanup failures.
+    }
     setVoiceState("processing");
   }, []);
 
@@ -5776,7 +5869,9 @@ function NoteDesk(props: {
     () => () => {
       try {
         recognitionRef.current?.stop();
-      } catch {}
+      } catch {
+        // Ignore speech cleanup failures.
+      }
     },
     [],
   );
@@ -6193,7 +6288,9 @@ function DraggableOwl({ src }: { src: string }) {
           offset.current = { x: p.x, y: p.y };
         }
       }
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
     current.current = { ...offset.current };
     if (imgRef.current) {
       imgRef.current.style.transform = `translate(${current.current.x}px, ${current.current.y}px)`;
@@ -6226,7 +6323,9 @@ function DraggableOwl({ src }: { src: string }) {
       offset.current = { ...current.current };
       try {
         localStorage.setItem("dabottree.owl.pos", JSON.stringify(offset.current));
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     };
 
     window.addEventListener("mousemove", onMouseMove);

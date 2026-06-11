@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrunkRouteImport } from './routes/trunk'
+import { Route as TrendWatchRouteImport } from './routes/trend-watch'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as RootRoomRouteImport } from './routes/root-room'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TrunkRoute = TrunkRouteImport.update({
   id: '/trunk',
   path: '/trunk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrendWatchRoute = TrendWatchRouteImport.update({
+  id: '/trend-watch',
+  path: '/trend-watch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SigninRoute = SigninRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/trend-watch': typeof TrendWatchRoute
   '/trunk': typeof TrunkRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/trend-watch': typeof TrendWatchRoute
   '/trunk': typeof TrunkRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/trend-watch': typeof TrendWatchRoute
   '/trunk': typeof TrunkRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/root-room'
     | '/signin'
+    | '/trend-watch'
     | '/trunk'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/root-room'
     | '/signin'
+    | '/trend-watch'
     | '/trunk'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/root-room'
     | '/signin'
+    | '/trend-watch'
     | '/trunk'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   RootRoomRoute: typeof RootRoomRoute
   SigninRoute: typeof SigninRoute
+  TrendWatchRoute: typeof TrendWatchRoute
   TrunkRoute: typeof TrunkRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/trunk'
       fullPath: '/trunk'
       preLoaderRoute: typeof TrunkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trend-watch': {
+      id: '/trend-watch'
+      path: '/trend-watch'
+      fullPath: '/trend-watch'
+      preLoaderRoute: typeof TrendWatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signin': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   RootRoomRoute: RootRoomRoute,
   SigninRoute: SigninRoute,
+  TrendWatchRoute: TrendWatchRoute,
   TrunkRoute: TrunkRoute,
 }
 export const routeTree = rootRouteImport

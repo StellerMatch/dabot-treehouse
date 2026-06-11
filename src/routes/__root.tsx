@@ -83,7 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Lovable Generated Project" },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "DaBotTree Builder" },
-      { property: "og:description", content: "Build intelligent bot conversation trees with ease." },
+      {
+        property: "og:description",
+        content: "Build intelligent bot conversation trees with ease.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },

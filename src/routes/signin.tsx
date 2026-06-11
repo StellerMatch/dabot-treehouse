@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import logoImage from "@/assets/dabottree-logo.png";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
+import { accountEntryBackground } from "@/lib/backgrounds";
 
 export const Route = createFileRoute("/signin")({
   head: () => ({
@@ -10,6 +12,7 @@ export const Route = createFileRoute("/signin")({
     ],
   }),
   validateSearch: (s: Record<string, unknown>) => ({
+    mode: s.mode === "signup" || s.mode === "signin" ? s.mode : undefined,
     next: typeof s.next === "string" ? (s.next as string) : undefined,
   }),
   component: SignIn,
@@ -17,8 +20,10 @@ export const Route = createFileRoute("/signin")({
 
 function SignIn() {
   const navigate = useNavigate();
-  const { next } = Route.useSearch();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const { mode: startingMode, next } = Route.useSearch();
+  const [mode, setMode] = useState<"signin" | "signup">(
+    startingMode === "signup" ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
 
@@ -29,7 +34,9 @@ function SignIn() {
         localStorage.setItem("dabottree:authed", "1");
         if (email) localStorage.setItem("dabottree:accountEmail", email);
         if (name.trim()) localStorage.setItem("dabottree.profile.name", name.trim());
-      } catch {}
+      } catch {
+        // Ignore storage access failures.
+      }
     }
     const dest = next && next.startsWith("/") ? next : "/library";
     navigate({ to: dest });
@@ -39,7 +46,9 @@ function SignIn() {
   useEffect(() => {
     try {
       setHasDraft((sessionStorage.getItem("dabottree:draftIdea") ?? "").trim().length > 0);
-    } catch {}
+    } catch {
+      // Ignore storage access failures.
+    }
   }, []);
 
   return (
@@ -47,24 +56,37 @@ function SignIn() {
       className="relative flex w-screen items-center justify-center overflow-hidden text-white"
       style={{ height: "100dvh" }}
     >
-      <BackgroundMedia />
+      <BackgroundMedia config={accountEntryBackground} />
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex flex-col items-center px-4 sm:top-5">
+        <img
+          src={logoImage}
+          alt="DaBotTree"
+          className="h-auto w-[min(64vw,450px)]"
+          style={{
+            filter:
+              "drop-shadow(0 6px 18px rgba(0,0,0,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.45)) drop-shadow(0 0 30px rgba(255,170,70,0.35))",
+          }}
+        />
+        <p className="-mt-5 text-3xl font-semibold tracking-[0.22em] text-amber-50 drop-shadow-[0_2px_16px_rgba(255,170,70,0.5)] sm:text-5xl">
+          TREE HOUSE
+        </p>
+      </div>
       <div
-        className="relative z-10 mx-4 w-full max-w-sm rounded-2xl border border-amber-200/30 bg-[rgba(24,13,7,0.85)] p-6 backdrop-blur-xl"
+        className="relative z-10 mx-4 mt-32 w-full max-w-sm rounded-2xl border border-amber-200/30 bg-[rgba(24,13,7,0.85)] p-6 backdrop-blur-xl sm:mt-40"
         style={{
-          boxShadow:
-            "0 0 60px -10px rgba(255,160,70,0.4), inset 0 1px 0 rgba(255,220,180,0.08)",
+          boxShadow: "0 0 60px -10px rgba(255,160,70,0.4), inset 0 1px 0 rgba(255,220,180,0.08)",
         }}
       >
         <p className="text-[10px] uppercase tracking-[0.4em] text-amber-100/85">
-          My Account
+          Free Treehouse account
         </p>
         <h1 className="mt-2 text-xl font-semibold text-amber-50">
           {mode === "signin" ? "Sign in" : "Create your account"}
         </h1>
         <p className="mt-1 text-sm text-white/65">
           {hasDraft
-            ? "Sign in to save your idea to your library."
-            : "Enter your creator space."}
+            ? "Sign in to save your idea to your Idea Shelf."
+            : "Your ideas need a shelf before they start moving."}
         </p>
 
         <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
@@ -95,7 +117,7 @@ function SignIn() {
             type="submit"
             className="w-full rounded-full border border-amber-200/60 bg-gradient-to-b from-amber-200/90 to-amber-400/80 py-2 text-sm font-medium text-neutral-900 shadow-[0_0_22px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-100 hover:to-amber-300"
           >
-            {mode === "signin" ? "Sign in" : "Create account"}
+            {mode === "signin" ? "Sign in" : "Create free account"}
           </button>
         </form>
 
@@ -104,9 +126,7 @@ function SignIn() {
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           className="mt-3 w-full text-center text-xs text-amber-100/80 hover:text-amber-50"
         >
-          {mode === "signin"
-            ? "New here? Create an account"
-            : "Already have an account? Sign in"}
+          {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
         </button>
 
         <div className="mt-4 flex items-center justify-between text-xs text-white/60">
