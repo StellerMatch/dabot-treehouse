@@ -97,10 +97,10 @@ const ROOT_ROOM_NEXT_PALETTE = {
     text: "#fbe6b8",
   },
   gold: {
-    cover: "linear-gradient(180deg, #8b5a18 0%, #5a3208 55%, #2d1605 100%)",
+    cover: "linear-gradient(180deg, #ffe28a 0%, #f3b633 56%, #9d5c08 100%)",
     edge: "linear-gradient(180deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
-    stroke: "rgba(20,10,2,0.85)",
-    text: "#ffe9b8",
+    stroke: "rgba(92,46,3,0.95)",
+    text: "#2b1503",
   },
 };
 
@@ -888,7 +888,9 @@ function RootRoomNextButton({
   const content = (
     <span
       className={`group relative inline-flex h-[40px] w-[188px] shrink-0 items-center font-serif transition-transform ${
-        unlocked ? "hover:-translate-y-[1px]" : "cursor-not-allowed opacity-60 saturate-[0.55]"
+        unlocked
+          ? "hover:-translate-y-[1px] drop-shadow-[0_0_14px_rgba(255,214,104,0.95)]"
+          : "cursor-not-allowed opacity-70 saturate-[0.65]"
       }`}
       title={unlocked ? "Open the Library report" : "Complete the Root Room first"}
       aria-disabled={!unlocked}
@@ -901,17 +903,19 @@ function RootRoomNextButton({
       {unlocked && (
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
-          style={{ background: "rgba(255,210,120,0.45)" }}
+          className="pointer-events-none absolute -inset-2 -z-10 rounded-md blur-lg"
+          style={{ background: "rgba(255,214,92,0.82)" }}
         />
       )}
       <span
         className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
         style={{
           background: palette.cover,
-          border: `1px solid ${palette.stroke}`,
-          boxShadow:
-            "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+            border: unlocked ? "2px solid rgba(255,245,185,0.98)" : `1px solid ${palette.stroke}`,
+            boxShadow:
+              unlocked
+                ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
+                : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
         }}
       >
         <span
@@ -965,7 +969,9 @@ function RootRoomNextButton({
           className="relative z-10 flex w-full items-center justify-center gap-1.5 px-3.5 text-[12px] font-semibold uppercase tracking-[0.18em]"
           style={{
             color: palette.text,
-            textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
+            textShadow: unlocked
+              ? "0 1px 0 rgba(255,246,210,0.9), 0 0 10px rgba(255,255,230,0.75)"
+              : "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
           }}
         >
           <span className="truncate">{label}</span>

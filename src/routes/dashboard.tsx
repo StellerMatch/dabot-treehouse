@@ -2656,10 +2656,10 @@ const laidBookPalette: Record<
     spine: "#3a1f08",
   },
   gold: {
-    cover: "linear-gradient(180deg, #8b5a18 0%, #5a3208 55%, #2d1605 100%)",
+    cover: "linear-gradient(180deg, #ffe28a 0%, #f3b633 56%, #9d5c08 100%)",
     edge: "linear-gradient(180deg, #ffe9a3 0%, #f0c050 60%, #b07a18 100%)",
-    stroke: "rgba(20,10,2,0.85)",
-    text: "#ffe9b8",
+    stroke: "rgba(92,46,3,0.95)",
+    text: "#2b1503",
     spine: "#4a280a",
   },
   emerald: {
@@ -2704,6 +2704,7 @@ function LaidBook({
   title?: string;
 }) {
   const pal = laidBookPalette[variant];
+  const ready = glow && !disabled;
   const dims = {
     sm: { h: 30, w: 130, pad: "px-2.5", font: "text-[10px]", sub: "text-[8px]" },
     md: { h: 40, w: 188, pad: "px-3.5", font: "text-[12px]", sub: "text-[9px]" },
@@ -2718,7 +2719,9 @@ function LaidBook({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`group relative inline-flex shrink-0 items-center font-serif transition-transform disabled:opacity-50 ${lifted}`}
+      className={`group relative inline-flex shrink-0 items-center font-serif transition-transform disabled:opacity-70 ${
+        ready ? "drop-shadow-[0_0_14px_rgba(255,214,104,0.95)]" : ""
+      } ${lifted}`}
       style={{ height: dims.h, width: dims.w }}
     >
       {/* shelf shadow under book */}
@@ -2728,11 +2731,11 @@ function LaidBook({
         style={{ background: "rgba(10,5,0,0.55)" }}
       />
       {/* glow halo */}
-      {glow && !disabled && (
+      {ready && (
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-1 -z-10 rounded-md blur-md"
-          style={{ background: "rgba(255,210,120,0.45)" }}
+          className="pointer-events-none absolute -inset-2 -z-10 rounded-md blur-lg"
+          style={{ background: "rgba(255,214,92,0.82)" }}
         />
       )}
 
@@ -2741,9 +2744,11 @@ function LaidBook({
         className="relative flex h-full w-full items-center overflow-hidden rounded-[3px]"
         style={{
           background: pal.cover,
-          border: `1px solid ${pal.stroke}`,
+          border: ready ? "2px solid rgba(255,245,185,0.98)" : `1px solid ${pal.stroke}`,
           boxShadow:
-            "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
+            ready
+              ? "inset 0 1px 0 rgba(255,255,230,0.75), inset 0 -2px 0 rgba(105,58,4,0.42), 0 0 0 2px rgba(82,42,3,0.7), 0 7px 16px rgba(0,0,0,0.55), 0 0 22px rgba(255,205,72,0.72)"
+              : "inset 0 1px 0 rgba(255,220,170,0.18), inset 0 -2px 0 rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.45)",
         }}
       >
         {/* page edges showing along the bottom (the side of a laid book) */}
@@ -2821,7 +2826,9 @@ function LaidBook({
           className={`relative z-10 flex w-full items-center justify-center gap-1.5 ${dims.pad} ${dims.font} font-semibold uppercase tracking-[0.18em]`}
           style={{
             color: pal.text,
-            textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
+            textShadow: ready
+              ? "0 1px 0 rgba(255,246,210,0.9), 0 0 10px rgba(255,255,230,0.75)"
+              : "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
           }}
         >
           <span className="truncate">{label}</span>
