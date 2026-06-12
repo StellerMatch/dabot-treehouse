@@ -7,10 +7,13 @@ import { BackgroundMedia } from "@/components/BackgroundMedia";
 import { IDEA_SHELF_NEXT_ACTION, seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
 import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
 import { accountEntryBackground } from "@/lib/backgrounds";
+import {
+  loadPersistedExtras,
+  loadPersistedIdeas,
+  savePersistedExtras,
+  savePersistedIdeas,
+} from "@/lib/idea-persistence";
 import { generateWorkingProjectTitle } from "@/lib/project-naming";
-
-const IDEAS_STORAGE_KEY = "dabottree:ideas";
-const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
 
 type BrowserSpeechRecognitionEvent = {
   resultIndex: number;
@@ -85,26 +88,16 @@ function createIntakeExtras(text: string, ts: number) {
 function saveIdeaToLibraryStorage(text: string, ideaType?: string): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const rawIdeas = localStorage.getItem(IDEAS_STORAGE_KEY);
-    const parsedIdeas = rawIdeas ? JSON.parse(rawIdeas) : null;
-    const existingIdeas = Array.isArray(parsedIdeas) ? (parsedIdeas as LightbulbIdea[]) : seedIdeas;
+    const existingIdeas = loadPersistedIdeas() ?? seedIdeas;
     const newIdea = createLibraryIdea(text, ideaType);
     const ts = Number(newIdea.id.replace("idea-", "")) || Date.now();
-    localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify([newIdea, ...existingIdeas]));
+    savePersistedIdeas([newIdea, ...existingIdeas]);
 
-    const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
-    const parsedExtras = rawExtras ? JSON.parse(rawExtras) : null;
-    const existingExtras =
-      parsedExtras && typeof parsedExtras === "object" && !Array.isArray(parsedExtras)
-        ? parsedExtras
-        : {};
-    localStorage.setItem(
-      EXTRAS_STORAGE_KEY,
-      JSON.stringify({
-        ...existingExtras,
-        [newIdea.id]: createIntakeExtras(text, ts),
-      }),
-    );
+    const existingExtras = loadPersistedExtras<Record<string, unknown>>() ?? {};
+    savePersistedExtras({
+      ...existingExtras,
+      [newIdea.id]: createIntakeExtras(text, ts),
+    });
     return true;
   } catch {
     return false;

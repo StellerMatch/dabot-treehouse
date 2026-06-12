@@ -8,6 +8,12 @@ import {
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
 import { bodyForIntakeFolder, parseIntakeIntoFolderBuckets } from "@/lib/intake-folder-breakdown";
+import {
+  loadPersistedExtras,
+  loadPersistedIdeas,
+  savePersistedExtras,
+  savePersistedIdeas,
+} from "@/lib/idea-persistence";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
@@ -1725,8 +1731,6 @@ const spinePalettes: Array<[string, string, string]> = [
   ["#3d0f0a", "#7a1f10", "#d8b06a"], // oxblood + gold
 ];
 
-const IDEAS_STORAGE_KEY = "dabottree:ideas";
-const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
 function shouldCleanSavedTitle(title: string): boolean {
   return shouldCleanWorkingProjectTitle(title);
 }
@@ -1739,31 +1743,11 @@ function cleanStoredIdeaTitle(idea: LightbulbIdea): LightbulbIdea {
 }
 
 function loadStoredIdeas(): LightbulbIdea[] | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(IDEAS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle).map(normalizeLibraryStage);
-    }
-  } catch {
-    // Ignore storage access failures.
-  }
-  return null;
+  return loadPersistedIdeas((idea) => normalizeLibraryStage(cleanStoredIdeaTitle(idea)));
 }
 
 function loadStoredExtras(): Record<string, IdeaExtras> | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(EXTRAS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") return parsed as Record<string, IdeaExtras>;
-  } catch {
-    // Ignore storage access failures.
-  }
-  return null;
+  return loadPersistedExtras<Record<string, IdeaExtras>>();
 }
 
 function shortIdeaSummary(idea: LightbulbIdea): string {
@@ -1790,24 +1774,14 @@ function Dashboard() {
     setStorageReady(true);
   }, []);
 
-  // Persist library to localStorage so saved ideas survive reloads in this no-login prototype.
+  // Persist library so saved ideas survive route changes and reloads.
   useEffect(() => {
     if (!storageReady) return;
-    if (typeof window === "undefined") return;
-    try {
-      localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
-    } catch {
-      // Ignore storage access failures.
-    }
+    savePersistedIdeas(ideas);
   }, [ideas, storageReady]);
   useEffect(() => {
     if (!storageReady) return;
-    if (typeof window === "undefined") return;
-    try {
-      localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
-    } catch {
-      // Ignore storage access failures.
-    }
+    savePersistedExtras(extras);
   }, [extras, storageReady]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("core-idea");
   const [categoryAsk, setCategoryAsk] = useState<CategoryKey | null>(null);

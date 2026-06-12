@@ -70,6 +70,32 @@ const FUNCTION_RULES: NamingRule[] = [
   { match: /\bapp\b/i, name: "App" },
 ];
 
+const DIRECT_TITLE_RULES: NamingRule[] = [
+  {
+    match:
+      /\b(ai\s+)?bot(?:s)?\b/i,
+    name: (text) => {
+      if (/\b(workflow|workflows|organize|organizing|library|ideas?)\b/i.test(text)) {
+        return "Bot Workflow Hub";
+      }
+      return "Bot Idea Hub";
+    },
+  },
+  {
+    match:
+      /\b(save|saved|saving|capture|capturing|store|storing|organize|organizing)\b(?=.*\bideas?\b)/i,
+    name: "Idea Shelf",
+  },
+  {
+    match: /\bcharacter(?:s)?\b(?=.*\b(workflow|workflows|map|system)\b)/i,
+    name: "Character Workflow Map",
+  },
+  {
+    match: /\bcharacter(?:s)?\b(?=.*\b(story|stories|game|games)\b)/i,
+    name: "Character Story Game",
+  },
+];
+
 const FILLER_WORDS = new Set([
   "a",
   "an",
@@ -100,7 +126,6 @@ const FILLER_WORDS = new Set([
   "need",
   "needs",
   "new",
-  "idea",
   "project",
   "program",
   "site",
@@ -117,10 +142,30 @@ const FILLER_WORDS = new Set([
   "someone",
   "people",
   "person",
+  "about",
+  "business",
+  "create",
+  "created",
+  "making",
+  "thing",
+  "things",
+  "kind",
+  "sort",
 ]);
 
 function cleanText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
+}
+
+function stripPromptLead(text: string): string {
+  return text
+    .replace(
+      /^(?:i\s+)?(?:want|wanna|would like|need|am trying)\s+to\s+(?:make|build|create|start|design)\s+/i,
+      "",
+    )
+    .replace(/^(?:an?|the)?\s*(?:app|tool|website|platform|business|idea|project)\s+(?:that|for|about)\s+/i, "")
+    .replace(/^(?:business\s+)?idea\s+(?:that|for|about)\s+/i, "")
+    .trim();
 }
 
 function titleCase(s: string) {
@@ -138,14 +183,30 @@ function isUsableIdeaType(value: string | undefined): boolean {
 }
 
 function fallbackSubject(text: string): string {
-  const firstSentence = text.split(/[.!?]/)[0]?.trim() || text;
-  const words = firstSentence
+  const usefulText = stripPromptLead(text) || text;
+  const words = usefulText
     .split(/\s+/)
-    .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, ""))
-    .filter((word) => word.length > 2 && !FILLER_WORDS.has(word.toLowerCase()))
-    .slice(0, 3)
-    .join(" ");
-  return words ? titleCase(words) : "Working";
+    .map((word) => word.replace(/^[^\w]+|[^\w]+$/g, "").toLowerCase())
+    .filter((word) => word.length > 2 && !FILLER_WORDS.has(word));
+
+  const scored = new Map<string, number>();
+  for (let i = 0; i < words.length; i += 1) {
+    for (let size = 1; size <= 3; size += 1) {
+      const phraseWords = words.slice(i, i + size);
+      if (phraseWords.length !== size) continue;
+      if (phraseWords.every((word) => FILLER_WORDS.has(word))) continue;
+
+      const phrase = phraseWords.join(" ");
+      const phraseScore = size * 2 + (words.length - i) / Math.max(words.length, 1);
+      scored.set(phrase, (scored.get(phrase) ?? 0) + phraseScore);
+    }
+  }
+
+  const best = Array.from(scored.entries())
+    .filter(([phrase]) => phrase.split(/\s+/).length <= 3)
+    .sort((a, b) => b[1] - a[1] || b[0].split(/\s+/).length - a[0].split(/\s+/).length)[0]?.[0];
+
+  return best ? titleCase(best) : "Working";
 }
 
 function trimToFourWords(title: string): string {
@@ -163,6 +224,9 @@ export function generateWorkingProjectTitle(text: string, ideaType?: string): st
   ) {
     return "QR Tee Rewards";
   }
+
+  const directTitle = pickRuleName(DIRECT_TITLE_RULES, clean, "");
+  if (directTitle) return trimToFourWords(directTitle);
 
   if (
     /\bwedding\b/i.test(clean) &&

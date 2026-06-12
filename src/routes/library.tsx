@@ -8,6 +8,12 @@ import {
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
 import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
+import {
+  loadPersistedExtras,
+  loadPersistedIdeas,
+  savePersistedExtras,
+  savePersistedIdeas,
+} from "@/lib/idea-persistence";
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import libraryBgImage from "@/assets/dabottree-library.jpg";
@@ -23,13 +29,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { BookOpen, Coins, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
+import { BookOpen, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
 
 const libraryBg = libraryBgImage;
 
-const IDEAS_STORAGE_KEY = "dabottree:ideas";
-const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
-const LIBRARY_START_CREDIT_COST = 10;
 type NotebookPost = {
   id: string;
   kind?: string;
@@ -187,58 +190,15 @@ function extrasFromDraft(text: string, ts: number) {
 }
 
 function loadStoredIdeas(): LightbulbIdea[] | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(IDEAS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return (parsed as LightbulbIdea[]).map(cleanStoredIdeaTitle).map(normalizeLibraryStage);
-    }
-  } catch {
-    // Ignore storage access failures.
-  }
-  return null;
+  return loadPersistedIdeas((idea) => normalizeLibraryStage(cleanStoredIdeaTitle(idea)));
 }
 
 function loadExtrasMap(): Record<string, IdeaExtrasRecord> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(EXTRAS_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
+  return loadPersistedExtras<Record<string, IdeaExtrasRecord>>() ?? {};
 }
 
 function saveExtrasMap(extras: Record<string, IdeaExtrasRecord>) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(extras));
-  } catch {
-    // Ignore storage access failures.
-  }
-}
-
-function readCreditsBalance(): number {
-  if (typeof window === "undefined") return 0;
-  try {
-    const value = Number(localStorage.getItem("dabottree:credits") ?? "0");
-    return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
-  } catch {
-    return 0;
-  }
-}
-
-function writeCreditsBalance(value: number) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem("dabottree:credits", String(Math.max(0, Math.floor(value))));
-    window.dispatchEvent(new Event("storage"));
-  } catch {
-    // Ignore storage access failures.
-  }
+  savePersistedExtras(extras);
 }
 
 function libraryStartPaidKey(ideaId: string) {
@@ -437,12 +397,7 @@ function ideaStatusClass(tone: ReturnType<typeof ideaCardStatus>["tone"]) {
 function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
   if (typeof window === "undefined") return ideas;
   try {
-    const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
-    const parsedExtras = rawExtras ? JSON.parse(rawExtras) : null;
-    const existingExtras =
-      parsedExtras && typeof parsedExtras === "object" && !Array.isArray(parsedExtras)
-        ? parsedExtras
-        : {};
+    const existingExtras = loadExtrasMap();
     let changedExtras = false;
     let changedIdeas = false;
 
@@ -499,7 +454,7 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
     });
 
     if (changedExtras) {
-      localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(existingExtras));
+      saveExtrasMap(existingExtras);
     }
     return changedIdeas ? nextIdeas : ideas;
   } catch {
@@ -544,8 +499,6 @@ function LibraryPage() {
   const [addNoteIdea, setAddNoteIdea] = useState<LightbulbIdea | null>(null);
   const [deleteIdeaTarget, setDeleteIdeaTarget] = useState<LightbulbIdea | null>(null);
   const [deleteConfirmStep, setDeleteConfirmStep] = useState<1 | 2>(1);
-  const [libraryStartIdea, setLibraryStartIdea] = useState<LightbulbIdea | null>(null);
-  const [creditBalance, setCreditBalance] = useState(0);
   const [noteText, setNoteText] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [listening, setListening] = useState(false);
@@ -579,23 +532,11 @@ function LibraryPage() {
         const newIdea = ideaFromDraft(draft, draftType);
         const ts = Number(newIdea.id.replace("idea-", "")) || Date.now();
         nextIdeas = [newIdea, ...nextIdeas];
-        try {
-          const rawExtras = localStorage.getItem(EXTRAS_STORAGE_KEY);
-          const parsedExtras = rawExtras ? JSON.parse(rawExtras) : null;
-          const existingExtras =
-            parsedExtras && typeof parsedExtras === "object" && !Array.isArray(parsedExtras)
-              ? parsedExtras
-              : {};
-          localStorage.setItem(
-            EXTRAS_STORAGE_KEY,
-            JSON.stringify({
-              ...existingExtras,
-              [newIdea.id]: extrasFromDraft(draft, ts),
-            }),
-          );
-        } catch {
-          // Ignore storage access failures.
-        }
+        const existingExtras = loadExtrasMap();
+        saveExtrasMap({
+          ...existingExtras,
+          [newIdea.id]: extrasFromDraft(draft, ts),
+        });
         sessionStorage.removeItem("dabottree:draftIdea");
         sessionStorage.removeItem("dabottree:draftIdeaType");
       }
@@ -604,32 +545,13 @@ function LibraryPage() {
     }
     nextIdeas = backfillMissingIntakeExtras(nextIdeas);
     setIdeas(nextIdeas);
-    setCreditBalance(readCreditsBalance());
     setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const syncCredits = () => setCreditBalance(readCreditsBalance());
-    syncCredits();
-    window.addEventListener("storage", syncCredits);
-    window.addEventListener("focus", syncCredits);
-    document.addEventListener("visibilitychange", syncCredits);
-    return () => {
-      window.removeEventListener("storage", syncCredits);
-      window.removeEventListener("focus", syncCredits);
-      document.removeEventListener("visibilitychange", syncCredits);
-    };
   }, []);
 
   // Persist deletions made on this page.
   useEffect(() => {
     if (!ready || typeof window === "undefined") return;
-    try {
-      localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas));
-    } catch {
-      // Ignore storage access failures.
-    }
+    savePersistedIdeas(ideas);
   }, [ideas, ready]);
 
   useEffect(() => {
@@ -642,53 +564,21 @@ function LibraryPage() {
     navigate({ to: "/dashboard", search: { ideaId: id } });
   };
 
-  const hasPaidLibraryStart = (id: string) => {
-    if (typeof window === "undefined") return false;
-    const idea = ideas.find((candidate) => candidate.id === id);
-    return idea ? hasConfirmedLibraryStart(idea) : false;
-  };
+  const continueIdea = (idea: LightbulbIdea) => {
+    if (idea.stage === "lightbulb") {
+      try {
+        localStorage.setItem(libraryStartConfirmedKey(idea.id), "1");
+      } catch {
+        // Ignore storage access failures.
+      }
 
-  const beginBuild = (idea: LightbulbIdea) => {
-    if (idea.stage === "lightbulb" && !hasPaidLibraryStart(idea.id)) {
-      setLibraryStartIdea(idea);
-      setCreditBalance(readCreditsBalance());
-      return;
-    }
-    if (idea.stage === "lightbulb" && hasPaidLibraryStart(idea.id)) {
-      setIdeas((prev) =>
-        prev.map((i) => (i.id === idea.id ? syncLibraryStageFromPaidStart(i) : i)),
+      const nextIdeas = ideas.map((candidate) =>
+        candidate.id === idea.id ? syncLibraryStageFromPaidStart(candidate) : candidate,
       );
+      setIdeas(nextIdeas);
+      savePersistedIdeas(nextIdeas);
     }
     openIdea(idea.id);
-  };
-
-  const addCredits = (amount: number) => {
-    const next = readCreditsBalance() + amount;
-    writeCreditsBalance(next);
-    setCreditBalance(next);
-  };
-
-  const confirmLibraryStart = () => {
-    if (!libraryStartIdea) return;
-    const balance = readCreditsBalance();
-    if (balance < LIBRARY_START_CREDIT_COST) {
-      setCreditBalance(balance);
-      return;
-    }
-    const next = balance - LIBRARY_START_CREDIT_COST;
-    writeCreditsBalance(next);
-    try {
-      localStorage.setItem(libraryStartPaidKey(libraryStartIdea.id), "1");
-      localStorage.setItem(libraryStartConfirmedKey(libraryStartIdea.id), "1");
-    } catch {
-      // Ignore storage access failures.
-    }
-    const id = libraryStartIdea.id;
-    setIdeas((prev) =>
-      prev.map((idea) => (idea.id === id ? syncLibraryStageFromPaidStart(idea) : idea)),
-    );
-    setLibraryStartIdea(null);
-    openIdea(id);
   };
 
   const addNotebookNote = () => {
@@ -767,20 +657,9 @@ function LibraryPage() {
     if (!deleteIdeaTarget) return;
     const id = deleteIdeaTarget.id;
     setIdeas((prev) => prev.filter((i) => i.id !== id));
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem(EXTRAS_STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === "object") {
-            delete parsed[id];
-            localStorage.setItem(EXTRAS_STORAGE_KEY, JSON.stringify(parsed));
-          }
-        }
-      } catch {
-        // Ignore storage access failures.
-      }
-    }
+    const extras = loadExtrasMap();
+    delete extras[id];
+    saveExtrasMap(extras);
     cancelDeleteIdea();
   };
 
@@ -1014,11 +893,11 @@ function LibraryPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => beginBuild(idea)}
+                        onClick={() => continueIdea(idea)}
                         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
                       >
                         <BookOpen className="h-4 w-4" />
-                        <span>Let's Build</span>
+                        <span>Continue</span>
                       </button>
                     </div>
                   </div>
@@ -1227,131 +1106,6 @@ function LibraryPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      {libraryStartIdea && (
-        <LibraryStartCreditModal
-          idea={libraryStartIdea}
-          balance={creditBalance}
-          cost={LIBRARY_START_CREDIT_COST}
-          onAddCredits={addCredits}
-          onClose={() => setLibraryStartIdea(null)}
-          onConfirm={confirmLibraryStart}
-        />
-      )}
     </main>
-  );
-}
-
-function LibraryStartCreditModal({
-  idea,
-  balance,
-  cost,
-  onAddCredits,
-  onClose,
-  onConfirm,
-}: {
-  idea: LightbulbIdea;
-  balance: number;
-  cost: number;
-  onAddCredits: (amount: number) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  const canAfford = balance >= cost;
-  return (
-    <div
-      className="fixed inset-0 z-[95] flex items-center justify-center px-4 py-6"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Start Library stage"
-    >
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
-      />
-      <div
-        className="relative w-full max-w-[500px] rounded-md border border-amber-200/60 px-6 py-6 text-amber-50 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9),0_0_70px_-10px_rgba(255,190,90,0.55)]"
-        style={{
-          background:
-            "radial-gradient(ellipse at top, rgba(142,96,31,0.96) 0%, rgba(72,43,15,0.98) 58%, rgba(34,20,8,0.99) 100%)",
-        }}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-4 top-4 rounded-full border border-amber-200/40 bg-black/40 px-2.5 py-1 text-[11px] text-amber-50/80 transition hover:bg-black/60"
-        >
-          x
-        </button>
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/50 bg-black/25">
-          <Coins className="h-6 w-6 text-amber-200" />
-        </div>
-        <p className="mt-4 text-center text-[11px] uppercase tracking-[0.28em] text-amber-100/75">
-          First Real Step
-        </p>
-        <h2 className="mt-2 text-center font-serif text-[24px] leading-tight text-amber-50">
-          Start Library Stage?
-        </h2>
-        <div className="mt-4 rounded-md border border-amber-200/20 bg-black/25 p-4 text-sm leading-relaxed text-amber-50/90">
-          <p>
-            This is the first real step toward turning the idea into a real project. It costs{" "}
-            <strong>{cost} credits</strong> because the Library Stage starts the guided questions
-            that shape the foundation before anything gets built.
-          </p>
-          <p className="mt-3">
-            The goal is to turn the rough concept into a clear project brief you can print, share,
-            or use as the starting point for building.
-          </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <div className="rounded-sm border border-amber-200/20 bg-black/25 px-3 py-2">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/60">
-                Available credits
-              </div>
-              <div className="mt-1 text-lg font-semibold tabular-nums">{balance}</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => onAddCredits(10)}
-              className="rounded-sm border border-amber-200/35 bg-amber-100/12 px-3 py-2 text-left text-amber-50 transition hover:bg-amber-100/20"
-            >
-              <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/60">
-                Need more?
-              </div>
-              <div className="mt-1 font-semibold">Add 10 Credits</div>
-            </button>
-          </div>
-          {!canAfford && (
-            <p className="mt-3 text-[12px] text-amber-100/75">
-              Add credits before starting this Library stage.
-            </p>
-          )}
-        </div>
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-amber-200/30 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-200/10"
-          >
-            Not yet
-          </button>
-          <button
-            type="button"
-            disabled={!canAfford}
-            onClick={onConfirm}
-            className={
-              "rounded-full border px-4 py-2 text-sm font-semibold transition " +
-              (canAfford
-                ? "border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 hover:from-amber-200 hover:to-amber-400"
-                : "cursor-not-allowed border-amber-200/20 bg-black/35 text-amber-100/45")
-            }
-          >
-            {canAfford ? `Spend ${cost} credits and start Library` : "Add credits first"}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
