@@ -29,7 +29,7 @@ export type LightbulbIdea = {
 export const stageLabels: Record<IdeaStage, string> = {
   lightbulb: "Idea Shelf",
   "pre-clarity": "Library",
-  "paid-creation": "Paid Creation",
+  "paid-creation": "Chapter 2: The Root Room",
   "clean-packet": "Clean Packet",
   "operating-path": "Operating Path",
 };
