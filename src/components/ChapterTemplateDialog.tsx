@@ -11,6 +11,7 @@ import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import echoAsset from "@/assets/echo-presenting.png.asset.json";
 import ledgerAsset from "@/assets/ledger-presenting.png.asset.json";
 import shieldAsset from "@/assets/shield-presenting.png.asset.json";
+import { createTreehouseTaskPacket } from "@/lib/api/treehouse-task-packets.functions";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateById,
@@ -28,8 +29,11 @@ type ChapterTemplateDialogProps = {
 };
 
 type RootRoomRunStatus = "idle" | "running" | "complete";
+type RootRoomHandoffStatus = "idle" | "creating" | "created" | "local-fallback";
 
 const ROOT_ROOM_STORY_STEPS = ["Echo", "Shield", "Ledger", "Chief"];
+const ROOT_ROOM_N8N_TEST_ANCHOR =
+  "7.2 Prepare Echo Perspective Scan / 7.3 Prepare Chief Project Setup Packet / 7.4 Prepare Ledger Baseline Record / 7.5 Prepare Shield Safety Review";
 
 export function ChapterTemplateDialog({
   ideaId,
@@ -50,6 +54,8 @@ export function ChapterTemplateDialog({
   const [demoComplete, setDemoComplete] = useState(false);
   const [rootRoomRunStatus, setRootRoomRunStatus] = useState<RootRoomRunStatus>("idle");
   const [rootRoomRunStep, setRootRoomRunStep] = useState(0);
+  const [rootRoomHandoffStatus, setRootRoomHandoffStatus] = useState<RootRoomHandoffStatus>("idle");
+  const [rootRoomPacketId, setRootRoomPacketId] = useState<string | null>(null);
   const isRootRoomChapter = chapter.id === "root-room";
 
   useEffect(() => {
@@ -58,11 +64,16 @@ export function ChapterTemplateDialog({
     if (!isRootRoomChapter) {
       setRootRoomRunStatus("idle");
       setRootRoomRunStep(0);
+      setRootRoomHandoffStatus("idle");
+      setRootRoomPacketId(null);
       return;
     }
     const storedRunStatus = window.localStorage.getItem(rootRoomRunStorageKey);
+    const storedPacketId = window.localStorage.getItem(`${rootRoomRunStorageKey}:packetId`);
     setRootRoomRunStatus(storedRunStatus === "complete" ? "complete" : "idle");
     setRootRoomRunStep(storedRunStatus === "complete" ? ROOT_ROOM_STORY_STEPS.length - 1 : 0);
+    setRootRoomPacketId(storedPacketId);
+    setRootRoomHandoffStatus(storedPacketId ? "created" : "idle");
   }, [demoStorageKey, isRootRoomChapter, open, rootRoomRunStorageKey]);
 
   const markDemoComplete = () => {
@@ -73,8 +84,37 @@ export function ChapterTemplateDialog({
     onDemoComplete?.(chapter.id);
   };
 
-  const startRootRoomRun = () => {
+  const startRootRoomRun = async () => {
     if (!isRootRoomChapter || rootRoomRunStatus === "running" || demoComplete) return;
+
+    setRootRoomHandoffStatus("creating");
+    setRootRoomPacketId(null);
+
+    try {
+      const packet = await createTreehouseTaskPacket({
+        data: {
+          actor: "Steward",
+          chapterId: chapter.id,
+          chapterTitle: `Chapter ${chapter.chapter}: ${chapter.title}`,
+          n8nAnchor: ROOT_ROOM_N8N_TEST_ANCHOR,
+          partId: "root-room-go-test",
+          partTitle: "Root Room inactive n8n test doorway",
+          project: {
+            projectId: ideaKey,
+            title: ideaTitle || "Untitled idea",
+          },
+          reportSourceKey: "root_room_inactive_test_handoff",
+          requestedAction: "root_room_inactive_test_handoff",
+        },
+      });
+      setRootRoomPacketId(packet.packetId);
+      setRootRoomHandoffStatus("created");
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(`${rootRoomRunStorageKey}:packetId`, packet.packetId);
+      }
+    } catch {
+      setRootRoomHandoffStatus("local-fallback");
+    }
 
     setRootRoomRunStatus("running");
     setRootRoomRunStep(0);
@@ -140,6 +180,8 @@ export function ChapterTemplateDialog({
               onDemoComplete={markDemoComplete}
               rootRoomRunStatus={rootRoomRunStatus}
               rootRoomRunStep={rootRoomRunStep}
+              rootRoomHandoffStatus={rootRoomHandoffStatus}
+              rootRoomPacketId={rootRoomPacketId}
               onStartRootRoomRun={startRootRoomRun}
             />
           </div>
@@ -207,6 +249,8 @@ function ChapterTemplateBody({
   onDemoComplete,
   rootRoomRunStatus,
   rootRoomRunStep,
+  rootRoomHandoffStatus,
+  rootRoomPacketId,
   onStartRootRoomRun,
 }: {
   ideaTitle?: string;
@@ -215,6 +259,8 @@ function ChapterTemplateBody({
   onDemoComplete: () => void;
   rootRoomRunStatus: RootRoomRunStatus;
   rootRoomRunStep: number;
+  rootRoomHandoffStatus: RootRoomHandoffStatus;
+  rootRoomPacketId: string | null;
   onStartRootRoomRun: () => void;
 }) {
   const isRootRoomChapter = chapter.id === "root-room";
@@ -279,6 +325,8 @@ function ChapterTemplateBody({
         <RootRoomRunPanel
           status={rootRoomRunStatus}
           activeStep={rootRoomRunStep}
+          handoffStatus={rootRoomHandoffStatus}
+          packetId={rootRoomPacketId}
           demoComplete={demoComplete}
           onStart={onStartRootRoomRun}
         />
@@ -349,11 +397,15 @@ function ChapterTemplateBody({
 function RootRoomRunPanel({
   status,
   activeStep,
+  handoffStatus,
+  packetId,
   demoComplete,
   onStart,
 }: {
   status: RootRoomRunStatus;
   activeStep: number;
+  handoffStatus: RootRoomHandoffStatus;
+  packetId: string | null;
   demoComplete: boolean;
   onStart: () => void;
 }) {
@@ -365,6 +417,22 @@ function RootRoomRunPanel({
       : status === "running"
         ? "Steward is running the local Root Room test sequence."
         : "Local fake Go test only. No n8n workflow will run.";
+  const handoffLabel =
+    handoffStatus === "created"
+      ? "Inactive n8n test packet created"
+      : handoffStatus === "creating"
+        ? "Creating inactive n8n test packet"
+        : handoffStatus === "local-fallback"
+          ? "Local fallback active"
+          : "Inactive n8n doorway ready";
+  const handoffDetail =
+    handoffStatus === "created" && packetId
+      ? `Packet ${packetId} created with triggerStatus: not_triggered.`
+      : handoffStatus === "creating"
+        ? "The app is writing a server-side handoff packet before the fake story run starts."
+        : handoffStatus === "local-fallback"
+          ? "The local story run continued without firing n8n because the test packet could not be created."
+          : "Go will create a local server-side handoff packet before the fake story run starts.";
 
   return (
     <div className="mt-4 rounded-md border border-cyan-900/25 bg-cyan-50/50 p-4 shadow-inner">
@@ -394,6 +462,13 @@ function RootRoomRunPanel({
 
       <div className="mt-3 rounded-sm border border-cyan-900/20 bg-white/50 px-3 py-2 font-serif text-sm font-semibold text-cyan-950">
         Status: {statusLabel}
+      </div>
+      <div className="mt-2 rounded-sm border border-cyan-900/20 bg-white/45 px-3 py-2">
+        <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-cyan-950/55">
+          n8n test doorway
+        </div>
+        <div className="mt-1 font-serif text-sm font-semibold text-cyan-950">{handoffLabel}</div>
+        <p className="mt-1 text-[11px] leading-relaxed text-cyan-950/65">{handoffDetail}</p>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-4">
