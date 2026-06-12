@@ -221,6 +221,18 @@ function currentChapterForIdea(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
   return id ? (chapterTemplateById(id) ?? TREEHOUSE_CHAPTER_TEMPLATES[0]) : undefined;
 }
 
+function chapterProgressLabel(chapter: (typeof TREEHOUSE_CHAPTER_TEMPLATES)[number]) {
+  const finalChapter =
+    TREEHOUSE_CHAPTER_TEMPLATES[TREEHOUSE_CHAPTER_TEMPLATES.length - 1]?.chapter ?? chapter.chapter;
+  return `Chapter ${chapter.chapter} of ${finalChapter}`;
+}
+
+function chapterProgressPercent(chapter: (typeof TREEHOUSE_CHAPTER_TEMPLATES)[number]) {
+  const index = TREEHOUSE_CHAPTER_TEMPLATES.findIndex((template) => template.id === chapter.id);
+  const position = index >= 0 ? index + 1 : 1;
+  return `${Math.round((position / TREEHOUSE_CHAPTER_TEMPLATES.length) * 100)}%`;
+}
+
 function libraryStartPaidKey(ideaId: string) {
   return `dabottree:libraryStartPaid:${ideaId}`;
 }
@@ -488,7 +500,7 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
 function nextStepSummary(idea: LightbulbIdea): string {
   if (idea.stage === "lightbulb") return `Next step: ${IDEA_SHELF_NEXT_ACTION}`;
   const chapter = currentChapterForIdea(idea, loadExtrasMap()[idea.id]);
-  if (chapter) return `Next step: Open ${chapterTemplateLabel(chapter.id)}.`;
+  if (chapter) return `Next step: Open Chapter ${chapter.chapter}.`;
   const action = idea.nextAction?.trim();
   if (action) return `Next step: ${action}`;
   const stageHint =
@@ -623,8 +635,8 @@ function LibraryPage() {
         currentChapterId: nextChapter.id,
       };
       saveExtrasMap(extras);
-      setIdeas((prev) =>
-        prev.map((candidate) =>
+      setIdeas((prev) => {
+        const nextIdeas = prev.map((candidate) =>
           candidate.id === idea.id
             ? {
                 ...candidate,
@@ -633,8 +645,10 @@ function LibraryPage() {
                 nextAction: `Open ${chapterTemplateLabel(nextChapter.id)}.`,
               }
             : candidate,
-        ),
-      );
+        );
+        savePersistedIdeas(nextIdeas);
+        return nextIdeas;
+      });
       return;
     }
 
@@ -897,18 +911,19 @@ function LibraryPage() {
                 : idea.stage
                   ? `Stage: ${stageLabels[idea.stage]}`
                   : "Stage: Idea";
+              const chapterCta = chapter ? `Open Chapter ${chapter.chapter}` : "Continue";
               const ideaType = ideaTypeFor(idea);
               const character = chapter
                 ? {
                     name: primaryChapterGuideName(chapter),
-                    src: idea.stage === "paid-creation" ? echoPresentingAsset.url : stageCharacterMap.lightbulb.src,
+                    src:
+                      idea.stage === "paid-creation"
+                        ? echoPresentingAsset.url
+                        : stageCharacterMap.lightbulb.src,
                   }
-                : stageCharacterMap[idea.stage] ?? stageCharacterMap.lightbulb;
+                : (stageCharacterMap[idea.stage] ?? stageCharacterMap.lightbulb);
               const status = ideaCardStatus(idea);
-              const notebookEntryCount = notebookEntriesFor(
-                idea,
-                extras,
-              ).length;
+              const notebookEntryCount = notebookEntriesFor(idea, extras).length;
               return (
                 <li
                   key={idea.id}
@@ -943,6 +958,23 @@ function LibraryPage() {
                     <div className="mt-2 text-left text-[11px] leading-relaxed text-amber-100/62">
                       {nextStepSummary(idea)}
                     </div>
+                    {chapter ? (
+                      <div className="mt-3 rounded-sm border border-amber-100/25 bg-black/20 p-2.5 text-left shadow-inner">
+                        <div className="flex items-center justify-between gap-3 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-100/70">
+                          <span>Current chapter</span>
+                          <span>{chapterProgressLabel(chapter)}</span>
+                        </div>
+                        <div className="mt-1 font-serif text-sm font-semibold leading-tight text-amber-50">
+                          Chapter {chapter.chapter}: {chapter.title}
+                        </div>
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-amber-950/70">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-amber-200 via-cyan-200 to-emerald-200"
+                            style={{ width: chapterProgressPercent(chapter) }}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
 
                     <div className="mt-auto space-y-2 pt-4">
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -981,7 +1013,7 @@ function LibraryPage() {
                         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
                       >
                         <BookOpen className="h-4 w-4" />
-                        <span>Continue</span>
+                        <span>{chapterCta}</span>
                       </button>
                     </div>
                   </div>
