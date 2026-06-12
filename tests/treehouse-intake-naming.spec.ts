@@ -86,3 +86,51 @@ test("Library shelf Continue opens the idea dashboard without the credit modal",
   await expect(page.getByText("Start Library Stage?")).toHaveCount(0);
   await expect(page).toHaveURL(/\/dashboard\?ideaId=idea-/);
 });
+
+test("Library shelf Continue opens saved ideas with older partial extras", async ({ page }) => {
+  const idea = {
+    id: "idea-mobile-dog-grooming-busy",
+    title: "Mobile Dog Grooming",
+    messy:
+      "Mobile dog grooming business idea for busy pet owners who need appointments, route planning, reminders, and saved customer preferences.",
+    shelfReadiness: 62,
+    updatedAt: Date.now(),
+    stage: "pre-clarity",
+    nextAction: "Answer personalized Clarity questions before creating the project brief.",
+    audience: "Busy pet owners",
+    industry: "Pet grooming",
+    ideaType: "Business / service app",
+    description:
+      "A mobile dog grooming service workflow for busy pet owners, with booking, customer notes, route planning, reminders, and saved pet preferences.",
+  };
+  const partialExtras = {
+    [idea.id]: {
+      sourceText: idea.messy,
+      notes: {},
+    },
+  };
+
+  await page.addInitScript(
+    ({ idea, partialExtras }) => {
+      window.localStorage.setItem("dabottree:authed", "1");
+      window.localStorage.setItem("dabottree:accountEmail", "boss@example.com");
+      window.localStorage.setItem("dabottree:ideas", JSON.stringify([idea]));
+      window.localStorage.setItem("dabottree:ideas:boss@example.com", JSON.stringify([idea]));
+      window.localStorage.setItem("dabottree:ideaExtras", JSON.stringify(partialExtras));
+      window.localStorage.setItem(
+        "dabottree:ideaExtras:boss@example.com",
+        JSON.stringify(partialExtras),
+      );
+    },
+    { idea, partialExtras },
+  );
+
+  await page.goto("/library");
+  const ideaCard = page.locator("li", { hasText: "Mobile Dog Grooming" });
+  await expect(ideaCard).toBeVisible();
+  await ideaCard.getByRole("button", { name: /^Continue$/ }).click();
+
+  await expect(page).toHaveURL(/\/dashboard\?ideaId=idea-mobile-dog-grooming-busy/);
+  await expect(page.getByText("This page didn't load")).toHaveCount(0);
+  await expect(page.getByText("Mobile Dog Grooming").first()).toBeVisible();
+});

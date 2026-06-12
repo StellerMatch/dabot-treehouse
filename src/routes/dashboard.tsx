@@ -526,6 +526,31 @@ function emptyExtras(): IdeaExtras {
   };
 }
 
+function normalizeIdeaExtras(extras?: Partial<IdeaExtras> | null): IdeaExtras {
+  return {
+    sourceText: typeof extras?.sourceText === "string" ? extras.sourceText : "",
+    notes:
+      extras?.notes && typeof extras.notes === "object" && !Array.isArray(extras.notes)
+        ? extras.notes
+        : {},
+    attachments: Array.isArray(extras?.attachments) ? extras.attachments : [],
+    posts: Array.isArray(extras?.posts) ? extras.posts : [],
+    answeredQuestions: Array.isArray(extras?.answeredQuestions) ? extras.answeredQuestions : [],
+    skippedQuestions: Array.isArray(extras?.skippedQuestions) ? extras.skippedQuestions : [],
+    clarityFollowupCount:
+      typeof extras?.clarityFollowupCount === "number" ? extras.clarityFollowupCount : 0,
+  };
+}
+
+function normalizeExtrasMap(
+  extras: Record<string, Partial<IdeaExtras>> | null,
+): Record<string, IdeaExtras> | null {
+  if (!extras) return null;
+  return Object.fromEntries(
+    Object.entries(extras).map(([id, value]) => [id, normalizeIdeaExtras(value)]),
+  );
+}
+
 // ——— Clarity's clarifying questions ———
 const MIN_CLARITY_FOLLOWUPS = 3;
 const MIN_FOLLOWUP_SEQUENCE: CategoryKey[] = [
@@ -1747,7 +1772,7 @@ function loadStoredIdeas(): LightbulbIdea[] | null {
 }
 
 function loadStoredExtras(): Record<string, IdeaExtras> | null {
-  return loadPersistedExtras<Record<string, IdeaExtras>>();
+  return normalizeExtrasMap(loadPersistedExtras<Record<string, Partial<IdeaExtras>>>());
 }
 
 function shortIdeaSummary(idea: LightbulbIdea): string {
@@ -1915,7 +1940,7 @@ function Dashboard() {
   const [libraryStartOpen, setLibraryStartOpen] = useState(false);
 
   const selectedExtras: IdeaExtras = selected
-    ? (extras[selected.id] ?? emptyExtras())
+    ? normalizeIdeaExtras(extras[selected.id])
     : emptyExtras();
 
   const updateSelected = (patch: Partial<LightbulbIdea>) => {
@@ -1928,7 +1953,7 @@ function Dashboard() {
   const updateExtras = (patch: Partial<IdeaExtras>) => {
     if (!selected) return;
     setExtras((prev) => {
-      const current = prev[selected.id] ?? emptyExtras();
+      const current = normalizeIdeaExtras(prev[selected.id]);
       return {
         ...prev,
         [selected.id]: {
