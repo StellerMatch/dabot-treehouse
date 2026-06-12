@@ -49,10 +49,14 @@ test("Treehouse names ideas from meaning instead of opening filler words", async
   await ideaInput.fill(
     "A platform for organizing AI bot ideas, workflows, and character-based project stages.",
   );
-  await expect(page.locator("div", { hasText: /^Working name:\s+Bot Workflow Hub$/ })).toBeVisible();
+  await expect(
+    page.locator("div", { hasText: /^Working name:\s+Bot Workflow Hub$/ }),
+  ).toBeVisible();
 });
 
-test("Library shelf Continue opens the idea dashboard without the credit modal", async ({ page }) => {
+test("Library shelf Continue opens the idea dashboard without the credit modal", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("dabottree:authed", "1");
     window.localStorage.setItem("dabottree:accountEmail", "boss@example.com");
@@ -61,7 +65,9 @@ test("Library shelf Continue opens the idea dashboard without the credit modal",
   });
 
   await page.goto("/");
-  await page.locator("#idea").fill("A simple app for saving creative ideas and notes in one shelf.");
+  await page
+    .locator("#idea")
+    .fill("A simple app for saving creative ideas and notes in one shelf.");
   await page.getByRole("button", { name: /Save to my library/i }).click();
   await expect(page).toHaveURL(/\/library/);
 

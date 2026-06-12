@@ -72,8 +72,7 @@ const FUNCTION_RULES: NamingRule[] = [
 
 const DIRECT_TITLE_RULES: NamingRule[] = [
   {
-    match:
-      /\b(ai\s+)?bot(?:s)?\b/i,
+    match: /\b(ai\s+)?bot(?:s)?\b/i,
     name: (text) => {
       if (/\b(workflow|workflows|organize|organizing|library|ideas?)\b/i.test(text)) {
         return "Bot Workflow Hub";
@@ -163,7 +162,10 @@ function stripPromptLead(text: string): string {
       /^(?:i\s+)?(?:want|wanna|would like|need|am trying)\s+to\s+(?:make|build|create|start|design)\s+/i,
       "",
     )
-    .replace(/^(?:an?|the)?\s*(?:app|tool|website|platform|business|idea|project)\s+(?:that|for|about)\s+/i, "")
+    .replace(
+      /^(?:an?|the)?\s*(?:app|tool|website|platform|business|idea|project)\s+(?:that|for|about)\s+/i,
+      "",
+    )
     .replace(/^(?:business\s+)?idea\s+(?:that|for|about)\s+/i, "")
     .trim();
 }
