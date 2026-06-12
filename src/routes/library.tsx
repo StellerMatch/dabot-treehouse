@@ -17,10 +17,10 @@ import {
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import libraryBgImage from "@/assets/dabottree-library.jpg";
+import echoPresentingAsset from "@/assets/echo-presenting.png.asset.json";
 import ledgerPresentingAsset from "@/assets/ledger-presenting.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
 import stampPresentingAsset from "@/assets/stamp-presenting.png.asset.json";
-import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
 import {
@@ -336,7 +336,7 @@ function isCompletedIdea(idea: LightbulbIdea): boolean {
 const stageCharacterMap: Record<LightbulbIdea["stage"], { name: string; src: string }> = {
   lightbulb: { name: "Clarity", src: clarityPresentingAsset.url },
   "pre-clarity": { name: "Clarity", src: clarityPresentingAsset.url },
-  "paid-creation": { name: "Demo Guide", src: demoGuideAsset.url },
+  "paid-creation": { name: "Echo", src: echoPresentingAsset.url },
   "clean-packet": { name: "Ledger", src: ledgerPresentingAsset.url },
   "operating-path": { name: "Chief", src: stampPresentingAsset.url },
 };

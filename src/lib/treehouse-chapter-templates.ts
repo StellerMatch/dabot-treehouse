@@ -138,6 +138,11 @@ export function chapterTemplateById(id: string) {
   return TREEHOUSE_CHAPTER_TEMPLATES.find((chapter) => chapter.id === id);
 }
 
+export function primaryChapterGuideName(chapter: TreehouseChapterTemplate) {
+  const firstPart = chapter.parts[0] ?? "Demo Guide";
+  return firstPart.replace(/\s+(opens|returns|collection)\b.*$/i, "").split(":")[0].trim();
+}
+
 export function isRootRoomTemplateIdea(input: { stage?: string; nextAction?: string }) {
   return input.stage === "paid-creation" || /root room/i.test(input.nextAction ?? "");
 }

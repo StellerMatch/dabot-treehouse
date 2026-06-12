@@ -1,9 +1,14 @@
 import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import compassAsset from "@/assets/compass-stag.png.asset.json";
 import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
+import echoAsset from "@/assets/echo-presenting.png.asset.json";
+import ledgerAsset from "@/assets/ledger-presenting.png.asset.json";
+import shieldAsset from "@/assets/shield-presenting.png.asset.json";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateById,
+  primaryChapterGuideName,
   type TreehouseChapterTemplate,
 } from "@/lib/treehouse-chapter-templates";
 
@@ -43,7 +48,7 @@ export function ChapterTemplateDialog({
             }}
           />
           <div className="relative grid max-h-[85vh] overflow-y-auto md:grid-cols-[240px_1fr]">
-            <DemoGuidePanel />
+            <DemoGuidePanel chapter={chapter} />
             <ChapterTemplateBody ideaTitle={ideaTitle} chapter={chapter} />
           </div>
         </div>
@@ -52,7 +57,17 @@ export function ChapterTemplateDialog({
   );
 }
 
-function DemoGuidePanel() {
+const guideAssets: Record<string, string> = {
+  Compass: compassAsset.url,
+  Echo: echoAsset.url,
+  Ledger: ledgerAsset.url,
+  Shield: shieldAsset.url,
+};
+
+function DemoGuidePanel({ chapter }: { chapter: TreehouseChapterTemplate }) {
+  const guideName = primaryChapterGuideName(chapter);
+  const guideAsset = guideAssets[guideName] ?? demoGuideAsset.url;
+
   return (
     <aside className="relative min-h-72 overflow-hidden border-b border-amber-900/25 bg-gradient-to-b from-[#6b421f] via-[#3f2513] to-[#1f1209] p-5 text-amber-50 md:border-b-0 md:border-r">
       <div
@@ -61,10 +76,10 @@ function DemoGuidePanel() {
       />
       <div className="relative flex h-full flex-col items-center justify-end gap-3">
         <div className="rounded-full border border-amber-100/35 bg-black/25 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm backdrop-blur-sm">
-          Demo Guide
+          {guideName}
         </div>
         <img
-          src={demoGuideAsset.url}
+          src={guideAsset}
           alt=""
           className="max-h-56 w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.55)]"
           draggable={false}
