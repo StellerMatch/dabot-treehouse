@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import compassAsset from "@/assets/compass-stag.png.asset.json";
 import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import echoAsset from "@/assets/echo-presenting.png.asset.json";
@@ -21,6 +27,10 @@ type ChapterTemplateDialogProps = {
   onDemoComplete?: (chapterId: string) => void;
 };
 
+type RootRoomRunStatus = "idle" | "running" | "complete";
+
+const ROOT_ROOM_STORY_STEPS = ["Echo", "Shield", "Ledger", "Chief"];
+
 export function ChapterTemplateDialog({
   ideaId,
   ideaTitle,
@@ -30,16 +40,30 @@ export function ChapterTemplateDialog({
   onDemoComplete,
 }: ChapterTemplateDialogProps) {
   const chapter = chapterTemplateById(chapterId) ?? TREEHOUSE_CHAPTER_TEMPLATES[0];
+  const ideaKey = useMemo(() => ideaId || ideaTitle || "untitled", [ideaId, ideaTitle]);
   const demoStorageKey = useMemo(() => {
-    const ideaKey = ideaId || ideaTitle || "untitled";
     return `dabottree:chapter-demo:${ideaKey}:${chapter.id}`;
-  }, [chapter.id, ideaId, ideaTitle]);
+  }, [chapter.id, ideaKey]);
+  const rootRoomRunStorageKey = useMemo(() => {
+    return `dabottree:chapter-run-demo:${ideaKey}:${chapter.id}`;
+  }, [chapter.id, ideaKey]);
   const [demoComplete, setDemoComplete] = useState(false);
+  const [rootRoomRunStatus, setRootRoomRunStatus] = useState<RootRoomRunStatus>("idle");
+  const [rootRoomRunStep, setRootRoomRunStep] = useState(0);
+  const isRootRoomChapter = chapter.id === "root-room";
 
   useEffect(() => {
     if (!open || typeof window === "undefined") return;
     setDemoComplete(window.localStorage.getItem(demoStorageKey) === "complete");
-  }, [demoStorageKey, open]);
+    if (!isRootRoomChapter) {
+      setRootRoomRunStatus("idle");
+      setRootRoomRunStep(0);
+      return;
+    }
+    const storedRunStatus = window.localStorage.getItem(rootRoomRunStorageKey);
+    setRootRoomRunStatus(storedRunStatus === "complete" ? "complete" : "idle");
+    setRootRoomRunStep(storedRunStatus === "complete" ? ROOT_ROOM_STORY_STEPS.length - 1 : 0);
+  }, [demoStorageKey, isRootRoomChapter, open, rootRoomRunStorageKey]);
 
   const markDemoComplete = () => {
     setDemoComplete(true);
@@ -47,6 +71,40 @@ export function ChapterTemplateDialog({
       window.localStorage.setItem(demoStorageKey, "complete");
     }
     onDemoComplete?.(chapter.id);
+  };
+
+  const startRootRoomRun = () => {
+    if (!isRootRoomChapter || rootRoomRunStatus === "running" || demoComplete) return;
+
+    setRootRoomRunStatus("running");
+    setRootRoomRunStep(0);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(rootRoomRunStorageKey, "running");
+    }
+
+    ROOT_ROOM_STORY_STEPS.forEach((_, index) => {
+      window.setTimeout(
+        () => {
+          setRootRoomRunStep(index);
+        },
+        450 * (index + 1),
+      );
+    });
+
+    window.setTimeout(
+      () => {
+        setRootRoomRunStatus("complete");
+        setRootRoomRunStep(ROOT_ROOM_STORY_STEPS.length - 1);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(rootRoomRunStorageKey, "complete");
+        }
+
+        window.setTimeout(() => {
+          markDemoComplete();
+        }, 650);
+      },
+      450 * (ROOT_ROOM_STORY_STEPS.length + 1),
+    );
   };
 
   return (
@@ -70,12 +128,19 @@ export function ChapterTemplateDialog({
             }}
           />
           <div className="relative grid max-h-[85vh] overflow-y-auto md:grid-cols-[240px_1fr]">
-            <DemoGuidePanel chapter={chapter} demoComplete={demoComplete} onDemoComplete={markDemoComplete} />
+            <DemoGuidePanel
+              chapter={chapter}
+              demoComplete={demoComplete}
+              onDemoComplete={markDemoComplete}
+            />
             <ChapterTemplateBody
               ideaTitle={ideaTitle}
               chapter={chapter}
               demoComplete={demoComplete}
               onDemoComplete={markDemoComplete}
+              rootRoomRunStatus={rootRoomRunStatus}
+              rootRoomRunStep={rootRoomRunStep}
+              onStartRootRoomRun={startRootRoomRun}
             />
           </div>
         </div>
@@ -140,12 +205,20 @@ function ChapterTemplateBody({
   chapter,
   demoComplete,
   onDemoComplete,
+  rootRoomRunStatus,
+  rootRoomRunStep,
+  onStartRootRoomRun,
 }: {
   ideaTitle?: string;
   chapter: TreehouseChapterTemplate;
   demoComplete: boolean;
   onDemoComplete: () => void;
+  rootRoomRunStatus: RootRoomRunStatus;
+  rootRoomRunStep: number;
+  onStartRootRoomRun: () => void;
 }) {
+  const isRootRoomChapter = chapter.id === "root-room";
+
   return (
     <section className="relative p-5 sm:p-6">
       <DialogHeader>
@@ -202,25 +275,31 @@ function ChapterTemplateBody({
         </div>
       </div>
 
+      {isRootRoomChapter ? (
+        <RootRoomRunPanel
+          status={rootRoomRunStatus}
+          activeStep={rootRoomRunStep}
+          demoComplete={demoComplete}
+          onStart={onStartRootRoomRun}
+        />
+      ) : null}
+
       <div className="mt-4">
         <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
           Work slots
         </div>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
-        {chapter.parts.map((label) => (
-          <div
-            key={label}
-            className="rounded-sm border border-amber-900/25 bg-amber-100/45 p-3"
-          >
-            <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
-              Empty slot
+          {chapter.parts.map((label) => (
+            <div key={label} className="rounded-sm border border-amber-900/25 bg-amber-100/45 p-3">
+              <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+                Empty slot
+              </div>
+              <div className="mt-0.5 font-serif text-sm font-semibold text-amber-950">{label}</div>
+              <div className="mt-2 min-h-12 rounded-sm border border-dashed border-amber-900/25 bg-amber-50/35 p-2 text-xs leading-relaxed text-amber-950/60">
+                Add this lane's prompt, notes, output, or handoff here.
+              </div>
             </div>
-            <div className="mt-0.5 font-serif text-sm font-semibold text-amber-950">{label}</div>
-            <div className="mt-2 min-h-12 rounded-sm border border-dashed border-amber-900/25 bg-amber-50/35 p-2 text-xs leading-relaxed text-amber-950/60">
-              Add this lane's prompt, notes, output, or handoff here.
-            </div>
-          </div>
-        ))}
+          ))}
         </div>
       </div>
 
@@ -264,6 +343,83 @@ function ChapterTemplateBody({
         </div>
       </div>
     </section>
+  );
+}
+
+function RootRoomRunPanel({
+  status,
+  activeStep,
+  demoComplete,
+  onStart,
+}: {
+  status: RootRoomRunStatus;
+  activeStep: number;
+  demoComplete: boolean;
+  onStart: () => void;
+}) {
+  const statusLabel =
+    status === "complete" || demoComplete ? "Complete" : status === "running" ? "Running" : "Ready";
+  const statusDetail =
+    status === "complete" || demoComplete
+      ? "Fake Root Room run complete. This can move the idea to Chapter 3."
+      : status === "running"
+        ? "Steward is running the local Root Room test sequence."
+        : "Local fake Go test only. No n8n workflow will run.";
+
+  return (
+    <div className="mt-4 rounded-md border border-cyan-900/25 bg-cyan-50/50 p-4 shadow-inner">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-cyan-950/60">
+            Root Room Go test
+          </div>
+          <div className="mt-1 font-serif text-lg font-semibold text-cyan-950">
+            Steward starts the local Root Room run
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-cyan-950/70">{statusDetail}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={status === "running" || demoComplete}
+          className="rounded-sm border border-cyan-900/30 bg-cyan-950 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-50 shadow-sm transition hover:bg-cyan-900 disabled:cursor-default disabled:border-emerald-900/30 disabled:bg-emerald-800"
+        >
+          {status === "running"
+            ? "Running"
+            : status === "complete" || demoComplete
+              ? "Complete"
+              : "Go"}
+        </button>
+      </div>
+
+      <div className="mt-3 rounded-sm border border-cyan-900/20 bg-white/50 px-3 py-2 font-serif text-sm font-semibold text-cyan-950">
+        Status: {statusLabel}
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-4">
+        {ROOT_ROOM_STORY_STEPS.map((step, index) => {
+          const reached =
+            status === "complete" || demoComplete || (status === "running" && index <= activeStep);
+          return (
+            <div
+              key={step}
+              className={`rounded-sm border px-2.5 py-2 text-center font-serif text-xs font-semibold ${
+                reached
+                  ? "border-emerald-900/35 bg-emerald-100/70 text-emerald-950"
+                  : "border-cyan-900/15 bg-cyan-100/45 text-cyan-950/55"
+              }`}
+            >
+              {step}
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-3 text-[11px] leading-relaxed text-cyan-950/65">
+        Test path: Go -&gt; Steward -&gt; fake Root Room module -&gt; Echo / Shield / Ledger / Chief
+        -&gt; Complete. No live n8n, bot route, credential, or external action fires.
+      </p>
+    </div>
   );
 }
 
