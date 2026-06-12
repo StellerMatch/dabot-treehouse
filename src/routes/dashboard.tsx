@@ -2624,6 +2624,7 @@ function Dashboard() {
       )}
       {selected && (
         <ChapterTemplateDialog
+          ideaId={selected.id}
           ideaTitle={selected.title}
           chapterId="root-room"
           open={rootRoomTemplateOpen}

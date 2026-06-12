@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import compassAsset from "@/assets/compass-stag.png.asset.json";
 import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/treehouse-chapter-templates";
 
 type ChapterTemplateDialogProps = {
+  ideaId?: string;
   ideaTitle?: string;
   chapterId: string;
   open: boolean;
@@ -20,12 +21,30 @@ type ChapterTemplateDialogProps = {
 };
 
 export function ChapterTemplateDialog({
+  ideaId,
   ideaTitle,
   chapterId,
   open,
   onOpenChange,
 }: ChapterTemplateDialogProps) {
   const chapter = chapterTemplateById(chapterId) ?? TREEHOUSE_CHAPTER_TEMPLATES[0];
+  const demoStorageKey = useMemo(() => {
+    const ideaKey = ideaId || ideaTitle || "untitled";
+    return `dabottree:chapter-demo:${ideaKey}:${chapter.id}`;
+  }, [chapter.id, ideaId, ideaTitle]);
+  const [demoComplete, setDemoComplete] = useState(false);
+
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    setDemoComplete(window.localStorage.getItem(demoStorageKey) === "complete");
+  }, [demoStorageKey, open]);
+
+  const markDemoComplete = () => {
+    setDemoComplete(true);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(demoStorageKey, "complete");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,8 +67,13 @@ export function ChapterTemplateDialog({
             }}
           />
           <div className="relative grid max-h-[85vh] overflow-y-auto md:grid-cols-[240px_1fr]">
-            <DemoGuidePanel chapter={chapter} />
-            <ChapterTemplateBody ideaTitle={ideaTitle} chapter={chapter} />
+            <DemoGuidePanel chapter={chapter} demoComplete={demoComplete} onDemoComplete={markDemoComplete} />
+            <ChapterTemplateBody
+              ideaTitle={ideaTitle}
+              chapter={chapter}
+              demoComplete={demoComplete}
+              onDemoComplete={markDemoComplete}
+            />
           </div>
         </div>
       </DialogContent>
@@ -64,7 +88,15 @@ const guideAssets: Record<string, string> = {
   Shield: shieldAsset.url,
 };
 
-function DemoGuidePanel({ chapter }: { chapter: TreehouseChapterTemplate }) {
+function DemoGuidePanel({
+  chapter,
+  demoComplete,
+  onDemoComplete,
+}: {
+  chapter: TreehouseChapterTemplate;
+  demoComplete: boolean;
+  onDemoComplete: () => void;
+}) {
   const guideName = primaryChapterGuideName(chapter);
   const guideAsset = guideAssets[guideName] ?? demoGuideAsset.url;
 
@@ -87,6 +119,14 @@ function DemoGuidePanel({ chapter }: { chapter: TreehouseChapterTemplate }) {
         <div className="rounded-sm border border-amber-100/35 bg-amber-100/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-50/90">
           Demo
         </div>
+        <button
+          type="button"
+          onClick={onDemoComplete}
+          disabled={demoComplete}
+          className="rounded-sm border border-amber-100/45 bg-amber-100/20 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-100/30 disabled:cursor-default disabled:bg-emerald-900/45"
+        >
+          {demoComplete ? "Complete" : "Demo Complete"}
+        </button>
       </div>
     </aside>
   );
@@ -95,20 +135,32 @@ function DemoGuidePanel({ chapter }: { chapter: TreehouseChapterTemplate }) {
 function ChapterTemplateBody({
   ideaTitle,
   chapter,
+  demoComplete,
+  onDemoComplete,
 }: {
   ideaTitle?: string;
   chapter: TreehouseChapterTemplate;
+  demoComplete: boolean;
+  onDemoComplete: () => void;
 }) {
   return (
     <section className="relative p-5 sm:p-6">
       <DialogHeader>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="w-fit rounded-full border border-amber-900/25 bg-amber-100/55 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/75">
             Empty chapter template
           </div>
           <div className="w-fit rounded-full border border-amber-900/20 bg-amber-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/70">
             Future-ready shell
           </div>
+          <button
+            type="button"
+            onClick={onDemoComplete}
+            disabled={demoComplete}
+            className="w-fit rounded-sm border border-amber-900/35 bg-amber-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-950 transition hover:bg-amber-950/15 disabled:border-emerald-900/35 disabled:bg-emerald-900/15 disabled:text-emerald-950"
+          >
+            {demoComplete ? "Complete" : "Demo"}
+          </button>
         </div>
         <DialogTitle className="font-serif text-2xl text-amber-950">
           Chapter {chapter.chapter}: {chapter.title}
@@ -137,10 +189,12 @@ function ChapterTemplateBody({
             Chapter status
           </div>
           <div className="mt-2 rounded-sm border border-amber-900/20 bg-amber-50/55 px-3 py-2 font-serif text-sm font-semibold text-amber-950">
-            Blank template ready
+            {demoComplete ? "Demo marked complete" : "Blank template ready"}
           </div>
           <p className="mt-2 text-xs leading-relaxed text-amber-950/70">
-            No live workflow is attached yet.
+            {demoComplete
+              ? "This is a local demo state only. No n8n workflow has run."
+              : "No live workflow is attached yet."}
           </p>
         </div>
       </div>

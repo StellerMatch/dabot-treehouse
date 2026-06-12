@@ -998,6 +998,7 @@ function LibraryPage() {
       </Dialog>
 
       <ChapterTemplateDialog
+        ideaId={rootRoomTemplateIdea?.id}
         ideaTitle={rootRoomTemplateIdea?.title}
         chapterId="root-room"
         open={Boolean(rootRoomTemplateIdea)}
