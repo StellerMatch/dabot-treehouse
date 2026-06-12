@@ -2,7 +2,10 @@ export type TreehouseChapterTemplate = {
   id: string;
   chapter: number;
   title: string;
+  purpose: string;
   parts: string[];
+  checkpoints: string[];
+  boundary: string;
 };
 
 export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
@@ -10,24 +13,34 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
     id: "root-room",
     chapter: 2,
     title: "The Root Room",
+    purpose: "Set the project baseline before deeper research, design, money, or build work begins.",
     parts: ["Echo", "Shield", "Ledger", "Chief"],
+    checkpoints: ["Original idea is preserved", "Safety flags are named", "Baseline record is ready"],
+    boundary: "Template only. No bot flow, notebook report, deployment, or outside action runs from here yet.",
   },
   {
     id: "trunk-level",
     chapter: 3,
     title: "Trunk Level",
+    purpose: "Turn the baseline into a deeper research and direction packet.",
     parts: ["Luma", "Bloom", "Vault", "Compass"],
+    checkpoints: ["Design questions are visible", "Audience and growth notes are parked", "Money risk is named"],
+    boundary: "Research shell only. It does not approve building, spending, launch, or automation.",
   },
   {
     id: "the-clearing",
     chapter: 4,
     title: "The Clearing",
+    purpose: "Name and frame the project clearly enough that later chapters know what they are building.",
     parts: ["Moniker"],
+    checkpoints: ["Working name is captured", "Plain-English promise is drafted", "Confusing labels are parked"],
+    boundary: "Naming shell only. It does not lock the final brand, public copy, or launch name.",
   },
   {
     id: "canopy-level",
     chapter: 5,
     title: "Canopy Level",
+    purpose: "Build the clean foundation packet before experiments or prototype work begin.",
     parts: [
       "Rook opens Canopy",
       "Bones",
@@ -36,17 +49,23 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Ledger",
       "Rook closes Canopy",
     ],
+    checkpoints: ["Foundation packet is readable", "Missing structure is listed", "Closeout handoff is ready"],
+    boundary: "Foundation shell only. It does not approve prototype work, deployment, spending, or public launch.",
   },
   {
     id: "wind-tunnel",
     chapter: 6,
     title: "Wind Tunnel",
+    purpose: "Stress-test whether the project is strong enough to move forward.",
     parts: ["Gauge", "Shield", "Stagehand"],
+    checkpoints: ["Weak points are named", "Safety pass is visible", "Next-stage recommendation is clear"],
+    boundary: "Validation shell only. It does not run tests, submit prompts, deploy, or make final decisions.",
   },
   {
     id: "branchworks-level",
     chapter: 7,
     title: "Branchworks Level",
+    purpose: "Shape experiment directions and early build rails without turning them into a live product yet.",
     parts: [
       "Tinker opens Branchworks",
       "Squirrel Build Rails",
@@ -57,11 +76,14 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Momma Bear collection",
       "Tinker closes Branchworks",
     ],
+    checkpoints: ["Experiment paths are separated", "Build rails are named", "Collection notes are ready"],
+    boundary: "Experiment shell only. It does not execute builds, connect accounts, spend, or launch.",
   },
   {
     id: "crown-level",
     chapter: 8,
     title: "Crown Level",
+    purpose: "Prepare final prototype packaging, review, and handoff materials.",
     parts: [
       "Weaver opens Crown",
       "Grandpa Bears: Byte, Bubba, Boomer",
@@ -73,23 +95,32 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Shield Final Boundary Pass",
       "Weaver closes Crown",
     ],
+    checkpoints: ["Final package slots exist", "Review lanes are listed", "Shield boundary pass is parked"],
+    boundary: "Final-review shell only. It does not approve production release, public launch, or support.",
   },
   {
     id: "the-sweep",
     chapter: 9,
     title: "The Sweep",
+    purpose: "Run the Ghost-style cleanup and scenario review before operations.",
     parts: ["Ghost"],
+    checkpoints: ["Scenario review slot is ready", "Loose risks are captured", "Pass or hold decision can be added"],
+    boundary: "Simulation shell only. It does not run browser automation, fix code, deploy, or approve release.",
   },
   {
     id: "nest-level",
     chapter: 10,
     title: "Nest Level",
+    purpose: "Create the project home and readiness view for live operations.",
     parts: ["Ward opens Nest", "Ward Health Profile", "Boomer", "Helper Routes", "Ward closes Nest"],
+    checkpoints: ["Health profile slot exists", "Helper routes are parked", "Operations handoff can be written"],
+    boundary: "Operations-readiness shell only. It does not activate support, monitoring, cron, or customer promises.",
   },
   {
     id: "seed-level",
     chapter: 11,
     title: "Seed Level",
+    purpose: "Prepare launch, growth, and planting decisions without taking public action.",
     parts: [
       "Bloom opens Seed",
       "Seed Sorting",
@@ -98,6 +129,8 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Owner Planting Decision",
       "Bloom closes Seed",
     ],
+    checkpoints: ["Launch paths are parked", "Owner planting decision is visible", "Seed admin slot is ready"],
+    boundary: "Launch-planning shell only. It does not post, advertise, spend, email, deploy, or promise customers anything.",
   },
 ];
 

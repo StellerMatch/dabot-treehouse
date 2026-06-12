@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import {
@@ -86,46 +87,92 @@ function ChapterTemplateBody({
   return (
     <section className="relative p-5 sm:p-6">
       <DialogHeader>
-        <div className="mb-2 w-fit rounded-full border border-amber-900/25 bg-amber-100/55 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/75">
-          Empty chapter template
+        <div className="flex flex-wrap gap-2">
+          <div className="w-fit rounded-full border border-amber-900/25 bg-amber-100/55 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/75">
+            Empty chapter template
+          </div>
+          <div className="w-fit rounded-full border border-amber-900/20 bg-amber-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/70">
+            Future-ready shell
+          </div>
         </div>
         <DialogTitle className="font-serif text-2xl text-amber-950">
           Chapter {chapter.chapter}: {chapter.title}
         </DialogTitle>
         <DialogDescription className="font-serif text-sm leading-relaxed text-amber-900/75">
-          A clean starter shell for this chapter. No real questions or bot flows have been added
-          yet.
+          {chapter.purpose}
         </DialogDescription>
       </DialogHeader>
 
-      <div className="mt-5 rounded-md border border-amber-900/25 bg-amber-50/60 p-4 shadow-inner">
-        <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
-          Project
+      <div className="mt-5 grid gap-3 lg:grid-cols-[1.25fr_0.75fr]">
+        <div className="rounded-md border border-amber-900/25 bg-amber-50/60 p-4 shadow-inner">
+          <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
+            Project
+          </div>
+          <h3 className="mt-1 font-serif text-lg font-semibold leading-tight text-amber-950">
+            {ideaTitle || "Untitled idea"}
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-amber-950/75">
+            This is the empty working room for the chapter. Add the real questions, lane notes, and
+            output when this chapter is ready.
+          </p>
         </div>
-        <h3 className="mt-1 font-serif text-lg font-semibold leading-tight text-amber-950">
-          {ideaTitle || "Untitled idea"}
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-amber-950/75">
-          Template ready. Add the chapter content here when this part of the Treehouse flow is
-          ready.
-        </p>
+
+        <div className="rounded-md border border-amber-900/20 bg-amber-100/45 p-4">
+          <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
+            Chapter status
+          </div>
+          <div className="mt-2 rounded-sm border border-amber-900/20 bg-amber-50/55 px-3 py-2 font-serif text-sm font-semibold text-amber-950">
+            Blank template ready
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-amber-950/70">
+            No live workflow is attached yet.
+          </p>
+        </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4">
+        <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
+          Work slots
+        </div>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
         {chapter.parts.map((label) => (
           <div
             key={label}
-            className="rounded-sm border border-amber-900/25 bg-amber-100/45 px-3 py-2"
+            className="rounded-sm border border-amber-900/25 bg-amber-100/45 p-3"
           >
             <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
-              Placeholder
+              Empty slot
             </div>
             <div className="mt-0.5 font-serif text-sm font-semibold text-amber-950">{label}</div>
+            <div className="mt-2 min-h-12 rounded-sm border border-dashed border-amber-900/25 bg-amber-50/35 p-2 text-xs leading-relaxed text-amber-950/60">
+              Add this lane's prompt, notes, output, or handoff here.
+            </div>
           </div>
         ))}
+        </div>
       </div>
 
-      <div className="mt-5 rounded-md border border-amber-900/20 bg-amber-950/10 p-3">
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <TemplatePanel title="Starter Notes">
+          <TemplateLine label="What this chapter needs" />
+          <TemplateLine label="What is still missing" />
+          <TemplateLine label="What Boss should decide later" />
+        </TemplatePanel>
+        <TemplatePanel title="Exit Check">
+          {chapter.checkpoints.map((checkpoint) => (
+            <TemplateCheck key={checkpoint} label={checkpoint} />
+          ))}
+        </TemplatePanel>
+      </div>
+
+      <div className="mt-4 rounded-md border border-amber-900/25 bg-amber-950/10 p-3">
+        <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+          Boundary
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-amber-950/75">{chapter.boundary}</p>
+      </div>
+
+      <div className="mt-4 rounded-md border border-amber-900/20 bg-amber-950/10 p-3">
         <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
           Future chapter shells
         </div>
@@ -145,5 +192,33 @@ function ChapterTemplateBody({
         </div>
       </div>
     </section>
+  );
+}
+
+function TemplatePanel({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="rounded-md border border-amber-900/20 bg-amber-50/45 p-3">
+      <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+        {title}
+      </div>
+      <div className="mt-2 space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function TemplateLine({ label }: { label: string }) {
+  return (
+    <div className="rounded-sm border border-dashed border-amber-900/25 bg-amber-100/35 px-3 py-2 text-xs leading-relaxed text-amber-950/65">
+      {label}
+    </div>
+  );
+}
+
+function TemplateCheck({ label }: { label: string }) {
+  return (
+    <div className="flex gap-2 rounded-sm border border-amber-900/20 bg-amber-100/35 px-3 py-2 text-xs leading-relaxed text-amber-950/75">
+      <span className="mt-0.5 h-3 w-3 shrink-0 rounded-sm border border-amber-900/35 bg-amber-50/60" />
+      <span>{label}</span>
+    </div>
   );
 }
