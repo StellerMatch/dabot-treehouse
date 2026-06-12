@@ -91,7 +91,8 @@ test("Chapter 2 Go creates an inactive Root Room n8n handoff packet", async ({ p
 
   await page.getByRole("button", { name: "Open Chapter 2" }).click();
   await expect(page.getByRole("heading", { name: "Chapter 2: The Root Room" })).toBeVisible();
-  await expect(page.getByText("Inactive n8n doorway ready")).toBeVisible();
+  await expect(page.getByText("n8n listener waiting")).toBeVisible();
+  await expect(page.getByText("Parked gate: n8n Execute workflow listener")).toBeVisible();
 
   const startedAt = Date.now();
   await page.getByRole("button", { name: "Go" }).click();
@@ -110,6 +111,7 @@ test("Chapter 2 Go creates an inactive Root Room n8n handoff packet", async ({ p
 
   await expect(page.getByText("Inactive n8n test packet created")).toBeVisible();
   await expect(page.getByText("triggerStatus: not_triggered")).toBeVisible();
+  await expect(page.getByText("Step Five retry kit")).toBeVisible();
   await expect(page.getByText("Status: Running")).toBeVisible();
   await expect(page.getByText("Status: Complete")).toBeVisible({ timeout: 5_000 });
   await page.keyboard.press("Escape");

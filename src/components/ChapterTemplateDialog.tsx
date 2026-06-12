@@ -424,15 +424,15 @@ function RootRoomRunPanel({
         ? "Creating inactive n8n test packet"
         : handoffStatus === "local-fallback"
           ? "Local fallback active"
-          : "Inactive n8n doorway ready";
+          : "n8n listener waiting";
   const handoffDetail =
     handoffStatus === "created" && packetId
-      ? `Packet ${packetId} created with triggerStatus: not_triggered.`
+      ? `Packet ${packetId} created with triggerStatus: not_triggered. Open n8n and click Execute workflow, then run the Step Five retry kit.`
       : handoffStatus === "creating"
         ? "The app is writing a server-side handoff packet before the fake story run starts."
         : handoffStatus === "local-fallback"
-          ? "The local story run continued without firing n8n because the test packet could not be created."
-          : "Go will create a local server-side handoff packet before the fake story run starts.";
+          ? "The local story run continued without firing n8n. The Step Five retry kit can be used when the n8n listener is open."
+          : "Open n8n and click Execute workflow when you are ready to retry Step Five. Go still creates only a local handoff packet here.";
 
   return (
     <div className="mt-4 rounded-md border border-cyan-900/25 bg-cyan-50/50 p-4 shadow-inner">
@@ -469,6 +469,9 @@ function RootRoomRunPanel({
         </div>
         <div className="mt-1 font-serif text-sm font-semibold text-cyan-950">{handoffLabel}</div>
         <p className="mt-1 text-[11px] leading-relaxed text-cyan-950/65">{handoffDetail}</p>
+        <div className="mt-2 rounded-sm border border-cyan-900/15 bg-cyan-100/45 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-950/65">
+          Parked gate: n8n Execute workflow listener
+        </div>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-4">
