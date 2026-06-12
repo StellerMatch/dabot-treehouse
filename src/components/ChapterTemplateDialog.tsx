@@ -18,6 +18,7 @@ type ChapterTemplateDialogProps = {
   chapterId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDemoComplete?: (chapterId: string) => void;
 };
 
 export function ChapterTemplateDialog({
@@ -26,6 +27,7 @@ export function ChapterTemplateDialog({
   chapterId,
   open,
   onOpenChange,
+  onDemoComplete,
 }: ChapterTemplateDialogProps) {
   const chapter = chapterTemplateById(chapterId) ?? TREEHOUSE_CHAPTER_TEMPLATES[0];
   const demoStorageKey = useMemo(() => {
@@ -44,6 +46,7 @@ export function ChapterTemplateDialog({
     if (typeof window !== "undefined") {
       window.localStorage.setItem(demoStorageKey, "complete");
     }
+    onDemoComplete?.(chapter.id);
   };
 
   return (

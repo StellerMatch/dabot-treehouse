@@ -138,6 +138,17 @@ export function chapterTemplateById(id: string) {
   return TREEHOUSE_CHAPTER_TEMPLATES.find((chapter) => chapter.id === id);
 }
 
+export function nextChapterTemplate(id: string) {
+  const index = TREEHOUSE_CHAPTER_TEMPLATES.findIndex((chapter) => chapter.id === id);
+  if (index < 0) return TREEHOUSE_CHAPTER_TEMPLATES[0];
+  return TREEHOUSE_CHAPTER_TEMPLATES[index + 1];
+}
+
+export function chapterTemplateLabel(id: string) {
+  const chapter = chapterTemplateById(id) ?? TREEHOUSE_CHAPTER_TEMPLATES[0];
+  return `Chapter ${chapter.chapter}: ${chapter.title}`;
+}
+
 export function primaryChapterGuideName(chapter: TreehouseChapterTemplate) {
   const firstPart = chapter.parts[0] ?? "Demo Guide";
   return firstPart.replace(/\s+(opens|returns|collection)\b.*$/i, "").split(":")[0].trim();

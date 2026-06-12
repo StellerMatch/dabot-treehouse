@@ -55,7 +55,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 import { CreditsPill } from "@/components/AccountBadge";
 import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
-import { isRootRoomTemplateIdea } from "@/lib/treehouse-chapter-templates";
+import {
+  TREEHOUSE_CHAPTER_TEMPLATES,
+  chapterTemplateLabel,
+  isRootRoomTemplateIdea,
+  nextChapterTemplate,
+} from "@/lib/treehouse-chapter-templates";
 
 type BrowserSpeechRecognitionEvent = {
   resultIndex: number;
@@ -514,6 +519,7 @@ type IdeaExtras = {
   answeredQuestions: string[];
   skippedQuestions: string[];
   clarityFollowupCount: number;
+  currentChapterId?: string;
 };
 
 function emptyExtras(): IdeaExtras {
@@ -525,6 +531,7 @@ function emptyExtras(): IdeaExtras {
     answeredQuestions: [],
     skippedQuestions: [],
     clarityFollowupCount: 0,
+    currentChapterId: undefined,
   };
 }
 
@@ -541,6 +548,8 @@ function normalizeIdeaExtras(extras?: Partial<IdeaExtras> | null): IdeaExtras {
     skippedQuestions: Array.isArray(extras?.skippedQuestions) ? extras.skippedQuestions : [],
     clarityFollowupCount:
       typeof extras?.clarityFollowupCount === "number" ? extras.clarityFollowupCount : 0,
+    currentChapterId:
+      typeof extras?.currentChapterId === "string" ? extras.currentChapterId : undefined,
   };
 }
 
@@ -1967,6 +1976,7 @@ function Dashboard() {
           answeredQuestions: patch.answeredQuestions ?? current.answeredQuestions,
           skippedQuestions: patch.skippedQuestions ?? current.skippedQuestions,
           clarityFollowupCount: patch.clarityFollowupCount ?? current.clarityFollowupCount ?? 0,
+          currentChapterId: patch.currentChapterId ?? current.currentChapterId,
         },
       };
     });
@@ -2407,6 +2417,28 @@ function Dashboard() {
     setLibraryReportOpen(true);
   };
 
+  const selectedChapterId =
+    selected && selected.stage === "paid-creation"
+      ? selectedExtras.currentChapterId ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id
+      : TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+
+  const advanceSelectedChapterDemo = (completedChapterId: string) => {
+    if (!selected) return;
+    const nextChapter = nextChapterTemplate(completedChapterId);
+    if (nextChapter) {
+      updateExtras({ currentChapterId: nextChapter.id });
+      updateSelected({
+        stage: "paid-creation",
+        nextAction: `Open ${chapterTemplateLabel(nextChapter.id)}.`,
+      });
+      return;
+    }
+    updateSelected({
+      stage: "clean-packet",
+      nextAction: "All demo chapter templates are complete.",
+    });
+  };
+
   const hasPaidLibraryStart = () => {
     if (!selected || typeof window === "undefined") return false;
     return hasConfirmedLibraryStart(selected);
@@ -2626,8 +2658,9 @@ function Dashboard() {
         <ChapterTemplateDialog
           ideaId={selected.id}
           ideaTitle={selected.title}
-          chapterId="root-room"
+          chapterId={selectedChapterId}
           open={rootRoomTemplateOpen}
+          onDemoComplete={advanceSelectedChapterDemo}
           onOpenChange={setRootRoomTemplateOpen}
         />
       )}

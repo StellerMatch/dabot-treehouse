@@ -30,7 +30,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { isRootRoomTemplateIdea } from "@/lib/treehouse-chapter-templates";
+import {
+  TREEHOUSE_CHAPTER_TEMPLATES,
+  chapterTemplateById,
+  chapterTemplateLabel,
+  isRootRoomTemplateIdea,
+  nextChapterTemplate,
+  primaryChapterGuideName,
+} from "@/lib/treehouse-chapter-templates";
 import { BookOpen, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
 
 const libraryBg = libraryBgImage;
@@ -52,6 +59,7 @@ type IdeaExtrasRecord = {
   answeredQuestions?: string[];
   skippedQuestions?: string[];
   clarityFollowupCount?: number;
+  currentChapterId?: string;
 };
 type NotebookEntry = {
   id: string;
@@ -201,6 +209,16 @@ function loadExtrasMap(): Record<string, IdeaExtrasRecord> {
 
 function saveExtrasMap(extras: Record<string, IdeaExtrasRecord>) {
   savePersistedExtras(extras);
+}
+
+function currentChapterIdForIdea(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
+  if (idea.stage !== "paid-creation") return undefined;
+  return extras?.currentChapterId ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+}
+
+function currentChapterForIdea(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
+  const id = currentChapterIdForIdea(idea, extras);
+  return id ? (chapterTemplateById(id) ?? TREEHOUSE_CHAPTER_TEMPLATES[0]) : undefined;
 }
 
 function libraryStartPaidKey(ideaId: string) {
@@ -363,9 +381,12 @@ function ideaCardStatus(idea: LightbulbIdea): {
   }
 
   if (idea.stage === "paid-creation") {
+    const chapter = currentChapterForIdea(idea, loadExtrasMap()[idea.id]);
     return {
-      label: "Root Room ready",
-      detail: "Open the blank Chapter 2 template and shape the Root Room next.",
+      label: chapter ? `Chapter ${chapter.chapter} ready` : "Chapter ready",
+      detail: chapter
+        ? `Open the blank ${chapter.title} template and move this chapter forward.`
+        : "Open the blank chapter template and move this chapter forward.",
       tone: "working",
     };
   }
@@ -466,6 +487,8 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
 
 function nextStepSummary(idea: LightbulbIdea): string {
   if (idea.stage === "lightbulb") return `Next step: ${IDEA_SHELF_NEXT_ACTION}`;
+  const chapter = currentChapterForIdea(idea, loadExtrasMap()[idea.id]);
+  if (chapter) return `Next step: Open ${chapterTemplateLabel(chapter.id)}.`;
   const action = idea.nextAction?.trim();
   if (action) return `Next step: ${action}`;
   const stageHint =
@@ -587,6 +610,48 @@ function LibraryPage() {
       savePersistedIdeas(nextIdeas);
     }
     openIdea(idea.id);
+  };
+
+  const advanceChapterDemo = (idea: LightbulbIdea, completedChapterId: string) => {
+    const nextChapter = nextChapterTemplate(completedChapterId);
+    const extras = loadExtrasMap();
+    const current = extras[idea.id] ?? {};
+
+    if (nextChapter) {
+      extras[idea.id] = {
+        ...current,
+        currentChapterId: nextChapter.id,
+      };
+      saveExtrasMap(extras);
+      setIdeas((prev) =>
+        prev.map((candidate) =>
+          candidate.id === idea.id
+            ? {
+                ...candidate,
+                updatedAt: Date.now(),
+                stage: "paid-creation",
+                nextAction: `Open ${chapterTemplateLabel(nextChapter.id)}.`,
+              }
+            : candidate,
+        ),
+      );
+      return;
+    }
+
+    setIdeas((prev) => {
+      const nextIdeas = prev.map((candidate) =>
+        candidate.id === idea.id
+          ? {
+              ...candidate,
+              updatedAt: Date.now(),
+              stage: "clean-packet" as const,
+              nextAction: "All demo chapter templates are complete.",
+            }
+          : candidate,
+      );
+      savePersistedIdeas(nextIdeas);
+      return nextIdeas;
+    });
   };
 
   const addNotebookNote = () => {
@@ -825,13 +890,24 @@ function LibraryPage() {
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shelfIdeas.map((idea) => {
-              const stage = idea.stage ? `Stage: ${stageLabels[idea.stage]}` : "Stage: Idea";
+              const extras = loadExtrasMap()[idea.id] ?? {};
+              const chapter = currentChapterForIdea(idea, extras);
+              const stage = chapter
+                ? `Stage: ${chapterTemplateLabel(chapter.id)}`
+                : idea.stage
+                  ? `Stage: ${stageLabels[idea.stage]}`
+                  : "Stage: Idea";
               const ideaType = ideaTypeFor(idea);
-              const character = stageCharacterMap[idea.stage] ?? stageCharacterMap.lightbulb;
+              const character = chapter
+                ? {
+                    name: primaryChapterGuideName(chapter),
+                    src: idea.stage === "paid-creation" ? echoPresentingAsset.url : stageCharacterMap.lightbulb.src,
+                  }
+                : stageCharacterMap[idea.stage] ?? stageCharacterMap.lightbulb;
               const status = ideaCardStatus(idea);
               const notebookEntryCount = notebookEntriesFor(
                 idea,
-                loadExtrasMap()[idea.id] ?? {},
+                extras,
               ).length;
               return (
                 <li
@@ -1000,8 +1076,18 @@ function LibraryPage() {
       <ChapterTemplateDialog
         ideaId={rootRoomTemplateIdea?.id}
         ideaTitle={rootRoomTemplateIdea?.title}
-        chapterId="root-room"
+        chapterId={
+          rootRoomTemplateIdea
+            ? (currentChapterIdForIdea(
+                rootRoomTemplateIdea,
+                loadExtrasMap()[rootRoomTemplateIdea.id],
+              ) ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id)
+            : TREEHOUSE_CHAPTER_TEMPLATES[0].id
+        }
         open={Boolean(rootRoomTemplateIdea)}
+        onDemoComplete={(chapterId) => {
+          if (rootRoomTemplateIdea) advanceChapterDemo(rootRoomTemplateIdea, chapterId);
+        }}
         onOpenChange={(open) => {
           if (!open) setRootRoomTemplateIdea(null);
         }}
