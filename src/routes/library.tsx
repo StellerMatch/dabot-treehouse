@@ -17,10 +17,10 @@ import {
 import { generateWorkingProjectTitle, shouldCleanWorkingProjectTitle } from "@/lib/project-naming";
 import clarityPresentingAsset from "@/assets/clarity-presenting.png.asset.json";
 import libraryBgImage from "@/assets/dabottree-library.jpg";
-import echoPresentingAsset from "@/assets/echo-presenting.png.asset.json";
 import ledgerPresentingAsset from "@/assets/ledger-presenting.png.asset.json";
 import logo from "@/assets/dabottree-logo.png";
 import stampPresentingAsset from "@/assets/stamp-presenting.png.asset.json";
+import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import {
   Dialog,
@@ -334,7 +334,7 @@ function isCompletedIdea(idea: LightbulbIdea): boolean {
 const stageCharacterMap: Record<LightbulbIdea["stage"], { name: string; src: string }> = {
   lightbulb: { name: "Clarity", src: clarityPresentingAsset.url },
   "pre-clarity": { name: "Clarity", src: clarityPresentingAsset.url },
-  "paid-creation": { name: "Echo", src: echoPresentingAsset.url },
+  "paid-creation": { name: "Demo Guide", src: demoGuideAsset.url },
   "clean-packet": { name: "Ledger", src: ledgerPresentingAsset.url },
   "operating-path": { name: "Chief", src: stampPresentingAsset.url },
 };
@@ -362,8 +362,8 @@ function ideaCardStatus(idea: LightbulbIdea): {
 
   if (idea.stage === "paid-creation") {
     return {
-      label: "In creation",
-      detail: "This idea is being shaped into the next project packet.",
+      label: "Root Room ready",
+      detail: "Open the blank Chapter 2 template and shape the Root Room next.",
       tone: "working",
     };
   }
@@ -470,7 +470,7 @@ function nextStepSummary(idea: LightbulbIdea): string {
     idea.stage === "pre-clarity"
       ? "Answer the next personalized Clarity question to keep moving forward."
       : idea.stage === "paid-creation"
-        ? "Review the paid creation packet and confirm the next move."
+        ? "Open the blank Chapter 2: The Root Room template."
         : idea.stage === "clean-packet"
           ? "Open the clean packet and decide what to build first."
           : "Continue along the operating path.";
@@ -495,6 +495,7 @@ function LibraryPage() {
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [ready, setReady] = useState(false);
   const [notebookIdea, setNotebookIdea] = useState<LightbulbIdea | null>(null);
+  const [rootRoomTemplateIdea, setRootRoomTemplateIdea] = useState<LightbulbIdea | null>(null);
   const [openEntry, setOpenEntry] = useState<NotebookEntry | null>(null);
   const [addNoteIdea, setAddNoteIdea] = useState<LightbulbIdea | null>(null);
   const [deleteIdeaTarget, setDeleteIdeaTarget] = useState<LightbulbIdea | null>(null);
@@ -565,6 +566,11 @@ function LibraryPage() {
   };
 
   const continueIdea = (idea: LightbulbIdea) => {
+    if (idea.stage === "paid-creation") {
+      setRootRoomTemplateIdea(idea);
+      return;
+    }
+
     if (idea.stage === "lightbulb") {
       try {
         localStorage.setItem(libraryStartConfirmedKey(idea.id), "1");
@@ -989,6 +995,14 @@ function LibraryPage() {
         </DialogContent>
       </Dialog>
 
+      <RootRoomTemplateDialog
+        idea={rootRoomTemplateIdea}
+        open={Boolean(rootRoomTemplateIdea)}
+        onOpenChange={(open) => {
+          if (!open) setRootRoomTemplateIdea(null);
+        }}
+      />
+
       <Dialog
         open={Boolean(addNoteIdea)}
         onOpenChange={(open) => {
@@ -1107,5 +1121,108 @@ function LibraryPage() {
         </DialogContent>
       </Dialog>
     </main>
+  );
+}
+
+function RootRoomTemplateDialog({
+  idea,
+  open,
+  onOpenChange,
+}: {
+  idea: LightbulbIdea | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl overflow-hidden border-amber-900/35 bg-[#f3dfb4] p-0 text-amber-950">
+        {idea && (
+          <div className="relative">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-50"
+              style={{
+                background:
+                  "radial-gradient(circle at 24% 20%, rgba(255,245,205,0.8), transparent 32%), linear-gradient(135deg, rgba(96,54,19,0.18), transparent 44%, rgba(58,31,12,0.24))",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: "radial-gradient(rgba(112,68,24,0.22) 1px, transparent 1px)",
+                backgroundSize: "14px 14px",
+              }}
+            />
+            <div className="relative grid gap-0 md:grid-cols-[240px_1fr]">
+              <aside className="relative min-h-72 overflow-hidden border-b border-amber-900/25 bg-gradient-to-b from-[#6b421f] via-[#3f2513] to-[#1f1209] p-5 text-amber-50 md:border-b-0 md:border-r">
+                <div
+                  aria-hidden
+                  className="absolute inset-x-8 bottom-8 h-32 rounded-full bg-amber-200/20 blur-3xl"
+                />
+                <div className="relative flex h-full flex-col items-center justify-end gap-3">
+                  <div className="rounded-full border border-amber-100/35 bg-black/25 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm backdrop-blur-sm">
+                    Demo Guide
+                  </div>
+                  <img
+                    src={demoGuideAsset.url}
+                    alt=""
+                    className="max-h-56 w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.55)]"
+                    draggable={false}
+                  />
+                  <div className="rounded-sm border border-amber-100/35 bg-amber-100/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-50/90">
+                    Demo
+                  </div>
+                </div>
+              </aside>
+
+              <section className="relative p-5 sm:p-6">
+                <DialogHeader>
+                  <div className="mb-2 w-fit rounded-full border border-amber-900/25 bg-amber-100/55 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/75">
+                    Empty chapter template
+                  </div>
+                  <DialogTitle className="font-serif text-2xl text-amber-950">
+                    Chapter 2: The Root Room
+                  </DialogTitle>
+                  <DialogDescription className="font-serif text-sm leading-relaxed text-amber-900/75">
+                    A clean starter shell for the next chapter. No Root Room questions or bot steps
+                    have been added yet.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="mt-5 rounded-md border border-amber-900/25 bg-amber-50/60 p-4 shadow-inner">
+                  <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
+                    Project
+                  </div>
+                  <h3 className="mt-1 font-serif text-lg font-semibold leading-tight text-amber-950">
+                    {idea.title || "Untitled idea"}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-amber-950/75">
+                    Root Room template ready. Add Echo, Shield, Ledger, and Chief content here when
+                    the chapter flow is ready.
+                  </p>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {["Echo", "Shield", "Ledger", "Chief"].map((label) => (
+                    <div
+                      key={label}
+                      className="rounded-sm border border-amber-900/25 bg-amber-100/45 px-3 py-2"
+                    >
+                      <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+                        Placeholder
+                      </div>
+                      <div className="mt-0.5 font-serif text-sm font-semibold text-amber-950">
+                        {label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
