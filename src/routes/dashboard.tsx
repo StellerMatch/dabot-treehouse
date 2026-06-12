@@ -19,7 +19,6 @@ import ideaBgAsset from "@/assets/dabottree-library-bg.png.asset.json";
 import claritySquirrelAsset from "@/assets/clarity-squirrel.png.asset.json";
 import claritySquirrelReadyAsset from "@/assets/clarity-squirrel-ready.png.asset.json";
 import owlSageAsset from "@/assets/owl-sage.png.asset.json";
-import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 const ideaBg = ideaBgAsset.url;
 const claritySquirrel = claritySquirrelAsset.url;
 const claritySquirrelReady = claritySquirrelReadyAsset.url;
@@ -55,6 +54,8 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 import { CreditsPill } from "@/components/AccountBadge";
+import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
+import { isRootRoomTemplateIdea } from "@/lib/treehouse-chapter-templates";
 
 type BrowserSpeechRecognitionEvent = {
   resultIndex: number;
@@ -2398,7 +2399,7 @@ function Dashboard() {
 
   const openReportPath = () => {
     if (!selected) return;
-    if (selected.stage === "paid-creation") {
+    if (isRootRoomTemplateIdea(selected)) {
       setRootRoomTemplateOpen(true);
       return;
     }
@@ -2622,8 +2623,9 @@ function Dashboard() {
         />
       )}
       {selected && (
-        <RootRoomTemplateDialog
-          idea={selected}
+        <ChapterTemplateDialog
+          ideaTitle={selected.title}
+          chapterId="root-room"
           open={rootRoomTemplateOpen}
           onOpenChange={setRootRoomTemplateOpen}
         />

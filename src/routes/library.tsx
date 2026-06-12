@@ -22,6 +22,7 @@ import logo from "@/assets/dabottree-logo.png";
 import stampPresentingAsset from "@/assets/stamp-presenting.png.asset.json";
 import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
+import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { isRootRoomTemplateIdea } from "@/lib/treehouse-chapter-templates";
 import { BookOpen, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
 
 const libraryBg = libraryBgImage;
@@ -566,7 +568,7 @@ function LibraryPage() {
   };
 
   const continueIdea = (idea: LightbulbIdea) => {
-    if (idea.stage === "paid-creation") {
+    if (isRootRoomTemplateIdea(idea)) {
       setRootRoomTemplateIdea(idea);
       return;
     }
@@ -995,8 +997,9 @@ function LibraryPage() {
         </DialogContent>
       </Dialog>
 
-      <RootRoomTemplateDialog
-        idea={rootRoomTemplateIdea}
+      <ChapterTemplateDialog
+        ideaTitle={rootRoomTemplateIdea?.title}
+        chapterId="root-room"
         open={Boolean(rootRoomTemplateIdea)}
         onOpenChange={(open) => {
           if (!open) setRootRoomTemplateIdea(null);
@@ -1121,108 +1124,5 @@ function LibraryPage() {
         </DialogContent>
       </Dialog>
     </main>
-  );
-}
-
-function RootRoomTemplateDialog({
-  idea,
-  open,
-  onOpenChange,
-}: {
-  idea: LightbulbIdea | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl overflow-hidden border-amber-900/35 bg-[#f3dfb4] p-0 text-amber-950">
-        {idea && (
-          <div className="relative">
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-50"
-              style={{
-                background:
-                  "radial-gradient(circle at 24% 20%, rgba(255,245,205,0.8), transparent 32%), linear-gradient(135deg, rgba(96,54,19,0.18), transparent 44%, rgba(58,31,12,0.24))",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: "radial-gradient(rgba(112,68,24,0.22) 1px, transparent 1px)",
-                backgroundSize: "14px 14px",
-              }}
-            />
-            <div className="relative grid gap-0 md:grid-cols-[240px_1fr]">
-              <aside className="relative min-h-72 overflow-hidden border-b border-amber-900/25 bg-gradient-to-b from-[#6b421f] via-[#3f2513] to-[#1f1209] p-5 text-amber-50 md:border-b-0 md:border-r">
-                <div
-                  aria-hidden
-                  className="absolute inset-x-8 bottom-8 h-32 rounded-full bg-amber-200/20 blur-3xl"
-                />
-                <div className="relative flex h-full flex-col items-center justify-end gap-3">
-                  <div className="rounded-full border border-amber-100/35 bg-black/25 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm backdrop-blur-sm">
-                    Demo Guide
-                  </div>
-                  <img
-                    src={demoGuideAsset.url}
-                    alt=""
-                    className="max-h-56 w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.55)]"
-                    draggable={false}
-                  />
-                  <div className="rounded-sm border border-amber-100/35 bg-amber-100/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-50/90">
-                    Demo
-                  </div>
-                </div>
-              </aside>
-
-              <section className="relative p-5 sm:p-6">
-                <DialogHeader>
-                  <div className="mb-2 w-fit rounded-full border border-amber-900/25 bg-amber-100/55 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/75">
-                    Empty chapter template
-                  </div>
-                  <DialogTitle className="font-serif text-2xl text-amber-950">
-                    Chapter 2: The Root Room
-                  </DialogTitle>
-                  <DialogDescription className="font-serif text-sm leading-relaxed text-amber-900/75">
-                    A clean starter shell for the next chapter. No Root Room questions or bot steps
-                    have been added yet.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="mt-5 rounded-md border border-amber-900/25 bg-amber-50/60 p-4 shadow-inner">
-                  <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
-                    Project
-                  </div>
-                  <h3 className="mt-1 font-serif text-lg font-semibold leading-tight text-amber-950">
-                    {idea.title || "Untitled idea"}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-amber-950/75">
-                    Root Room template ready. Add Echo, Shield, Ledger, and Chief content here when
-                    the chapter flow is ready.
-                  </p>
-                </div>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {["Echo", "Shield", "Ledger", "Chief"].map((label) => (
-                    <div
-                      key={label}
-                      className="rounded-sm border border-amber-900/25 bg-amber-100/45 px-3 py-2"
-                    >
-                      <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
-                        Placeholder
-                      </div>
-                      <div className="mt-0.5 font-serif text-sm font-semibold text-amber-950">
-                        {label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
   );
 }
