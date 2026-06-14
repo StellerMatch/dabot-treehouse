@@ -201,6 +201,19 @@ export function chapterTemplateLabel(id: string) {
   return `Chapter ${chapter.chapter}: ${chapter.title}`;
 }
 
+export function chapterTemplateNextAction(id: string) {
+  return `Open ${chapterTemplateLabel(id)}.`;
+}
+
+export function canonicalChapterNextActionForIdea(input: {
+  stage?: string;
+  nextAction?: string;
+  currentChapterId?: string;
+}) {
+  const chapter = currentChapterTemplateForIdea(input);
+  return chapter ? chapterTemplateNextAction(chapter.id) : undefined;
+}
+
 export function primaryChapterGuideName(chapter: TreehouseChapterTemplate) {
   const firstPart = chapter.parts[0] ?? "Demo Guide";
   return firstPart.replace(/\s+(opens|returns|collection)\b.*$/i, "").split(":")[0].trim();

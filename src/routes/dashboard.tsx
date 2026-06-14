@@ -57,7 +57,8 @@ import { CreditsPill } from "@/components/AccountBadge";
 import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
-  chapterTemplateLabel,
+  canonicalChapterNextActionForIdea,
+  chapterTemplateNextAction,
   currentChapterTemplateForIdea,
   isRootRoomTemplateIdea,
   nextChapterTemplate,
@@ -2431,6 +2432,20 @@ function Dashboard() {
   });
   const selectedChapterId = selectedChapterTemplate?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
 
+  useEffect(() => {
+    if (!selected || !selectedChapterTemplate) return;
+    const canonicalNextAction = chapterTemplateNextAction(selectedChapterTemplate.id);
+    if (selected.nextAction === canonicalNextAction) return;
+
+    setIdeas((prev) =>
+      prev.map((idea) =>
+        idea.id === selected.id
+          ? { ...idea, nextAction: canonicalNextAction, updatedAt: Date.now() }
+          : idea,
+      ),
+    );
+  }, [selected?.id, selected?.nextAction, selectedChapterTemplate?.id]);
+
   const advanceSelectedChapterDemo = (completedChapterId: string) => {
     if (!selected) return;
     const nextChapter = nextChapterTemplate(completedChapterId);
@@ -2438,7 +2453,7 @@ function Dashboard() {
       updateExtras({ currentChapterId: nextChapter.id });
       updateSelected({
         stage: "paid-creation",
-        nextAction: `Open ${chapterTemplateLabel(nextChapter.id)}.`,
+        nextAction: chapterTemplateNextAction(nextChapter.id),
       });
       return;
     }
@@ -2571,6 +2586,7 @@ function Dashboard() {
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
             currentChapter={selectedChapterTemplate?.chapter}
+            currentChapterTitle={selectedChapterTemplate?.title}
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             weakFolderCount={libraryReadiness.weak.length}
             onClick={() => {
@@ -2726,7 +2742,14 @@ function Dashboard() {
                 </div>
                 <div className="rounded-sm border border-amber-900/30 bg-amber-50/60 px-2 py-1">
                   <div className="uppercase tracking-[0.18em] text-amber-900/60">Next</div>
-                  <div>{summaryIdea.nextAction || "Open when ready"}</div>
+                  <div>
+                    {canonicalChapterNextActionForIdea({
+                      stage: summaryIdea.stage,
+                      nextAction: summaryIdea.nextAction,
+                    }) ||
+                      summaryIdea.nextAction ||
+                      "Open when ready"}
+                  </div>
                 </div>
               </div>
               <button
@@ -3690,6 +3713,7 @@ function OrganizeButton({
   overall,
   stage,
   currentChapter,
+  currentChapterTitle,
   followupsAnswered,
   weakFolderCount,
   onClick,
@@ -3697,6 +3721,7 @@ function OrganizeButton({
   overall: number;
   stage: LightbulbIdea["stage"];
   currentChapter?: number;
+  currentChapterTitle?: string;
   followupsAnswered: number;
   weakFolderCount: number;
   onClick: () => void;
@@ -3708,8 +3733,12 @@ function OrganizeButton({
     hasCurrentChapter ||
     isRootRoomStage ||
     (overall >= 90 && remainingFollowups === 0 && weakFolderCount === 0);
+  const canonicalChapterLabel =
+    hasCurrentChapter && currentChapterTitle
+      ? `Open Chapter ${currentChapter}: ${currentChapterTitle}`
+      : `Open Chapter ${currentChapter}`;
   const label = hasCurrentChapter
-    ? `Open Chapter ${currentChapter}`
+    ? canonicalChapterLabel
     : isRootRoomStage
       ? "Continue"
       : unlocked
@@ -3717,7 +3746,7 @@ function OrganizeButton({
         : "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
   const title = hasCurrentChapter
-    ? `Open Chapter ${currentChapter}`
+    ? canonicalChapterLabel
     : isRootRoomStage
       ? "Open Chapter 2: The Root Room"
       : unlocked
@@ -5517,7 +5546,13 @@ function Journal(props: {
 
           <div className="mt-2 font-serif text-[10px] italic text-amber-900/55">
             Updated <StableTimeAgo ts={selected.updatedAt} /> · Next:{" "}
-            {selected.stage === "lightbulb" ? IDEA_SHELF_NEXT_ACTION : selected.nextAction}
+            {selected.stage === "lightbulb"
+              ? IDEA_SHELF_NEXT_ACTION
+              : canonicalChapterNextActionForIdea({
+                  stage: selected.stage,
+                  nextAction: selected.nextAction,
+                  currentChapterId: selectedExtras.currentChapterId,
+                }) || selected.nextAction}
           </div>
         </div>
       </div>

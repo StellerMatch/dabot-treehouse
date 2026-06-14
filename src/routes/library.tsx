@@ -33,6 +33,7 @@ import {
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateLabel,
+  chapterTemplateNextAction,
   currentChapterTemplateForIdea,
   nextChapterTemplate,
   primaryChapterGuideName,
@@ -505,7 +506,7 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
 function nextStepSummary(idea: LightbulbIdea): string {
   if (idea.stage === "lightbulb") return `Next step: ${IDEA_SHELF_NEXT_ACTION}`;
   const chapter = currentChapterForIdea(idea, loadExtrasMap()[idea.id]);
-  if (chapter) return `Next step: Open Chapter ${chapter.chapter}.`;
+  if (chapter) return `Next step: ${chapterTemplateLabel(chapter.id)}.`;
   const action = idea.nextAction?.trim();
   if (action) return `Next step: ${action}`;
   const stageHint =
@@ -647,7 +648,7 @@ function LibraryPage() {
                 ...candidate,
                 updatedAt: Date.now(),
                 stage: "paid-creation",
-                nextAction: `Open ${chapterTemplateLabel(nextChapter.id)}.`,
+                nextAction: chapterTemplateNextAction(nextChapter.id),
               }
             : candidate,
         );
@@ -916,7 +917,7 @@ function LibraryPage() {
                 : idea.stage
                   ? `Stage: ${stageLabels[idea.stage]}`
                   : "Stage: Idea";
-              const chapterCta = chapter ? `Open Chapter ${chapter.chapter}` : "Continue";
+              const chapterCta = chapter ? `Open Chapter ${chapter.chapter}: ${chapter.title}` : "Continue";
               const ideaType = ideaTypeFor(idea);
               const character = chapter
                 ? {
