@@ -34,7 +34,6 @@ import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateById,
   chapterTemplateLabel,
-  isRootRoomTemplateIdea,
   nextChapterTemplate,
   primaryChapterGuideName,
 } from "@/lib/treehouse-chapter-templates";
@@ -532,7 +531,7 @@ function LibraryPage() {
   const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
   const [ready, setReady] = useState(false);
   const [notebookIdea, setNotebookIdea] = useState<LightbulbIdea | null>(null);
-  const [rootRoomTemplateIdea, setRootRoomTemplateIdea] = useState<LightbulbIdea | null>(null);
+  const [chapterTemplateIdea, setChapterTemplateIdea] = useState<LightbulbIdea | null>(null);
   const [openEntry, setOpenEntry] = useState<NotebookEntry | null>(null);
   const [addNoteIdea, setAddNoteIdea] = useState<LightbulbIdea | null>(null);
   const [deleteIdeaTarget, setDeleteIdeaTarget] = useState<LightbulbIdea | null>(null);
@@ -603,8 +602,8 @@ function LibraryPage() {
   };
 
   const continueIdea = (idea: LightbulbIdea) => {
-    if (isRootRoomTemplateIdea(idea)) {
-      setRootRoomTemplateIdea(idea);
+    if (currentChapterForIdea(idea, loadExtrasMap()[idea.id])) {
+      setChapterTemplateIdea(idea);
       return;
     }
 
@@ -1106,22 +1105,22 @@ function LibraryPage() {
       </Dialog>
 
       <ChapterTemplateDialog
-        ideaId={rootRoomTemplateIdea?.id}
-        ideaTitle={rootRoomTemplateIdea?.title}
+        ideaId={chapterTemplateIdea?.id}
+        ideaTitle={chapterTemplateIdea?.title}
         chapterId={
-          rootRoomTemplateIdea
+          chapterTemplateIdea
             ? (currentChapterIdForIdea(
-                rootRoomTemplateIdea,
-                loadExtrasMap()[rootRoomTemplateIdea.id],
+                chapterTemplateIdea,
+                loadExtrasMap()[chapterTemplateIdea.id],
               ) ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id)
             : TREEHOUSE_CHAPTER_TEMPLATES[0].id
         }
-        open={Boolean(rootRoomTemplateIdea)}
+        open={Boolean(chapterTemplateIdea)}
         onDemoComplete={(chapterId) => {
-          if (rootRoomTemplateIdea) advanceChapterDemo(rootRoomTemplateIdea, chapterId);
+          if (chapterTemplateIdea) advanceChapterDemo(chapterTemplateIdea, chapterId);
         }}
         onOpenChange={(open) => {
-          if (!open) setRootRoomTemplateIdea(null);
+          if (!open) setChapterTemplateIdea(null);
         }}
       />
 
