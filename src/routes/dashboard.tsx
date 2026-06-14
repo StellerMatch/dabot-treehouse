@@ -58,6 +58,7 @@ import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateLabel,
+  currentChapterTemplateForIdea,
   isRootRoomTemplateIdea,
   nextChapterTemplate,
 } from "@/lib/treehouse-chapter-templates";
@@ -2409,7 +2410,13 @@ function Dashboard() {
 
   const openReportPath = () => {
     if (!selected) return;
-    if (isRootRoomTemplateIdea(selected)) {
+    if (
+      isRootRoomTemplateIdea({
+        stage: selected.stage,
+        nextAction: selected.nextAction,
+        currentChapterId: selectedExtras.currentChapterId,
+      })
+    ) {
       setRootRoomTemplateOpen(true);
       return;
     }
@@ -2418,9 +2425,11 @@ function Dashboard() {
   };
 
   const selectedChapterId =
-    selected && selected.stage === "paid-creation"
-      ? selectedExtras.currentChapterId ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id
-      : TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+    currentChapterTemplateForIdea({
+      stage: selected?.stage,
+      nextAction: selected?.nextAction,
+      currentChapterId: selectedExtras.currentChapterId,
+    })?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
 
   const advanceSelectedChapterDemo = (completedChapterId: string) => {
     if (!selected) return;

@@ -138,6 +138,49 @@ export function chapterTemplateById(id: string) {
   return TREEHOUSE_CHAPTER_TEMPLATES.find((chapter) => chapter.id === id);
 }
 
+function normalizeChapterText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/^the\s+/, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+export function chapterTemplateFromText(value?: string) {
+  const input = value?.trim();
+  if (!input) return undefined;
+
+  const normalizedInput = normalizeChapterText(input);
+  const slugInput = normalizedInput.replaceAll(" ", "-");
+
+  return TREEHOUSE_CHAPTER_TEMPLATES.find((chapter) => {
+    const normalizedTitle = normalizeChapterText(chapter.title);
+    const normalizedLabel = normalizeChapterText(chapterTemplateLabel(chapter.id));
+    const normalizedId = normalizeChapterText(chapter.id);
+
+    return (
+      input === chapter.id ||
+      slugInput === chapter.id ||
+      normalizedInput === normalizedId ||
+      normalizedInput.includes(normalizedTitle) ||
+      normalizedInput.includes(normalizedLabel) ||
+      new RegExp(`\\bchapter\\s*${chapter.chapter}\\b`, "i").test(input)
+    );
+  });
+}
+
+export function currentChapterTemplateForIdea(input: {
+  stage?: string;
+  nextAction?: string;
+  currentChapterId?: string;
+}) {
+  return (
+    chapterTemplateFromText(input.currentChapterId) ??
+    chapterTemplateFromText(input.nextAction) ??
+    (input.stage === "paid-creation" ? TREEHOUSE_CHAPTER_TEMPLATES[0] : undefined)
+  );
+}
+
 export function nextChapterTemplate(id: string) {
   const index = TREEHOUSE_CHAPTER_TEMPLATES.findIndex((chapter) => chapter.id === id);
   if (index < 0) return TREEHOUSE_CHAPTER_TEMPLATES[0];
@@ -154,6 +197,10 @@ export function primaryChapterGuideName(chapter: TreehouseChapterTemplate) {
   return firstPart.replace(/\s+(opens|returns|collection)\b.*$/i, "").split(":")[0].trim();
 }
 
-export function isRootRoomTemplateIdea(input: { stage?: string; nextAction?: string }) {
-  return input.stage === "paid-creation" || /root room/i.test(input.nextAction ?? "");
+export function isRootRoomTemplateIdea(input: {
+  stage?: string;
+  nextAction?: string;
+  currentChapterId?: string;
+}) {
+  return Boolean(currentChapterTemplateForIdea(input));
 }
