@@ -15,6 +15,7 @@ import { createTreehouseTaskPacket } from "@/lib/api/treehouse-task-packets.func
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateById,
+  nextChapterTemplate,
   primaryChapterGuideName,
   type TreehouseChapterTemplate,
 } from "@/lib/treehouse-chapter-templates";
@@ -57,6 +58,10 @@ export function ChapterTemplateDialog({
   const [rootRoomHandoffStatus, setRootRoomHandoffStatus] = useState<RootRoomHandoffStatus>("idle");
   const [rootRoomPacketId, setRootRoomPacketId] = useState<string | null>(null);
   const isRootRoomChapter = chapter.id === "root-room";
+  const nextChapter = nextChapterTemplate(chapter.id);
+  const forwardActionLabel = nextChapter
+    ? `Continue to Chapter ${nextChapter.chapter}`
+    : `Finish Chapter ${chapter.chapter}`;
 
   useEffect(() => {
     if (!open || typeof window === "undefined") return;
@@ -82,6 +87,11 @@ export function ChapterTemplateDialog({
       window.localStorage.setItem(demoStorageKey, "complete");
     }
     onDemoComplete?.(chapter.id);
+  };
+
+  const continueChapter = () => {
+    markDemoComplete();
+    onOpenChange(false);
   };
 
   const startRootRoomRun = async () => {
@@ -170,14 +180,17 @@ export function ChapterTemplateDialog({
           <div className="relative grid max-h-[85vh] overflow-y-auto md:grid-cols-[240px_1fr]">
             <DemoGuidePanel
               chapter={chapter}
+              forwardActionLabel={forwardActionLabel}
               demoComplete={demoComplete}
-              onDemoComplete={markDemoComplete}
+              onChapterContinue={continueChapter}
             />
             <ChapterTemplateBody
               ideaTitle={ideaTitle}
               chapter={chapter}
+              nextChapter={nextChapter}
+              forwardActionLabel={forwardActionLabel}
               demoComplete={demoComplete}
-              onDemoComplete={markDemoComplete}
+              onChapterContinue={continueChapter}
               rootRoomRunStatus={rootRoomRunStatus}
               rootRoomRunStep={rootRoomRunStep}
               rootRoomHandoffStatus={rootRoomHandoffStatus}
@@ -200,12 +213,14 @@ const guideAssets: Record<string, string> = {
 
 function DemoGuidePanel({
   chapter,
+  forwardActionLabel,
   demoComplete,
-  onDemoComplete,
+  onChapterContinue,
 }: {
   chapter: TreehouseChapterTemplate;
+  forwardActionLabel: string;
   demoComplete: boolean;
-  onDemoComplete: () => void;
+  onChapterContinue: () => void;
 }) {
   const guideName = primaryChapterGuideName(chapter);
   const guideAsset = guideAssets[guideName] ?? demoGuideAsset.url;
@@ -227,15 +242,15 @@ function DemoGuidePanel({
           draggable={false}
         />
         <div className="rounded-sm border border-amber-100/35 bg-amber-100/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-50/90">
-          Demo
+          Chapter guide
         </div>
         <button
           type="button"
-          onClick={onDemoComplete}
+          onClick={onChapterContinue}
           disabled={demoComplete}
           className="rounded-sm border border-amber-100/45 bg-amber-100/20 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-100/30 disabled:cursor-default disabled:bg-emerald-900/45"
         >
-          {demoComplete ? "Complete" : "Demo Complete"}
+          {demoComplete ? "Chapter Complete" : forwardActionLabel}
         </button>
       </div>
     </aside>
@@ -245,8 +260,10 @@ function DemoGuidePanel({
 function ChapterTemplateBody({
   ideaTitle,
   chapter,
+  nextChapter,
+  forwardActionLabel,
   demoComplete,
-  onDemoComplete,
+  onChapterContinue,
   rootRoomRunStatus,
   rootRoomRunStep,
   rootRoomHandoffStatus,
@@ -255,8 +272,10 @@ function ChapterTemplateBody({
 }: {
   ideaTitle?: string;
   chapter: TreehouseChapterTemplate;
+  nextChapter?: TreehouseChapterTemplate;
+  forwardActionLabel: string;
   demoComplete: boolean;
-  onDemoComplete: () => void;
+  onChapterContinue: () => void;
   rootRoomRunStatus: RootRoomRunStatus;
   rootRoomRunStep: number;
   rootRoomHandoffStatus: RootRoomHandoffStatus;
@@ -275,14 +294,9 @@ function ChapterTemplateBody({
           <div className="w-fit rounded-full border border-amber-900/20 bg-amber-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-900/70">
             Future-ready shell
           </div>
-          <button
-            type="button"
-            onClick={onDemoComplete}
-            disabled={demoComplete}
-            className="w-fit rounded-sm border border-amber-900/35 bg-amber-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-950 transition hover:bg-amber-950/15 disabled:border-emerald-900/35 disabled:bg-emerald-900/15 disabled:text-emerald-950"
-          >
-            {demoComplete ? "Complete" : "Demo"}
-          </button>
+          <div className="w-fit rounded-sm border border-amber-900/35 bg-amber-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-950">
+            {demoComplete ? "Chapter complete" : "Chapter ready"}
+          </div>
         </div>
         <DialogTitle className="font-serif text-2xl text-amber-950">
           Chapter {chapter.chapter}: {chapter.title}
@@ -311,11 +325,13 @@ function ChapterTemplateBody({
             Chapter status
           </div>
           <div className="mt-2 rounded-sm border border-amber-900/20 bg-amber-50/55 px-3 py-2 font-serif text-sm font-semibold text-amber-950">
-            {demoComplete ? "Demo marked complete" : "Blank template ready"}
+            {demoComplete ? "Chapter marked complete" : "Blank template ready"}
           </div>
           <p className="mt-2 text-xs leading-relaxed text-amber-950/70">
             {demoComplete
-              ? "This is a local demo state only. No n8n workflow has run."
+              ? nextChapter
+                ? `The next step is Chapter ${nextChapter.chapter}: ${nextChapter.title}.`
+                : "This is the final chapter shell in the current template list."
               : "No live workflow is attached yet."}
           </p>
         </div>
@@ -389,6 +405,27 @@ function ChapterTemplateBody({
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-900/25 bg-amber-50/60 p-3">
+        <div>
+          <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+            Chapter progression
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-amber-950/70">
+            {nextChapter
+              ? `Finish Chapter ${chapter.chapter} and move this idea to Chapter ${nextChapter.chapter}: ${nextChapter.title}.`
+              : `Finish Chapter ${chapter.chapter} and mark the current chapter path complete.`}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onChapterContinue}
+          disabled={demoComplete}
+          className="rounded-sm border border-amber-950/20 bg-amber-950 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-900 disabled:cursor-default disabled:bg-emerald-900"
+        >
+          {demoComplete ? "Chapter Complete" : forwardActionLabel}
+        </button>
       </div>
     </section>
   );

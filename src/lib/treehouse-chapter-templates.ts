@@ -132,6 +132,15 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
     checkpoints: ["Launch paths are parked", "Owner planting decision is visible", "Seed admin slot is ready"],
     boundary: "Launch-planning shell only. It does not post, advertise, spend, email, deploy, or promise customers anything.",
   },
+  {
+    id: "future-chapter-12",
+    chapter: 12,
+    title: "Future Chapter 12",
+    purpose: "Reserved for the next chapter once Boss defines the final role and content.",
+    parts: ["Future chapter owner"],
+    checkpoints: ["Chapter name is defined", "Chapter owner is named", "Exit check is approved"],
+    boundary: "Placeholder shell only. It does not invent final canon, activate bots, or approve launch action.",
+  },
 ];
 
 export function chapterTemplateById(id: string) {
