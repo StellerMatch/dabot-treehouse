@@ -2424,12 +2424,12 @@ function Dashboard() {
     setLibraryReportOpen(true);
   };
 
-  const selectedChapterId =
-    currentChapterTemplateForIdea({
-      stage: selected?.stage,
-      nextAction: selected?.nextAction,
-      currentChapterId: selectedExtras.currentChapterId,
-    })?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+  const selectedChapterTemplate = currentChapterTemplateForIdea({
+    stage: selected?.stage,
+    nextAction: selected?.nextAction,
+    currentChapterId: selectedExtras.currentChapterId,
+  });
+  const selectedChapterId = selectedChapterTemplate?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
 
   const advanceSelectedChapterDemo = (completedChapterId: string) => {
     if (!selected) return;
@@ -2570,11 +2570,12 @@ function Dashboard() {
           <OrganizeButton
             overall={overallPct}
             stage={selected?.stage ?? "lightbulb"}
+            currentChapter={selectedChapterTemplate?.chapter}
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             weakFolderCount={libraryReadiness.weak.length}
             onClick={() => {
               if (!selected) return;
-              if (!hasPaidLibraryStart()) {
+              if (!selectedChapterTemplate && !hasPaidLibraryStart()) {
                 setLibraryStartOpen(true);
                 return;
               }
@@ -3688,22 +3689,44 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
 function OrganizeButton({
   overall,
   stage,
+  currentChapter,
   followupsAnswered,
   weakFolderCount,
   onClick,
 }: {
   overall: number;
   stage: LightbulbIdea["stage"];
+  currentChapter?: number;
   followupsAnswered: number;
   weakFolderCount: number;
   onClick: () => void;
 }) {
   const remainingFollowups = Math.max(0, MIN_CLARITY_FOLLOWUPS - followupsAnswered);
   const isRootRoomStage = stage === "paid-creation";
+  const hasCurrentChapter = typeof currentChapter === "number";
   const unlocked =
-    isRootRoomStage || (overall >= 90 && remainingFollowups === 0 && weakFolderCount === 0);
-  const label = isRootRoomStage ? "Continue" : unlocked ? "View Report" : "Next Step";
+    hasCurrentChapter ||
+    isRootRoomStage ||
+    (overall >= 90 && remainingFollowups === 0 && weakFolderCount === 0);
+  const label = hasCurrentChapter
+    ? `Open Chapter ${currentChapter}`
+    : isRootRoomStage
+      ? "Continue"
+      : unlocked
+        ? "View Report"
+        : "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
+  const title = hasCurrentChapter
+    ? `Open Chapter ${currentChapter}`
+    : isRootRoomStage
+      ? "Open Chapter 2: The Root Room"
+      : unlocked
+        ? `Ready! View the Library report (${overall}%)`
+        : weakFolderCount > 0
+          ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
+          : remainingFollowups > 0
+            ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
+            : `Asleep — unlocks at 90% (currently ${overall}%)`;
 
   const handleClick = () => {
     if (!unlocked) {
@@ -3730,17 +3753,7 @@ function OrganizeButton({
           size={size}
           disabled={false}
           onClick={handleClick}
-          title={
-            isRootRoomStage
-              ? "Open Chapter 2: The Root Room"
-              : unlocked
-              ? `Ready! View the Library report (${overall}%)`
-              : weakFolderCount > 0
-                ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
-                : remainingFollowups > 0
-                  ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
-                  : `Asleep — unlocks at 90% (currently ${overall}%)`
-          }
+          title={title}
           trailing={unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null}
         />
       </div>
