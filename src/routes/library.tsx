@@ -211,8 +211,22 @@ function saveExtrasMap(extras: Record<string, IdeaExtrasRecord>) {
 }
 
 function currentChapterIdForIdea(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
-  if (idea.stage !== "paid-creation") return undefined;
-  return extras?.currentChapterId ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+  if (extras?.currentChapterId && chapterTemplateById(extras.currentChapterId)) {
+    return extras.currentChapterId;
+  }
+
+  const action = idea.nextAction ?? "";
+  const actionChapter = TREEHOUSE_CHAPTER_TEMPLATES.find((chapter) => {
+    return (
+      action.includes(chapter.id) ||
+      action.includes(chapter.title) ||
+      new RegExp(`chapter\\s+${chapter.chapter}\\b`, "i").test(action)
+    );
+  });
+  if (actionChapter) return actionChapter.id;
+
+  if (idea.stage === "paid-creation") return TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+  return undefined;
 }
 
 function currentChapterForIdea(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
