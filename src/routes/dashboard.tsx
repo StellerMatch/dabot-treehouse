@@ -55,6 +55,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 import { CreditsPill } from "@/components/AccountBadge";
 import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
+import { createTreehouseTaskPacket } from "@/lib/api/treehouse-task-packets.functions";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   canonicalChapterNextActionForIdea,
@@ -62,7 +63,9 @@ import {
   currentChapterTemplateForIdea,
   isRootRoomTemplateIdea,
   nextChapterTemplate,
+  type TreehouseChapterTemplate,
 } from "@/lib/treehouse-chapter-templates";
+import { treehouseN8nConnectionForChapter } from "@/lib/treehouse-n8n-connections";
 
 type BrowserSpeechRecognitionEvent = {
   resultIndex: number;
@@ -2409,6 +2412,50 @@ function Dashboard() {
       ))
     );
 
+  const selectedChapterTemplate = currentChapterTemplateForIdea({
+    stage: selected?.stage,
+    nextAction: selected?.nextAction,
+    currentChapterId: selectedExtras.currentChapterId,
+  });
+  const selectedChapterId = selectedChapterTemplate?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+
+  const createSelectedChapterHandoff = async (targetChapter: TreehouseChapterTemplate) => {
+    if (!selected || typeof window === "undefined") return;
+    const n8nConnection = treehouseN8nConnectionForChapter(targetChapter.id);
+    if (!n8nConnection) return;
+
+    try {
+      const packet = await createTreehouseTaskPacket({
+        data: {
+          actor: "Treehouse",
+          chapterId: targetChapter.id,
+          chapterTitle: `Chapter ${targetChapter.chapter}: ${targetChapter.title}`,
+          n8nAnchor: n8nConnection.anchor,
+          partId: `${targetChapter.id}-dashboard-continue`,
+          partTitle: n8nConnection.hiddenProcessLabel,
+          project: {
+            description: selected.description || selected.messy,
+            ideaType: selected.ideaType,
+            projectId: selected.id,
+            title: selected.title || "Untitled idea",
+          },
+          reportSourceKey: n8nConnection.reportSourceKey,
+          requestedAction: n8nConnection.requestedAction,
+        },
+      });
+
+      window.localStorage.setItem(
+        `dabottree:n8n-handoff:${selected.id}:${targetChapter.id}`,
+        packet.packetId,
+      );
+    } catch {
+      window.localStorage.setItem(
+        `dabottree:n8n-handoff:${selected.id}:${targetChapter.id}`,
+        "local-fallback",
+      );
+    }
+  };
+
   const openReportPath = () => {
     if (!selected) return;
     if (
@@ -2418,19 +2465,15 @@ function Dashboard() {
         currentChapterId: selectedExtras.currentChapterId,
       })
     ) {
+      if (selectedChapterTemplate) {
+        void createSelectedChapterHandoff(selectedChapterTemplate);
+      }
       setRootRoomTemplateOpen(true);
       return;
     }
     void sendLibraryWebhook(1);
     setLibraryReportOpen(true);
   };
-
-  const selectedChapterTemplate = currentChapterTemplateForIdea({
-    stage: selected?.stage,
-    nextAction: selected?.nextAction,
-    currentChapterId: selectedExtras.currentChapterId,
-  });
-  const selectedChapterId = selectedChapterTemplate?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
 
   useEffect(() => {
     if (!selected || !selectedChapterTemplate) return;
@@ -5551,7 +5594,7 @@ function Journal(props: {
               : canonicalChapterNextActionForIdea({
                   stage: selected.stage,
                   nextAction: selected.nextAction,
-                  currentChapterId: selectedExtras.currentChapterId,
+                  currentChapterId: extras.currentChapterId,
                 }) || selected.nextAction}
           </div>
         </div>

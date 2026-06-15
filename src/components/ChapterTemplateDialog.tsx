@@ -19,6 +19,7 @@ import {
   primaryChapterGuideName,
   type TreehouseChapterTemplate,
 } from "@/lib/treehouse-chapter-templates";
+import { treehouseN8nConnectionForChapter } from "@/lib/treehouse-n8n-connections";
 
 type ChapterTemplateDialogProps = {
   ideaId?: string;
@@ -89,7 +90,48 @@ export function ChapterTemplateDialog({
     onDemoComplete?.(chapter.id);
   };
 
+  const createNextChapterHandoff = async (targetChapter: TreehouseChapterTemplate) => {
+    const n8nConnection = treehouseN8nConnectionForChapter(targetChapter.id);
+    if (!n8nConnection) return;
+
+    try {
+      const packet = await createTreehouseTaskPacket({
+        data: {
+          actor: "Treehouse",
+          chapterId: targetChapter.id,
+          chapterTitle: `Chapter ${targetChapter.chapter}: ${targetChapter.title}`,
+          n8nAnchor: n8nConnection.anchor,
+          partId: `${targetChapter.id}-n8n-handoff`,
+          partTitle: n8nConnection.hiddenProcessLabel,
+          project: {
+            projectId: ideaKey,
+            title: ideaTitle || "Untitled idea",
+          },
+          reportSourceKey: n8nConnection.reportSourceKey,
+          requestedAction: n8nConnection.requestedAction,
+        },
+      });
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          `dabottree:n8n-handoff:${ideaKey}:${targetChapter.id}`,
+          packet.packetId,
+        );
+      }
+    } catch {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          `dabottree:n8n-handoff:${ideaKey}:${targetChapter.id}`,
+          "local-fallback",
+        );
+      }
+    }
+  };
+
   const continueChapter = () => {
+    if (nextChapter) {
+      void createNextChapterHandoff(nextChapter);
+    }
     markDemoComplete();
     onOpenChange(false);
   };
@@ -450,7 +492,7 @@ function RootRoomRunPanel({
     status === "complete" || demoComplete ? "Complete" : status === "running" ? "Running" : "Ready";
   const statusDetail =
     status === "complete" || demoComplete
-      ? "Fake Root Room run complete. This can move the idea to Chapter 3."
+      ? "Fake Root Room run complete. This can move the idea to Chapter 3: Bad Brother."
       : status === "running"
         ? "Steward is running the local Root Room test sequence."
         : "Local fake Go test only. No n8n workflow will run.";
