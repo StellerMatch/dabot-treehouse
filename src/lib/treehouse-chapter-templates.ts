@@ -38,12 +38,12 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Template only. No bot flow, notebook report, deployment, or outside action runs from here yet.",
   },
   {
-    id: "bad-brother",
+    id: "mud-pit",
     chapter: 3,
-    title: "Bad Brother",
+    title: "The Mud Pit",
     purpose:
       "Pressure-test the idea after Root Room captures the baseline and before Trunk research begins.",
-    parts: ["Hard Questions", "Weak Spots", "Proof Needed", "Kill Risks", "Stronger Version"],
+    parts: ["Crossfire", "Hard Questions", "Weak Spots", "Proof Needed", "Stronger Version"],
     checkpoints: [
       "Weak assumptions are named",
       "Proof needs are visible",

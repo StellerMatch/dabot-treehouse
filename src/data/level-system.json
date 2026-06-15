@@ -50,16 +50,16 @@
         "lovable_section": "Saved ideas list opens a selected idea; the Library report action runs from the opened Idea Dashboard."
       },
       {
-        "level_key": "bad_brother",
-        "level_name": "Bad Brother",
+        "level_key": "mud_pit",
+        "level_name": "The Mud Pit",
         "order": 2,
-        "owner": "Bad Brother pressure-test layer",
+        "owner": "Crossfire pressure-test layer",
         "status": "local_scaffold_ready_waiting_real_content",
-        "report_source_key": "bad_brother_pressure_test_packet",
+        "report_source_key": "mud_pit_pressure_test_packet",
         "report_present": true,
         "report_summary": "Pressure-test the Root Room baseline before Trunk Level begins. Name weak spots, proof needs, kill risks, and the stronger version.",
         "expected_output": {
-          "packet_type": "bad_brother_pressure_test_packet",
+          "packet_type": "mud_pit_pressure_test_packet",
           "should_include": [
             "hard questions for the idea",
             "weak assumptions and likely break points",
@@ -69,10 +69,10 @@
           ]
         },
         "open_questions": [],
-        "boundary": "Bad Brother challenges the idea only. It does not reject ideas, override Boss, approve spending, approve launch, contact n8n, dispatch bots, or change runtime/config/authority.",
-        "n8n_anchor": "Bad Brother: Prepare Pressure-Test Packet",
+        "boundary": "Crossfire challenges the idea only. It does not reject ideas, override Boss, approve spending, approve launch, contact n8n, dispatch bots, or change runtime/config/authority.",
+        "n8n_anchor": "The Mud Pit: Prepare Pressure-Test Packet",
         "lovable_page": "/levels",
-        "lovable_section": "Bad Brother chapter card / pressure-test door until a dedicated Bad Brother page exists."
+        "lovable_section": "The Mud Pit chapter card / pressure-test door until a dedicated Mud Pit page exists."
       },
       {
         "level_key": "trunk",

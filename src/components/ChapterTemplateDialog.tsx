@@ -494,7 +494,7 @@ function RootRoomRunPanel({
     status === "complete" || demoComplete ? "Complete" : status === "running" ? "Running" : "Ready";
   const statusDetail =
     status === "complete" || demoComplete
-      ? "Fake Root Room run complete. This can move the idea to Chapter 3: Bad Brother."
+      ? "Fake Root Room run complete. This can move the idea to Chapter 3: The Mud Pit."
       : status === "running"
         ? "Steward is running the local Root Room test sequence."
         : "Local fake Go test only. No n8n workflow will run.";

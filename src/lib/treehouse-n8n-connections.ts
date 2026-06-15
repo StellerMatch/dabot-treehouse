@@ -46,7 +46,7 @@ const levelConnections = Object.fromEntries(
 const chapterLevelKeys: Record<string, string | null> = {
   clarity: "library",
   "root-room": null,
-  "bad-brother": "bad-brother",
+  "mud-pit": "mud-pit",
   "trunk-level": "trunk",
   "the-clearing": "the-clearing",
   "canopy-level": "canopy",
@@ -77,13 +77,13 @@ const backendChapterRuns: Record<
     runId: "root-room-step-six-local-scaffold-2026-06-12",
     status: "root_room_local_scaffold_ready",
   },
-  "bad-brother": {
-    firstPart: "Bad Brother",
+  "mud-pit": {
+    firstPart: "Crossfire",
     partCount: 4,
     runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/bad-brother-local-scaffold-2026-06-14",
-    runId: "bad-brother-local-scaffold-2026-06-14",
-    status: "bad_brother_local_scaffold_ready_waiting_real_content",
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/mud-pit-local-scaffold-2026-06-14",
+    runId: "mud-pit-local-scaffold-2026-06-14",
+    status: "mud_pit_local_scaffold_ready_waiting_real_content",
   },
   "trunk-level": {
     firstPart: "Luma",
@@ -162,7 +162,7 @@ const backendChapterRuns: Record<
 const botParticipantsByChapter: Record<string, string[]> = {
   clarity: ["Clarity"],
   "root-room": ["Echo", "Shield", "Ledger", "Chief"],
-  "bad-brother": ["Bad Brother"],
+  "mud-pit": ["Crossfire"],
   "trunk-level": ["Luma", "Bloom", "Vault", "Compass"],
   "the-clearing": ["Moniker"],
   "canopy-level": ["Rook", "Bones", "Squirrels", "Lanterns", "Ledger"],
@@ -194,7 +194,7 @@ const botParticipantsByChapter: Record<string, string[]> = {
 
 const parkedProcessLabels: Record<string, string> = {
   "root-room": "Root Room local baseline packet",
-  "bad-brother": "Bad Brother local pressure-test packet",
+  "mud-pit": "The Mud Pit local pressure-test packet",
   "future-13": "Future Chapter 13 end-state packet",
 };
 
