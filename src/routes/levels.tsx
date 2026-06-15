@@ -307,7 +307,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   {
     id: "library",
     chapter: 1,
-    title: "The Library",
+    title: "Spark Library",
     subtitle: "Clarity turns a messy idea into the first clean packet.",
     parts: [
       {
@@ -328,7 +328,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   {
     id: "root-room",
     chapter: 2,
-    title: "The Root Room",
+    title: "Root Room",
     subtitle: "The project gets memory, safety, record, and handoff roots.",
     parts: [
       {
@@ -386,7 +386,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   {
     id: "mud-pit",
     chapter: 3,
-    title: "The Mud Pit",
+    title: "Mud Pit",
     subtitle: "Crossfire pressure-tests the idea before research starts.",
     parts: [
       {
@@ -609,7 +609,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   {
     id: "branchworks",
     chapter: 8,
-    title: "Branchworks Level",
+    title: "Branchworks",
     subtitle: "Tinker turns the foundation into possible build directions.",
     parts: [
       {
@@ -849,8 +849,8 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   {
     id: "nest",
     chapter: 11,
-    title: "Nest Level",
-    subtitle: "Ward gives the project a home and care plan.",
+    title: "Nestwatch",
+    subtitle: "Ward gives the project a home, watch signals, and care plan.",
     parts: [
       {
         id: "ward-open",
@@ -916,7 +916,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   {
     id: "seed",
     chapter: 12,
-    title: "Seed Level",
+    title: "Seed Garden",
     subtitle: "Bloom decides what can be planted next.",
     parts: [
       {

@@ -173,7 +173,7 @@ function RootRoom() {
       <div className="absolute inset-0">
         <img
           src={rootRoomBgAsset.url}
-          alt="The Root Room — a circular underground chamber with five tree-root tunnels."
+          alt="Root Room — a circular underground chamber with five tree-root tunnels."
           className="rr-room-bg absolute inset-0 h-full w-full object-cover"
           draggable={false}
         />
@@ -901,7 +901,7 @@ function RootRoomNextButton({
           ? "hover:-translate-y-[1px] drop-shadow-[0_0_14px_rgba(255,214,104,0.95)]"
           : "cursor-not-allowed opacity-70 saturate-[0.65]"
       }`}
-      title={unlocked ? "Open the Library report" : "Complete the Root Room first"}
+      title={unlocked ? "Open the Spark Library report" : "Complete the Root Room first"}
       aria-disabled={!unlocked}
     >
       <span

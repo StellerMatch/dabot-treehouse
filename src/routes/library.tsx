@@ -513,7 +513,7 @@ function nextStepSummary(idea: LightbulbIdea): string {
     idea.stage === "pre-clarity"
       ? "Answer the next personalized Clarity question to keep moving forward."
       : idea.stage === "paid-creation"
-        ? "Open the blank Chapter 2: The Root Room template."
+        ? "Open the blank Chapter 2: Root Room template."
         : idea.stage === "clean-packet"
           ? "Open the clean packet and decide what to build first."
           : "Continue along the operating path.";

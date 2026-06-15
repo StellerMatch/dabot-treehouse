@@ -4,12 +4,12 @@
   "level_result_system": {
     "system_type": "dabottree_level_reports_and_doors",
     "status": "ready_internal_only",
-    "source_note": "Each level has a report source and a door object for front-end inspection. Doors are internal navigation/output markers, not approval gates. Boss corrected on 2026-06-14 that Chapter 2 is Root Room; Mud Pit follows Root Room before Trunk Ascent. Boss selected draft/current chapter names on 2026-06-14: Trunk Ascent, The Name, Canopy Foundation, Heavy Crown, Clean Sweep.",
+    "source_note": "Each level has a report source and a door object for front-end inspection. Doors are internal navigation/output markers, not approval gates. Boss corrected on 2026-06-14 that Chapter 2 is Root Room; Mud Pit follows Root Room before Trunk Ascent. Boss selected current chapter display names on 2026-06-14: Spark Library, Root Room, Mud Pit, Trunk Ascent, The Name, Canopy Foundation, Wind Tunnel, Branchworks, Heavy Crown, Clean Sweep, Nestwatch, Seed Garden.",
     "level_count": 12,
     "levels": [
       {
         "level_key": "library",
-        "level_name": "Library Level",
+        "level_name": "Spark Library",
         "order": 1,
         "owner": "Clarity / Echo / Chief / Ledger / Shield",
         "status": "ready_for_user_review_internal_only",
@@ -77,7 +77,7 @@
       },
       {
         "level_key": "mud_pit",
-        "level_name": "The Mud Pit",
+        "level_name": "Mud Pit",
         "order": 3,
         "owner": "Crossfire pressure-test layer",
         "status": "local_scaffold_ready_waiting_real_content",
@@ -96,9 +96,9 @@
         },
         "open_questions": [],
         "boundary": "Crossfire challenges the idea only. It does not reject ideas, override Boss, approve spending, approve launch, contact n8n, dispatch bots, or change runtime/config/authority.",
-        "n8n_anchor": "The Mud Pit: Prepare Pressure-Test Packet",
+        "n8n_anchor": "Mud Pit: Prepare Pressure-Test Packet",
         "lovable_page": "/levels",
-        "lovable_section": "The Mud Pit chapter card / pressure-test door until a dedicated Mud Pit page exists."
+        "lovable_section": "Mud Pit chapter card / pressure-test door until a dedicated Mud Pit page exists."
       },
       {
         "level_key": "trunk_ascent",
@@ -192,7 +192,7 @@
       },
       {
         "level_key": "branchworks",
-        "level_name": "Branchworks Level",
+        "level_name": "Branchworks",
         "order": 8,
         "owner": "Tinker / Momma / Bears",
         "status": "tinker_experiment_packet_prepared_internal_only",
@@ -217,9 +217,9 @@
         },
         "open_questions": [],
         "boundary": "Branchworks prepares internal experiment/design direction only. It does not approve Lovable submission, build execution, deployment, public launch, spending, account access, backend setup, route/config/tool changes, final product selection, or bot authority changes.",
-        "n8n_anchor": "8.5. Branchworks Level: Prepare Tinker Experiment Packet",
+        "n8n_anchor": "8.5. Branchworks: Prepare Tinker Experiment Packet",
         "lovable_page": "/levels",
-        "lovable_section": "Branchworks level card / Tinker experiment door until a dedicated Branchworks page exists."
+        "lovable_section": "Branchworks chapter card / Tinker experiment door until a dedicated Branchworks page exists."
       },
       {
         "level_key": "heavy_crown",
@@ -255,7 +255,7 @@
       },
       {
         "level_key": "nest",
-        "level_name": "Nest Level",
+        "level_name": "Nestwatch",
         "order": 11,
         "owner": "Ward",
         "status": "ward_nest_home_packet_prepared_internal_only",
@@ -284,13 +284,13 @@
         },
         "open_questions": [],
         "boundary": "Nest is project-home/watch/readiness guidance unless later approved as live operations. It does not approve cron automation, live support operations, support inboxes, public launch, spending, deployment, customer promises, production monitoring, account/channel/runtime/config changes, final product approval, or bot authority changes.",
-        "n8n_anchor": "8.8. Nest Level: Prepare Ward Living Project Home",
+        "n8n_anchor": "8.8. Nestwatch: Prepare Ward Living Project Home",
         "lovable_page": "/levels",
-        "lovable_section": "Nest level card / Ward project-home door until a dedicated Nest page exists."
+        "lovable_section": "Nestwatch chapter card / Ward project-home door until a dedicated Nestwatch page exists."
       },
       {
         "level_key": "seed",
-        "level_name": "Seed Level",
+        "level_name": "Seed Garden",
         "order": 12,
         "owner": "Bloom",
         "status": "bloom_seed_launch_packet_prepared_internal_only",
@@ -320,18 +320,18 @@
         },
         "open_questions": [],
         "boundary": "Seed prepares launch/growth/distribution guidance plus internal/admin Seed Page and DaBotTree Admin Page concepts only. It does not approve public launch, posting, ads, spending, account access, email/message sends, customer promises, legal/commercial claims, automation, deployment, live support, final launch authority, public exposure of internal seed data, or bot authority changes.",
-        "n8n_anchor": "8.9. Seed Level: Prepare Bloom Seed Launch Packet",
+        "n8n_anchor": "8.9. Seed Garden: Prepare Bloom Seed Launch Packet",
         "lovable_page": "/levels",
-        "lovable_section": "Seed level card / Bloom launch packet door until a dedicated Seed page exists."
+        "lovable_section": "Seed Garden chapter card / Bloom launch packet door until a dedicated Seed Garden page exists."
       }
     ],
     "doors": [
       {
         "door_key": "library_door",
         "level_key": "library",
-        "level_name": "Library Level",
+        "level_name": "Spark Library",
         "order": 1,
-        "label": "Open Library Report",
+        "label": "Open Spark Library",
         "kind": "level_report_door",
         "status": "ready",
         "opens_report_source_key": "review_output",
@@ -344,7 +344,7 @@
         "level_key": "root_room",
         "level_name": "Root Room",
         "order": 2,
-        "label": "Open Root Room Report",
+        "label": "Open Root Room",
         "kind": "level_report_door",
         "status": "ready",
         "opens_report_source_key": "root_room_status_payload",
@@ -355,13 +355,13 @@
       {
         "door_key": "mud_pit_door",
         "level_key": "mud_pit",
-        "level_name": "The Mud Pit",
+        "level_name": "Mud Pit",
         "order": 3,
-        "label": "Open Mud Pit Door",
+        "label": "Open Mud Pit",
         "kind": "level_door",
         "status": "ready",
         "opens_report_source_key": "mud_pit_pressure_test_packet",
-        "n8n_anchor": "The Mud Pit: Prepare Pressure-Test Packet",
+        "n8n_anchor": "Mud Pit: Prepare Pressure-Test Packet",
         "background_reference": "Crossfire approved visual reference / Mud Pit chapter card",
         "action_boundary": "Door opens prepared internal output only. Crossfire challenges the idea only and does not approve, reject, build, launch, spend, dispatch, or change runtime/config/authority."
       },
@@ -409,7 +409,7 @@
         "level_key": "wind_tunnel",
         "level_name": "Wind Tunnel",
         "order": 7,
-        "label": "Open Wind Tunnel Door",
+        "label": "Open Wind Tunnel",
         "kind": "level_door",
         "status": "ready",
         "opens_report_source_key": "wind_tunnel_worthiness_packet",
@@ -420,13 +420,13 @@
       {
         "door_key": "branchworks_door",
         "level_key": "branchworks",
-        "level_name": "Branchworks Level",
+        "level_name": "Branchworks",
         "order": 8,
-        "label": "Open Branchworks Door",
+        "label": "Open Branchworks",
         "kind": "level_door",
         "status": "ready",
         "opens_report_source_key": "branchworks_experiment_packet",
-        "n8n_anchor": "8.5. Branchworks Level: Prepare Tinker Experiment Packet",
+        "n8n_anchor": "8.5. Branchworks: Prepare Tinker Experiment Packet",
         "background_reference": "Tinker stage reference image",
         "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
       },
@@ -459,26 +459,26 @@
       {
         "door_key": "nest_door",
         "level_key": "nest",
-        "level_name": "Nest Level",
+        "level_name": "Nestwatch",
         "order": 11,
-        "label": "Open Nest Door",
+        "label": "Open Nestwatch",
         "kind": "level_door",
         "status": "ready",
         "opens_report_source_key": "ward_nest_home_packet",
-        "n8n_anchor": "8.8. Nest Level: Prepare Ward Living Project Home",
+        "n8n_anchor": "8.8. Nestwatch: Prepare Ward Living Project Home",
         "background_reference": "earlier canopies reference image, corrected to Ward background",
         "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
       },
       {
         "door_key": "seed_door",
         "level_key": "seed",
-        "level_name": "Seed Level",
+        "level_name": "Seed Garden",
         "order": 12,
-        "label": "Open Seed Door",
+        "label": "Open Seed Garden",
         "kind": "level_door",
         "status": "ready",
         "opens_report_source_key": "bloom_seed_launch_packet",
-        "n8n_anchor": "8.9. Seed Level: Prepare Bloom Seed Launch Packet",
+        "n8n_anchor": "8.9. Seed Garden: Prepare Bloom Seed Launch Packet",
         "background_reference": "Seeds stage reference image",
         "action_boundary": "Door opens prepared internal output only. It does not approve external action, Lovable submission, workflow activation, spending, deployment, public launch, or account changes."
       }
@@ -539,7 +539,7 @@
         "order": 4,
         "scene_key": "branchworks_tinker",
         "display_name": "Use existing n8n/Lovable name",
-        "n8n_anchor": "Branchworks Level: Prepare Tinker Experiment Packet",
+        "n8n_anchor": "Branchworks: Prepare Tinker Experiment Packet",
         "backend_source": "branchworks_experiment_packet",
         "status": "active_current_n8n_stage",
         "background_reference_summary": "Tinker stage reference image",
@@ -569,7 +569,7 @@
         "order": 7,
         "scene_key": "nest_ward",
         "display_name": "Use existing n8n/Lovable name",
-        "n8n_anchor": "Nest Level: Prepare Ward Living Project Home",
+        "n8n_anchor": "Nestwatch: Prepare Ward Living Project Home",
         "backend_source": "ward_nest_home_packet",
         "status": "active_current_n8n_stage",
         "background_reference_summary": "earlier canopies reference image, corrected to Ward background",
@@ -579,7 +579,7 @@
         "order": 8,
         "scene_key": "seed_bloom",
         "display_name": "Use existing n8n/Lovable name",
-        "n8n_anchor": "Seed Level: Prepare Bloom Seed Launch Packet",
+        "n8n_anchor": "Seed Garden: Prepare Bloom Seed Launch Packet",
         "backend_source": "bloom_seed_launch_packet",
         "status": "active_current_n8n_stage",
         "background_reference_summary": "Seeds stage reference image",

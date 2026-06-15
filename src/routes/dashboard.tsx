@@ -3793,7 +3793,7 @@ function OrganizeButton({
   const title = hasCurrentChapter
     ? canonicalChapterLabel
     : isRootRoomStage
-      ? "Open Chapter 2: The Root Room"
+      ? "Open Chapter 2: Root Room"
       : unlocked
         ? `Ready! View the Library report (${overall}%)`
         : weakFolderCount > 0

@@ -194,7 +194,7 @@ const botParticipantsByChapter: Record<string, string[]> = {
 
 const parkedProcessLabels: Record<string, string> = {
   "root-room": "Root Room local baseline packet",
-  "mud-pit": "The Mud Pit local pressure-test packet",
+  "mud-pit": "Mud Pit local pressure-test packet",
   "future-13": "Future Chapter 13 end-state packet",
 };
 

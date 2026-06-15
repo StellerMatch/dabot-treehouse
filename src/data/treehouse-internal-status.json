@@ -19,7 +19,7 @@
   "chapters": [
     {
       "chapter": 2,
-      "title": "The Root Room",
+      "title": "Root Room",
       "status": "root_room_and_chapter_3_local_closeout_complete",
       "stateLabel": "Root Room and Chapter 3 local closeouts complete",
       "runner": "Steward",
@@ -31,7 +31,7 @@
     },
     {
       "chapter": 3,
-      "title": "The Mud Pit",
+      "title": "Mud Pit",
       "status": "local_scaffold_ready_waiting_real_content",
       "stateLabel": "Local only",
       "runner": "Crossfire",
@@ -86,7 +86,7 @@
       "status": "chapter_6_local_closeout_complete_waiting_next_gate",
       "stateLabel": "Local closeout complete",
       "runner": "Steward",
-      "firstMove": "Branchworks Level local scaffold",
+      "firstMove": "Branchworks local scaffold",
       "proof": "Gauge, Shield, Stagehand local notes, run-state, Steward receipt, and closeout receipt exist",
       "blockedBy": [
         "stopped before Branchworks after confidence/completeness dropped under 97",
@@ -95,7 +95,7 @@
     },
     {
       "chapter": 8,
-      "title": "Branchworks Level",
+      "title": "Branchworks",
       "status": "local_scaffold_ready",
       "stateLabel": "Local only",
       "runner": "Steward",
@@ -134,7 +134,7 @@
     },
     {
       "chapter": 11,
-      "title": "Nest Level",
+      "title": "Nestwatch",
       "status": "local_scaffold_ready",
       "stateLabel": "Local only",
       "runner": "Steward",
@@ -147,7 +147,7 @@
     },
     {
       "chapter": 12,
-      "title": "Seed Level",
+      "title": "Seed Garden",
       "status": "local_scaffold_ready",
       "stateLabel": "Local only",
       "runner": "Steward",

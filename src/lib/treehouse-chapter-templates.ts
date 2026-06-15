@@ -12,7 +12,7 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
   {
     id: "clarity",
     chapter: 1,
-    title: "Clarity",
+    title: "Spark Library",
     purpose: "Turn the first messy idea into a clear starting packet for the Treehouse path.",
     parts: ["Clarity"],
     checkpoints: [
@@ -25,7 +25,7 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
   {
     id: "root-room",
     chapter: 2,
-    title: "The Root Room",
+    title: "Root Room",
     purpose:
       "Set the project baseline before deeper research, design, money, or build work begins.",
     parts: ["Echo", "Shield", "Ledger", "Chief"],
@@ -40,7 +40,7 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
   {
     id: "mud-pit",
     chapter: 3,
-    title: "The Mud Pit",
+    title: "Mud Pit",
     purpose:
       "Pressure-test the idea after Root Room captures the baseline and before Trunk research begins.",
     parts: ["Crossfire", "Hard Questions", "Weak Spots", "Proof Needed", "Stronger Version"],
@@ -117,7 +117,7 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
   {
     id: "branchworks-level",
     chapter: 8,
-    title: "Branchworks Level",
+    title: "Branchworks",
     purpose:
       "Shape experiment directions and early build rails without turning them into a live product yet.",
     parts: [
@@ -179,8 +179,8 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
   {
     id: "nest-level",
     chapter: 11,
-    title: "Nest Level",
-    purpose: "Create the project home and readiness view for live operations.",
+    title: "Nestwatch",
+    purpose: "Create the project home, watch signals, and readiness view for live operations.",
     parts: [
       "Ward opens Nest",
       "Ward Health Profile",
@@ -199,7 +199,7 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
   {
     id: "seed-level",
     chapter: 12,
-    title: "Seed Level",
+    title: "Seed Garden",
     purpose: "Prepare launch, growth, and planting decisions without taking public action.",
     parts: [
       "Bloom opens Seed",
