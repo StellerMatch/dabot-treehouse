@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrunkRouteImport } from './routes/trunk'
 import { Route as TrendWatchRouteImport } from './routes/trend-watch'
+import { Route as TreehouseStatusRouteImport } from './routes/treehouse-status'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as RootRoomRouteImport } from './routes/root-room'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -26,6 +27,11 @@ const TrunkRoute = TrunkRouteImport.update({
 const TrendWatchRoute = TrendWatchRouteImport.update({
   id: '/trend-watch',
   path: '/trend-watch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TreehouseStatusRoute = TreehouseStatusRouteImport.update({
+  id: '/treehouse-status',
+  path: '/treehouse-status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SigninRoute = SigninRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/treehouse-status': typeof TreehouseStatusRoute
   '/trend-watch': typeof TrendWatchRoute
   '/trunk': typeof TrunkRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/treehouse-status': typeof TreehouseStatusRoute
   '/trend-watch': typeof TrendWatchRoute
   '/trunk': typeof TrunkRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/root-room': typeof RootRoomRoute
   '/signin': typeof SigninRoute
+  '/treehouse-status': typeof TreehouseStatusRoute
   '/trend-watch': typeof TrendWatchRoute
   '/trunk': typeof TrunkRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/root-room'
     | '/signin'
+    | '/treehouse-status'
     | '/trend-watch'
     | '/trunk'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/root-room'
     | '/signin'
+    | '/treehouse-status'
     | '/trend-watch'
     | '/trunk'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/root-room'
     | '/signin'
+    | '/treehouse-status'
     | '/trend-watch'
     | '/trunk'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   RootRoomRoute: typeof RootRoomRoute
   SigninRoute: typeof SigninRoute
+  TreehouseStatusRoute: typeof TreehouseStatusRoute
   TrendWatchRoute: typeof TrendWatchRoute
   TrunkRoute: typeof TrunkRoute
 }
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/trend-watch'
       fullPath: '/trend-watch'
       preLoaderRoute: typeof TrendWatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/treehouse-status': {
+      id: '/treehouse-status'
+      path: '/treehouse-status'
+      fullPath: '/treehouse-status'
+      preLoaderRoute: typeof TreehouseStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signin': {
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   RootRoomRoute: RootRoomRoute,
   SigninRoute: SigninRoute,
+  TreehouseStatusRoute: TreehouseStatusRoute,
   TrendWatchRoute: TrendWatchRoute,
   TrunkRoute: TrunkRoute,
 }

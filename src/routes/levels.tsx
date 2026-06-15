@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
+  Activity,
   BookOpen,
   ChevronRight,
   CheckCircle2,
@@ -73,8 +74,16 @@ const squirrelNames = "Gauge, Quill, Signal, Trail, Circuit, SkillSmith, Glyph, 
 const lanternNames = "Vault, Bloom, Luma, and Compass";
 const heroAlignments: HeroAlignment[] = ["left", "right", "center"];
 const n8nChapterKeyAliases: Record<string, string> = {
-  clearing: "the-clearing",
-  sweep: "the-sweep",
+  trunk: "trunk-ascent",
+  clearing: "the-name",
+  canopy: "canopy-foundation",
+  crown: "heavy-crown",
+  sweep: "clean-sweep",
+  "trunk-level": "trunk-ascent",
+  "the-clearing": "the-name",
+  "canopy-level": "canopy-foundation",
+  "crown-level": "heavy-crown",
+  "the-sweep": "clean-sweep",
   "wind-tunnel": "wind-tunnel",
 };
 const n8nLevels = (levelSystemData.level_result_system.levels ?? []) as RawN8nLevel[];
@@ -112,7 +121,7 @@ const TREEHOUSE_ACTION_BUNDLES: Record<string, TreehouseActionBundle[]> = {
       label: "Prepare the Roots",
     },
   ],
-  trunk: [
+  "trunk-ascent": [
     {
       action: "trunk_past_pass",
       description: "Bundle Luma, Bloom, Vault, and Compass around past/source context.",
@@ -129,7 +138,7 @@ const TREEHOUSE_ACTION_BUNDLES: Record<string, TreehouseActionBundle[]> = {
       label: "Future Pass",
     },
   ],
-  clearing: [
+  "the-name": [
     {
       action: "clearing_name_direction",
       description: "Prepare Moniker name and identity direction work.",
@@ -141,7 +150,7 @@ const TREEHOUSE_ACTION_BUNDLES: Record<string, TreehouseActionBundle[]> = {
       label: "Check the Trail Sign",
     },
   ],
-  canopy: [
+  "canopy-foundation": [
     {
       action: "canopy_rook_foundation_packet",
       description: "Prepare Rook's foundation packet from the earlier levels.",
@@ -192,7 +201,7 @@ const TREEHOUSE_ACTION_BUNDLES: Record<string, TreehouseActionBundle[]> = {
       label: "Collect the Branches",
     },
   ],
-  crown: [
+  "heavy-crown": [
     {
       action: "crown_weaver_package",
       description: "Prepare Weaver's prototype-package bundle.",
@@ -209,7 +218,7 @@ const TREEHOUSE_ACTION_BUNDLES: Record<string, TreehouseActionBundle[]> = {
       label: "Check the Crown",
     },
   ],
-  sweep: [
+  "clean-sweep": [
     {
       action: "sweep_ghost_simulation",
       description: "Prepare Ghost simulation/testing report work.",
@@ -375,9 +384,29 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
     ],
   },
   {
-    id: "trunk",
+    id: "mud-pit",
     chapter: 3,
-    title: "Trunk Level",
+    title: "The Mud Pit",
+    subtitle: "Crossfire pressure-tests the idea before research starts.",
+    parts: [
+      {
+        id: "crossfire",
+        title: "Crossfire Pressure Test",
+        actor: "Crossfire",
+        story:
+          "Crossfire walks the idea through the mud before the project climbs higher, naming weak assumptions, proof needs, likely break points, and the smaller stronger version.",
+        taskIdeas: [
+          "Ask hard questions about what must be true.",
+          "Name weak spots, proof needs, and likely failure points.",
+          "Prepare the stronger version for Trunk Ascent.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "trunk-ascent",
+    chapter: 4,
+    title: "Trunk Ascent",
     subtitle:
       "The first practical direction passes through design, growth, money, and compass sense.",
     parts: [
@@ -432,10 +461,10 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
     ],
   },
   {
-    id: "clearing",
-    chapter: 4,
-    title: "The Clearing",
-    subtitle: "Moniker gives the project a name and identity direction.",
+    id: "the-name",
+    chapter: 5,
+    title: "The Name",
+    subtitle: "Moniker helps find the best working name, not the fanciest name.",
     parts: [
       {
         id: "moniker",
@@ -453,9 +482,9 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
     ],
   },
   {
-    id: "canopy",
-    chapter: 5,
-    title: "Canopy Level",
+    id: "canopy-foundation",
+    chapter: 6,
+    title: "Canopy Foundation",
     subtitle: "Rook turns the earlier work into a usable project foundation.",
     parts: [
       {
@@ -534,7 +563,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   },
   {
     id: "wind-tunnel",
-    chapter: 6,
+    chapter: 7,
     title: "Wind Tunnel",
     subtitle: "The foundation gets pressure-tested before build-shape work.",
     parts: [
@@ -579,7 +608,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   },
   {
     id: "branchworks",
-    chapter: 7,
+    chapter: 8,
     title: "Branchworks Level",
     subtitle: "Tinker turns the foundation into possible build directions.",
     parts: [
@@ -680,9 +709,9 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
     ],
   },
   {
-    id: "crown",
-    chapter: 8,
-    title: "Crown Level",
+    id: "heavy-crown",
+    chapter: 9,
+    title: "Heavy Crown",
     subtitle: "Weaver assembles, polishes, and packages the project.",
     parts: [
       {
@@ -797,9 +826,9 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
     ],
   },
   {
-    id: "sweep",
-    chapter: 9,
-    title: "The Sweep",
+    id: "clean-sweep",
+    chapter: 10,
+    title: "Clean Sweep",
     subtitle: "Ghost simulates and tests the near-final project.",
     parts: [
       {
@@ -819,7 +848,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   },
   {
     id: "nest",
-    chapter: 10,
+    chapter: 11,
     title: "Nest Level",
     subtitle: "Ward gives the project a home and care plan.",
     parts: [
@@ -886,7 +915,7 @@ const TREEHOUSE_CHAPTERS: TreehouseChapter[] = [
   },
   {
     id: "seed",
-    chapter: 11,
+    chapter: 12,
     title: "Seed Level",
     subtitle: "Bloom decides what can be planted next.",
     parts: [
@@ -1060,6 +1089,13 @@ function LevelsPage() {
               <BookOpen className="h-4 w-4" />
               {TREEHOUSE_CHAPTERS.length} chapters · {totalParts} pages
             </div>
+            <Link
+              to="/treehouse-status"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-emerald-200/25 bg-emerald-300/10 px-3 text-sm text-emerald-100 transition hover:bg-emerald-300/15"
+            >
+              <Activity className="h-4 w-4" />
+              Status
+            </Link>
           </header>
 
           <section className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">

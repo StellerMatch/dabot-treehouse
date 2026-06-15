@@ -1,0 +1,163 @@
+{
+  "generatedAt": "2026-06-14T04:20:00.000Z",
+  "overallStatus": "chapter_6_local_closeout_complete_stopped_before_branchworks",
+  "summary": {
+    "rootRoomStepFive": "passed_n8n_test_post_accepted",
+    "rootRoomNextGate": "stopped_before_branchworks_due_score_threshold",
+    "additionalChapterScaffolds": 9,
+    "chapterScaffoldChecks": {
+      "status": "valid_local_chapter_scaffolds",
+      "passed": 123,
+      "failed": 0
+    },
+    "rootRoomChecks": {
+      "status": "valid_local_scaffold",
+      "passed": 30,
+      "failed": 0
+    }
+  },
+  "chapters": [
+    {
+      "chapter": 2,
+      "title": "The Root Room",
+      "status": "root_room_and_chapter_3_local_closeout_complete",
+      "stateLabel": "Root Room and Chapter 3 local closeouts complete",
+      "runner": "Steward",
+      "firstMove": "Root Room local closeout completed",
+      "proof": "Echo perspective note, Shield boundary review, Ledger baseline record, Chief handoff, closeout receipt, and lane receipts exist",
+      "blockedBy": [
+        "live/risky movement blocked; local-only continuation allowed while score remains 97 or higher"
+      ]
+    },
+    {
+      "chapter": 3,
+      "title": "The Mud Pit",
+      "status": "local_scaffold_ready_waiting_real_content",
+      "stateLabel": "Local only",
+      "runner": "Crossfire",
+      "firstMove": "Crossfire pressure-test packet",
+      "proof": "Mud Pit local scaffold and Crossfire profile exist",
+      "blockedBy": [
+        "real content and Boss approval before live lane movement"
+      ]
+    },
+    {
+      "chapter": 4,
+      "title": "Trunk Ascent",
+      "status": "chapter_3_local_closeout_complete_waiting_next_gate",
+      "stateLabel": "Local closeout complete",
+      "runner": "Steward",
+      "firstMove": "The Name local scaffold",
+      "proof": "Chapter 3 handoff, Luma/Bloom/Vault/Compass local passes, receipts, run-state, Steward receipt, and closeout receipt exist",
+      "blockedBy": [
+        "no n8n/live movement approved",
+        "score must remain 97 or higher for local continuation"
+      ]
+    },
+    {
+      "chapter": 5,
+      "title": "The Name",
+      "status": "chapter_4_local_closeout_complete_waiting_next_gate",
+      "stateLabel": "Local closeout complete",
+      "runner": "Steward",
+      "firstMove": "Canopy Foundation local scaffold",
+      "proof": "Moniker local pass, run-state, Steward receipt, and closeout receipt exist",
+      "blockedBy": [
+        "no URL check/purchase or live movement approved",
+        "score must remain 97 or higher for local continuation"
+      ]
+    },
+    {
+      "chapter": 6,
+      "title": "Canopy Foundation",
+      "status": "chapter_5_local_closeout_complete_waiting_next_gate",
+      "stateLabel": "Local closeout complete",
+      "runner": "Steward",
+      "firstMove": "Wind Tunnel local scaffold",
+      "proof": "Canopy local notes, run-state, Steward receipt, and closeout receipt exist",
+      "blockedBy": [
+        "no build/dashboard/live movement approved",
+        "score must remain 97 or higher for local continuation"
+      ]
+    },
+    {
+      "chapter": 7,
+      "title": "Wind Tunnel",
+      "status": "chapter_6_local_closeout_complete_waiting_next_gate",
+      "stateLabel": "Local closeout complete",
+      "runner": "Steward",
+      "firstMove": "Branchworks Level local scaffold",
+      "proof": "Gauge, Shield, Stagehand local notes, run-state, Steward receipt, and closeout receipt exist",
+      "blockedBy": [
+        "stopped before Branchworks after confidence/completeness dropped under 97",
+        "no build, Lovable, n8n, or live movement approved"
+      ]
+    },
+    {
+      "chapter": 8,
+      "title": "Branchworks Level",
+      "status": "local_scaffold_ready",
+      "stateLabel": "Local only",
+      "runner": "Steward",
+      "firstMove": "Tinker opens Branchworks",
+      "proof": "placeholder run-state and Steward receipt exist",
+      "blockedBy": [
+        "prior chapter completion",
+        "Boss approval before real lane activation"
+      ]
+    },
+    {
+      "chapter": 9,
+      "title": "Heavy Crown",
+      "status": "local_scaffold_ready",
+      "stateLabel": "Local only",
+      "runner": "Steward",
+      "firstMove": "Weaver opens Crown",
+      "proof": "placeholder run-state and Steward receipt exist",
+      "blockedBy": [
+        "prior chapter completion",
+        "Boss approval before real lane activation"
+      ]
+    },
+    {
+      "chapter": 10,
+      "title": "Clean Sweep",
+      "status": "local_scaffold_ready",
+      "stateLabel": "Local only",
+      "runner": "Steward",
+      "firstMove": "Ghost",
+      "proof": "placeholder run-state and Steward receipt exist",
+      "blockedBy": [
+        "prior chapter completion",
+        "Boss approval before real lane activation"
+      ]
+    },
+    {
+      "chapter": 11,
+      "title": "Nest Level",
+      "status": "local_scaffold_ready",
+      "stateLabel": "Local only",
+      "runner": "Steward",
+      "firstMove": "Ward opens Nest",
+      "proof": "placeholder run-state and Steward receipt exist",
+      "blockedBy": [
+        "prior chapter completion",
+        "Boss approval before real lane activation"
+      ]
+    },
+    {
+      "chapter": 12,
+      "title": "Seed Level",
+      "status": "local_scaffold_ready",
+      "stateLabel": "Local only",
+      "runner": "Steward",
+      "firstMove": "Bloom opens Seed",
+      "proof": "placeholder run-state and Steward receipt exist",
+      "blockedBy": [
+        "prior chapter completion",
+        "Boss approval before real lane activation"
+      ]
+    }
+  ],
+  "boundary": "Read-only internal status snapshot. It does not contact n8n, dispatch bots, run agents, submit prompts, deploy, spend, launch, or change runtime/config/authority."
+}

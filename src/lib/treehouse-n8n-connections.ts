@@ -47,13 +47,13 @@ const chapterLevelKeys: Record<string, string | null> = {
   clarity: "library",
   "root-room": null,
   "mud-pit": "mud-pit",
-  "trunk-level": "trunk",
-  "the-clearing": "the-clearing",
-  "canopy-level": "canopy",
+  "trunk-ascent": "trunk-ascent",
+  "the-name": "the-name",
+  "canopy-foundation": "canopy-foundation",
   "wind-tunnel": "wind-tunnel",
   "branchworks-level": "branchworks",
-  "crown-level": "crown",
-  "the-sweep": "the-sweep",
+  "heavy-crown": "heavy-crown",
+  "clean-sweep": "clean-sweep",
   "nest-level": "nest",
   "seed-level": "seed",
   "future-13": null,
@@ -85,7 +85,7 @@ const backendChapterRuns: Record<
     runId: "mud-pit-local-scaffold-2026-06-14",
     status: "mud_pit_local_scaffold_ready_waiting_real_content",
   },
-  "trunk-level": {
+  "trunk-ascent": {
     firstPart: "Luma",
     partCount: 4,
     runDir:
@@ -93,7 +93,7 @@ const backendChapterRuns: Record<
     runId: "trunk-level-local-scaffold-2026-06-12",
     status: "chapter_3_local_closeout_complete_waiting_next_gate",
   },
-  "the-clearing": {
+  "the-name": {
     firstPart: "Moniker",
     partCount: 1,
     runDir:
@@ -101,7 +101,7 @@ const backendChapterRuns: Record<
     runId: "the-clearing-local-scaffold-2026-06-12",
     status: "chapter_4_local_closeout_complete_waiting_next_gate",
   },
-  "canopy-level": {
+  "canopy-foundation": {
     firstPart: "Rook opens Canopy",
     partCount: 6,
     runDir:
@@ -125,7 +125,7 @@ const backendChapterRuns: Record<
     runId: "branchworks-level-local-scaffold-2026-06-12",
     status: "chapter_7_local_closeout_complete_waiting_next_gate",
   },
-  "crown-level": {
+  "heavy-crown": {
     firstPart: "Weaver opens Crown",
     partCount: 9,
     runDir:
@@ -133,7 +133,7 @@ const backendChapterRuns: Record<
     runId: "crown-level-local-scaffold-2026-06-12",
     status: "chapter_8_local_closeout_complete_waiting_next_gate",
   },
-  "the-sweep": {
+  "clean-sweep": {
     firstPart: "Ghost",
     partCount: 1,
     runDir:
@@ -163,9 +163,9 @@ const botParticipantsByChapter: Record<string, string[]> = {
   clarity: ["Clarity"],
   "root-room": ["Echo", "Shield", "Ledger", "Chief"],
   "mud-pit": ["Crossfire"],
-  "trunk-level": ["Luma", "Bloom", "Vault", "Compass"],
-  "the-clearing": ["Moniker"],
-  "canopy-level": ["Rook", "Bones", "Squirrels", "Lanterns", "Ledger"],
+  "trunk-ascent": ["Luma", "Bloom", "Vault", "Compass"],
+  "the-name": ["Moniker"],
+  "canopy-foundation": ["Rook", "Bones", "Squirrels", "Lanterns", "Ledger"],
   "wind-tunnel": ["Gauge", "Shield", "Stagehand"],
   "branchworks-level": [
     "Tinker",
@@ -177,7 +177,7 @@ const botParticipantsByChapter: Record<string, string[]> = {
     "Bolt",
     "Craft",
   ],
-  "crown-level": [
+  "heavy-crown": [
     "Weaver",
     "Grandpa Bears",
     "Bones",
@@ -186,7 +186,7 @@ const botParticipantsByChapter: Record<string, string[]> = {
     "Anteater",
     "Shield",
   ],
-  "the-sweep": ["Ghost"],
+  "clean-sweep": ["Ghost"],
   "nest-level": ["Ward", "Boomer", "Helper Routes"],
   "seed-level": ["Bloom", "Seed Sorting", "Senior Seeds", "Seed Admin"],
   "future-13": ["Future chapter owner"],

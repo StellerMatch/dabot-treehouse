@@ -53,9 +53,9 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Challenge shell only. It does not reject ideas, override the user, approve spending, or make final decisions.",
   },
   {
-    id: "trunk-level",
+    id: "trunk-ascent",
     chapter: 4,
-    title: "Trunk Level",
+    title: "Trunk Ascent",
     purpose: "Turn the baseline into a deeper research and direction packet.",
     parts: ["Luma", "Bloom", "Vault", "Compass"],
     checkpoints: [
@@ -66,11 +66,11 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
     boundary: "Research shell only. It does not approve building, spending, launch, or automation.",
   },
   {
-    id: "the-clearing",
+    id: "the-name",
     chapter: 5,
-    title: "The Clearing",
+    title: "The Name",
     purpose:
-      "Name and frame the project clearly enough that later chapters know what they are building.",
+      "Find the best working name for the project without making the creator feel like they have to be clever.",
     parts: ["Moniker"],
     checkpoints: [
       "Working name is captured",
@@ -80,9 +80,9 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
     boundary: "Naming shell only. It does not lock the final brand, public copy, or launch name.",
   },
   {
-    id: "canopy-level",
+    id: "canopy-foundation",
     chapter: 6,
-    title: "Canopy Level",
+    title: "Canopy Foundation",
     purpose: "Build the clean foundation packet before experiments or prototype work begin.",
     parts: [
       "Rook opens Canopy",
@@ -139,9 +139,9 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Experiment shell only. It does not execute builds, connect accounts, spend, or launch.",
   },
   {
-    id: "crown-level",
+    id: "heavy-crown",
     chapter: 9,
-    title: "Crown Level",
+    title: "Heavy Crown",
     purpose: "Prepare final prototype packaging, review, and handoff materials.",
     parts: [
       "Weaver opens Crown",
@@ -163,9 +163,9 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
       "Final-review shell only. It does not approve production release, public launch, or support.",
   },
   {
-    id: "the-sweep",
+    id: "clean-sweep",
     chapter: 10,
-    title: "The Sweep",
+    title: "Clean Sweep",
     purpose: "Run the Ghost-style cleanup and scenario review before operations.",
     parts: ["Ghost"],
     checkpoints: [
@@ -231,6 +231,11 @@ export const TREEHOUSE_CHAPTER_TEMPLATES: TreehouseChapterTemplate[] = [
 
 const LEGACY_CHAPTER_ID_ALIASES: Record<string, string> = {
   "future-chapter-12": "future-13",
+  "trunk-level": "trunk-ascent",
+  "the-clearing": "the-name",
+  "canopy-level": "canopy-foundation",
+  "crown-level": "heavy-crown",
+  "the-sweep": "clean-sweep",
 };
 
 export function chapterTemplateById(id: string) {
@@ -284,7 +289,8 @@ export function currentChapterTemplateForIdea(input: {
 }
 
 export function nextChapterTemplate(id: string) {
-  const index = TREEHOUSE_CHAPTER_TEMPLATES.findIndex((chapter) => chapter.id === id);
+  const canonicalId = LEGACY_CHAPTER_ID_ALIASES[id] ?? id;
+  const index = TREEHOUSE_CHAPTER_TEMPLATES.findIndex((chapter) => chapter.id === canonicalId);
   if (index < 0) return TREEHOUSE_CHAPTER_TEMPLATES[0];
   return TREEHOUSE_CHAPTER_TEMPLATES[index + 1];
 }
