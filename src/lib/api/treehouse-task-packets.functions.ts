@@ -10,6 +10,15 @@ const TASK_PACKET_DIR =
 
 const taskPacketInputSchema = z.object({
   actor: z.string().min(1),
+  backendChapterRun: z
+    .object({
+      runDir: z.string().min(1),
+      runId: z.string().min(1),
+      status: z.string().min(1),
+    })
+    .nullable()
+    .optional(),
+  botParticipants: z.array(z.string().min(1)).optional(),
   chapterId: z.string().min(1),
   chapterTitle: z.string().min(1),
   n8nAnchor: z.string().nullable(),
@@ -55,6 +64,8 @@ export const createTreehouseTaskPacket = createServerFn({ method: "POST" })
         partTitle: data.partTitle,
         actor: data.actor,
       },
+      backendChapterRun: data.backendChapterRun ?? null,
+      botParticipants: data.botParticipants ?? [],
       project: data.project ?? null,
       n8n: {
         anchor: data.n8nAnchor,

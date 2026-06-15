@@ -12,7 +12,13 @@ type RawN8nLevel = {
 
 export type TreehouseN8nConnection = {
   anchor: string | null;
+  backendChapterRun: {
+    runDir: string;
+    runId: string;
+    status: string;
+  } | null;
   boundary: string | null;
+  botParticipants: string[];
   hiddenProcessLabel: string;
   reportSourceKey: string | null;
   requestedAction: string;
@@ -53,6 +59,131 @@ const chapterLevelKeys: Record<string, string | null> = {
   "future-13": null,
 };
 
+const backendChapterRuns: Record<
+  string,
+  {
+    firstPart: string;
+    partCount: number;
+    runDir: string;
+    runId: string;
+    status: string;
+  }
+> = {
+  "root-room": {
+    firstPart: "Echo",
+    partCount: 4,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/root-room-runs/root-room-step-six-local-scaffold-2026-06-12",
+    runId: "root-room-step-six-local-scaffold-2026-06-12",
+    status: "root_room_local_scaffold_ready",
+  },
+  "trunk-level": {
+    firstPart: "Luma",
+    partCount: 4,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/trunk-level-local-scaffold-2026-06-12",
+    runId: "trunk-level-local-scaffold-2026-06-12",
+    status: "chapter_3_local_closeout_complete_waiting_next_gate",
+  },
+  "the-clearing": {
+    firstPart: "Moniker",
+    partCount: 1,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/the-clearing-local-scaffold-2026-06-12",
+    runId: "the-clearing-local-scaffold-2026-06-12",
+    status: "chapter_4_local_closeout_complete_waiting_next_gate",
+  },
+  "canopy-level": {
+    firstPart: "Rook opens Canopy",
+    partCount: 6,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/canopy-level-local-scaffold-2026-06-12",
+    runId: "canopy-level-local-scaffold-2026-06-12",
+    status: "chapter_5_local_closeout_complete_waiting_next_gate",
+  },
+  "wind-tunnel": {
+    firstPart: "Gauge",
+    partCount: 3,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/wind-tunnel-local-scaffold-2026-06-12",
+    runId: "wind-tunnel-local-scaffold-2026-06-12",
+    status: "chapter_6_local_closeout_complete_waiting_next_gate",
+  },
+  "branchworks-level": {
+    firstPart: "Tinker opens Branchworks",
+    partCount: 8,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/branchworks-level-local-scaffold-2026-06-12",
+    runId: "branchworks-level-local-scaffold-2026-06-12",
+    status: "chapter_7_local_closeout_complete_waiting_next_gate",
+  },
+  "crown-level": {
+    firstPart: "Weaver opens Crown",
+    partCount: 9,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/crown-level-local-scaffold-2026-06-12",
+    runId: "crown-level-local-scaffold-2026-06-12",
+    status: "chapter_8_local_closeout_complete_waiting_next_gate",
+  },
+  "the-sweep": {
+    firstPart: "Ghost",
+    partCount: 1,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/the-sweep-local-scaffold-2026-06-12",
+    runId: "the-sweep-local-scaffold-2026-06-12",
+    status: "chapter_9_local_closeout_complete_waiting_next_gate",
+  },
+  "nest-level": {
+    firstPart: "Ward opens Nest",
+    partCount: 5,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/nest-level-local-scaffold-2026-06-12",
+    runId: "nest-level-local-scaffold-2026-06-12",
+    status: "chapter_10_local_closeout_complete_waiting_next_gate",
+  },
+  "seed-level": {
+    firstPart: "Bloom opens Seed",
+    partCount: 6,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/seed-level-local-scaffold-2026-06-12",
+    runId: "seed-level-local-scaffold-2026-06-12",
+    status: "chapter_11_local_closeout_complete_sequence_complete",
+  },
+};
+
+const botParticipantsByChapter: Record<string, string[]> = {
+  clarity: ["Clarity"],
+  "root-room": ["Echo", "Shield", "Ledger", "Chief"],
+  "bad-brother": ["Bad Brother"],
+  "trunk-level": ["Luma", "Bloom", "Vault", "Compass"],
+  "the-clearing": ["Moniker"],
+  "canopy-level": ["Rook", "Bones", "Squirrels", "Lanterns", "Ledger"],
+  "wind-tunnel": ["Gauge", "Shield", "Stagehand"],
+  "branchworks-level": [
+    "Tinker",
+    "Squirrels",
+    "Lanterns",
+    "Echo",
+    "Momma Bear",
+    "Ace",
+    "Bolt",
+    "Craft",
+  ],
+  "crown-level": [
+    "Weaver",
+    "Grandpa Bears",
+    "Bones",
+    "Squirrels",
+    "Lanterns",
+    "Anteater",
+    "Shield",
+  ],
+  "the-sweep": ["Ghost"],
+  "nest-level": ["Ward", "Boomer", "Helper Routes"],
+  "seed-level": ["Bloom", "Seed Sorting", "Senior Seeds", "Seed Admin"],
+  "future-13": ["Future chapter owner"],
+};
+
 const parkedProcessLabels: Record<string, string> = {
   "root-room": "Root Room local baseline packet",
   "bad-brother": "Bad Brother local pressure-test packet",
@@ -65,13 +196,25 @@ export function treehouseN8nConnectionForChapter(chapterId: string): TreehouseN8
 
   const levelKey = chapterLevelKeys[chapter.id];
   const connection = levelKey ? levelConnections[levelKey] : undefined;
+  const backendChapterRun = backendChapterRuns[chapter.id];
   const requestedAction = `${chapter.id.replaceAll("-", "_")}_prepare_n8n_handoff`;
 
   return {
     anchor: connection?.anchor ?? null,
+    backendChapterRun: backendChapterRun
+      ? {
+          runDir: backendChapterRun.runDir,
+          runId: backendChapterRun.runId,
+          status: backendChapterRun.status,
+        }
+      : null,
     boundary: connection?.boundary ?? null,
+    botParticipants: botParticipantsByChapter[chapter.id] ?? [],
     hiddenProcessLabel:
-      connection?.anchor ?? parkedProcessLabels[chapter.id] ?? `${chapter.title} n8n handoff`,
+      connection?.anchor ??
+      backendChapterRun?.firstPart ??
+      parkedProcessLabels[chapter.id] ??
+      `${chapter.title} n8n handoff`,
     reportSourceKey:
       connection?.reportSourceKey ?? `${chapter.id.replaceAll("-", "_")}_local_handoff`,
     requestedAction,

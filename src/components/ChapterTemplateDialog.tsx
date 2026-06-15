@@ -98,6 +98,8 @@ export function ChapterTemplateDialog({
       const packet = await createTreehouseTaskPacket({
         data: {
           actor: "Treehouse",
+          backendChapterRun: n8nConnection.backendChapterRun,
+          botParticipants: n8nConnection.botParticipants,
           chapterId: targetChapter.id,
           chapterTitle: `Chapter ${targetChapter.chapter}: ${targetChapter.title}`,
           n8nAnchor: n8nConnection.anchor,
