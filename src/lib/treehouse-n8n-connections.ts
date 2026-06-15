@@ -46,7 +46,7 @@ const levelConnections = Object.fromEntries(
 const chapterLevelKeys: Record<string, string | null> = {
   clarity: "library",
   "root-room": null,
-  "bad-brother": null,
+  "bad-brother": "bad-brother",
   "trunk-level": "trunk",
   "the-clearing": "the-clearing",
   "canopy-level": "canopy",
@@ -76,6 +76,14 @@ const backendChapterRuns: Record<
       "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/root-room-runs/root-room-step-six-local-scaffold-2026-06-12",
     runId: "root-room-step-six-local-scaffold-2026-06-12",
     status: "root_room_local_scaffold_ready",
+  },
+  "bad-brother": {
+    firstPart: "Bad Brother",
+    partCount: 4,
+    runDir:
+      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/bad-brother-local-scaffold-2026-06-14",
+    runId: "bad-brother-local-scaffold-2026-06-14",
+    status: "bad_brother_local_scaffold_ready_waiting_real_content",
   },
   "trunk-level": {
     firstPart: "Luma",

@@ -50,9 +50,34 @@
         "lovable_section": "Saved ideas list opens a selected idea; the Library report action runs from the opened Idea Dashboard."
       },
       {
+        "level_key": "bad_brother",
+        "level_name": "Bad Brother",
+        "order": 2,
+        "owner": "Bad Brother pressure-test layer",
+        "status": "local_scaffold_ready_waiting_real_content",
+        "report_source_key": "bad_brother_pressure_test_packet",
+        "report_present": true,
+        "report_summary": "Pressure-test the Root Room baseline before Trunk Level begins. Name weak spots, proof needs, kill risks, and the stronger version.",
+        "expected_output": {
+          "packet_type": "bad_brother_pressure_test_packet",
+          "should_include": [
+            "hard questions for the idea",
+            "weak assumptions and likely break points",
+            "proof needed before Trunk research",
+            "kill risks or no-go warnings",
+            "stronger version to carry into Trunk Level"
+          ]
+        },
+        "open_questions": [],
+        "boundary": "Bad Brother challenges the idea only. It does not reject ideas, override Boss, approve spending, approve launch, contact n8n, dispatch bots, or change runtime/config/authority.",
+        "n8n_anchor": "Bad Brother: Prepare Pressure-Test Packet",
+        "lovable_page": "/levels",
+        "lovable_section": "Bad Brother chapter card / pressure-test door until a dedicated Bad Brother page exists."
+      },
+      {
         "level_key": "trunk",
         "level_name": "Trunk Level",
-        "order": 2,
+        "order": 3,
         "owner": "Lanterns / Compass",
         "status": "prepared_internal_handoff",
         "report_source_key": "trunk_level_rd_handoff",
@@ -68,7 +93,7 @@
       {
         "level_key": "the_clearing",
         "level_name": "The Clearing",
-        "order": 3,
+        "order": 4,
         "owner": "Moniker concept / naming layer",
         "status": "prepared_internal_name_and_url_options",
         "report_source_key": "project_naming_options",
@@ -84,7 +109,7 @@
       {
         "level_key": "canopy",
         "level_name": "Canopy Level",
-        "order": 4,
+        "order": 5,
         "owner": "Rook",
         "status": "rook_foundation_packet_prepared_internal_only",
         "report_source_key": "canopy_foundation_packet",
@@ -113,7 +138,7 @@
       {
         "level_key": "wind_tunnel",
         "level_name": "Wind Tunnel",
-        "order": 5,
+        "order": 6,
         "owner": "Gauge / Shield / Stagehand",
         "status": "wind_tunnel_worthiness_packet_proposed_internal_only",
         "report_source_key": "wind_tunnel_worthiness_packet",
@@ -142,7 +167,7 @@
       {
         "level_key": "branchworks",
         "level_name": "Branchworks Level",
-        "order": 6,
+        "order": 7,
         "owner": "Tinker / Momma / Bears",
         "status": "tinker_experiment_packet_prepared_internal_only",
         "report_source_key": "branchworks_experiment_packet",
@@ -173,7 +198,7 @@
       {
         "level_key": "crown",
         "level_name": "Crown Level",
-        "order": 7,
+        "order": 8,
         "owner": "Weaver / Grandpa Bears",
         "status": "crown_weaver_prototype_package_prepared_internal_only",
         "report_source_key": "crown_weaver_packet",
@@ -189,7 +214,7 @@
       {
         "level_key": "the_sweep",
         "level_name": "The Sweep",
-        "order": 8,
+        "order": 9,
         "owner": "Ghost",
         "status": "ghost_simulation_report_prepared_internal_only",
         "report_source_key": "ghost_simulation_report",
@@ -205,7 +230,7 @@
       {
         "level_key": "nest",
         "level_name": "Nest Level",
-        "order": 9,
+        "order": 10,
         "owner": "Ward",
         "status": "ward_nest_home_packet_prepared_internal_only",
         "report_source_key": "ward_nest_home_packet",
@@ -240,7 +265,7 @@
       {
         "level_key": "seed",
         "level_name": "Seed Level",
-        "order": 10,
+        "order": 11,
         "owner": "Bloom",
         "status": "bloom_seed_launch_packet_prepared_internal_only",
         "report_source_key": "bloom_seed_launch_packet",
