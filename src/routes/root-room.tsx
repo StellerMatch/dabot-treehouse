@@ -1000,12 +1000,6 @@ function RootRoomBotBriefingPanel({
   onSubmit: () => void;
 }) {
   const hasAnswer = value.trim().length > 0;
-  const nextLabel = index >= total - 1 ? "Send the crew to work" : "Next bot";
-  const primaryLabel = hasAnswer
-    ? index >= total - 1
-      ? "Save and send crew"
-      : "Save and next bot"
-    : nextLabel;
   return (
     <div className="relative">
       <div className="flex items-start gap-4">
@@ -1047,27 +1041,29 @@ function RootRoomBotBriefingPanel({
           placeholder={`Ask ${bot.name} a question or leave a note...`}
           className="mt-2 min-h-[84px] w-full resize-none rounded-lg border border-amber-200/35 bg-amber-50/95 px-3 py-2 text-sm leading-relaxed text-stone-950 outline-none transition focus:border-amber-200 focus:ring-2 focus:ring-amber-200/30"
         />
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={!hasAnswer}
+            className="inline-flex min-w-28 items-center justify-center rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-5 py-2 text-xs font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-200 hover:to-amber-400 disabled:cursor-not-allowed disabled:border-amber-200/25 disabled:from-stone-500/50 disabled:to-stone-700/50 disabled:text-amber-100/55 disabled:shadow-none"
+          >
+            Submit
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-[11px] text-amber-100/75">
           {answeredCount} crew note{answeredCount === 1 ? "" : "s"} captured so far.
         </div>
-        <div className="flex gap-2">
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={onSkip}
             className="rounded-full border border-amber-200/40 bg-black/30 px-4 py-2 text-xs font-semibold text-amber-50/90 transition hover:bg-black/50"
           >
             Not right now
-          </button>
-          <button
-            type="button"
-            onClick={onSubmit}
-            className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 text-xs font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-200 hover:to-amber-400"
-          >
-            {primaryLabel}
-            <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
