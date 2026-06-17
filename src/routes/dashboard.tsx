@@ -626,13 +626,16 @@ function normalizeExtrasMap(
 }
 
 // ——— Clarity's clarifying questions ———
-const MIN_CLARITY_FOLLOWUPS = 3;
+const ESSENTIAL_CLARITY_QUESTIONS = 5;
+const BONUS_CLARITY_QUESTIONS = 5;
+const TOTAL_CLARITY_QUESTIONS = ESSENTIAL_CLARITY_QUESTIONS + BONUS_CLARITY_QUESTIONS;
+const MIN_CLARITY_FOLLOWUPS = ESSENTIAL_CLARITY_QUESTIONS;
 const MIN_FOLLOWUP_SEQUENCE: CategoryKey[] = [
+  "core-idea",
   "problem",
   "audience",
   "features",
   "business",
-  "concerns",
 ];
 
 type ClarityQuestion = {
@@ -642,88 +645,9 @@ type ClarityQuestion = {
 };
 const CLARITY_QUESTIONS: ClarityQuestion[] = [
   {
-    id: "version-one",
-    prompt: "What is version one?",
-    keywords: [
-      "version one",
-      "version 1",
-      "v1",
-      "first version",
-      "simple version",
-      "smallest version",
-      "start with",
-      "mvp",
-    ],
-  },
-  {
-    id: "who-does-work",
-    prompt: "Who is doing the work?",
-    keywords: [
-      "who does",
-      "who is doing",
-      "human",
-      "ai",
-      "approve",
-      "approval",
-      "operator",
-      "admin",
-      "manager",
-      "user does",
-      "assistant",
-      "review",
-    ],
-  },
-  {
-    id: "trust-first",
-    prompt: "What should the user trust first?",
-    keywords: [
-      "trust",
-      "confidence",
-      "believe",
-      "proof",
-      "compare",
-      "comparison",
-      "review",
-      "approve",
-      "quality",
-      "accurate",
-      "reliable",
-    ],
-  },
-  {
-    id: "first-paid-version",
-    prompt: "What is the first tiny paid version?",
-    keywords: [
-      "paid",
-      "pay",
-      "price",
-      "pricing",
-      "subscription",
-      "monthly",
-      "credit",
-      "package",
-      "setup",
-      "one job",
-      "one edit",
-      "purchase",
-    ],
-  },
-  {
-    id: "most-important-detail",
-    prompt: "What detail matters most?",
-    keywords: [
-      "matters most",
-      "most important",
-      "detail",
-      "style",
-      "tone",
-      "quality",
-      "consistency",
-      "privacy",
-      "speed",
-      "control",
-      "exact",
-    ],
+    id: "core-promise",
+    prompt: "What is the clearest promise?",
+    keywords: ["promise", "main idea", "core idea", "goal", "purpose", "helps", "built for"],
   },
   {
     id: "problem",
@@ -765,6 +689,90 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
     ],
   },
   {
+    id: "version-one",
+    prompt: "What is version one?",
+    keywords: [
+      "version one",
+      "version 1",
+      "v1",
+      "first version",
+      "simple version",
+      "smallest version",
+      "start with",
+      "mvp",
+    ],
+  },
+  {
+    id: "first-paid-version",
+    prompt: "What is the first tiny paid version?",
+    keywords: [
+      "paid",
+      "pay",
+      "price",
+      "pricing",
+      "subscription",
+      "monthly",
+      "credit",
+      "package",
+      "setup",
+      "one job",
+      "one edit",
+      "purchase",
+    ],
+  },
+  {
+    id: "trust-first",
+    prompt: "What should the user trust first?",
+    keywords: [
+      "trust",
+      "confidence",
+      "believe",
+      "proof",
+      "compare",
+      "comparison",
+      "review",
+      "approve",
+      "quality",
+      "accurate",
+      "reliable",
+    ],
+  },
+  {
+    id: "who-does-work",
+    prompt: "Who is doing the work?",
+    keywords: [
+      "who does",
+      "who is doing",
+      "human",
+      "ai",
+      "approve",
+      "approval",
+      "operator",
+      "admin",
+      "manager",
+      "user does",
+      "assistant",
+      "review",
+    ],
+  },
+  {
+    id: "most-important-detail",
+    prompt: "What detail matters most?",
+    keywords: [
+      "matters most",
+      "most important",
+      "detail",
+      "style",
+      "tone",
+      "quality",
+      "consistency",
+      "privacy",
+      "speed",
+      "control",
+      "exact",
+    ],
+  },
+  {
     id: "look-like",
     prompt: "If it existed today, what would it look or feel like?",
     keywords: [
@@ -783,6 +791,11 @@ const CLARITY_QUESTIONS: ClarityQuestion[] = [
       "draft",
       "published",
     ],
+  },
+  {
+    id: "success-moment",
+    prompt: "What moment proves this worked?",
+    keywords: ["worked", "success", "done", "result", "outcome", "win", "proof"],
   },
 ];
 
@@ -807,6 +820,26 @@ function ideaQuestionContext(idea: LightbulbIdea | undefined): string {
     .join("\n");
 }
 
+function ideaMention(idea: LightbulbIdea | undefined): string {
+  const context = ideaQuestionContext(idea)
+    .replace(/\s+/g, " ")
+    .replace(/[“”]/g, '"')
+    .trim();
+  if (!context) return "your idea";
+
+  const cleanSentence = splitSentences(context)
+    .map((sentence) =>
+      sentence
+        .replace(/^[-•·\s]+/, "")
+        .replace(/\b(i want to|i wanna|i would like to|make|build|create)\b/gi, "")
+        .trim(),
+    )
+    .find((sentence) => sentence.length >= 18);
+  const source = cleanSentence || context;
+  const clipped = source.length > 86 ? source.slice(0, 84).replace(/\s+\S*$/, "") + "..." : source;
+  return clipped || "your idea";
+}
+
 function isCrewDispatchIdea(idea: LightbulbIdea | undefined): boolean {
   const context = ideaQuestionContext(idea);
   return (
@@ -819,8 +852,10 @@ function isCrewDispatchIdea(idea: LightbulbIdea | undefined): boolean {
 
 function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  const mention = ideaMention(idea);
   if (isCrewDispatchIdea(idea)) {
     const questions: Partial<Record<string, string>> = {
+      "core-promise": `You mentioned ${mention}. What is the clearest promise this makes to the construction manager?`,
       "version-one": `For version one of ${name}, should it only suggest the best-fit workers for a job address, only send schedule-update messages, or do both?`,
       "who-does-work": `Who makes the final crew assignment in ${name}: the system, the manager, a foreman, or the system suggesting and a human approving?`,
       "trust-first": `What should the manager trust first in ${name}: distance to the job, worker skill tags, availability, past reliability, acceptance status, or something else?`,
@@ -829,27 +864,32 @@ function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefi
       problem: `What scheduling or dispatch problem should ${name} solve first for the construction manager?`,
       who: `Who uses ${name} first: the construction manager, foreman, office scheduler, crew workers, or all of them?`,
       "look-like": `What should the manager and worker each see first when a new job address or schedule update is sent?`,
+      "success-moment": `What would prove ${name} worked on a real job day?`,
     };
     const personalized = questions[question.id];
     if (personalized) return personalized;
   }
   switch (question.id) {
+    case "core-promise":
+      return `You mentioned ${mention}. What is the clearest promise this idea makes to the person using it?`;
     case "version-one":
-      return `What is version one for ${name}? You gave me the bigger shape; what is the smallest useful version of it?`;
+      return `For ${name}, what is the smallest useful version of “${mention}” that someone could try first?`;
     case "who-does-work":
       return `Who is doing the work inside ${name}? Is it the user, a human helper, AI, or AI making the first pass for someone to approve?`;
     case "trust-first":
-      return `What should someone trust first in ${name}? Should they trust the saved profile, the first result, the comparison, the handoff, or something else?`;
+      return `When someone sees ${name} working from “${mention},” what should they trust first: the result, the handoff, the saved details, or the approval step?`;
     case "first-paid-version":
-      return `What is the first tiny paid version of ${name}? Would someone pay for one job, a monthly helper, a setup/profile, credits, or something else?`;
+      return `What is the first tiny paid version of ${name}? Would someone pay for one job, a monthly helper, a setup, credits, or something else?`;
     case "most-important-detail":
-      return `What detail matters most for ${name}? Is it speed, consistency, personal style, approval control, privacy, or matching the exact finished result?`;
+      return `What detail from “${mention}” matters most: speed, consistency, personal style, approval control, privacy, or the exact finished result?`;
     case "problem":
-      return `What problem should ${name} solve first?`;
+      return `What problem inside “${mention}” should ${name} solve first?`;
     case "who":
-      return `Who is ${name} for first? Picture one real person using it.`;
+      return `Who is ${name} for first? Picture one real person who would care about “${mention}.”`;
     case "look-like":
-      return `If ${name} existed today, what would someone see or do first?`;
+      return `If ${name} existed today, what would someone see or do first with “${mention}”?`;
+    case "success-moment":
+      return `What moment would prove ${name} worked: what would the user do, receive, save, understand, or finish?`;
     default:
       return question.prompt.replace(/\bthis idea\b/gi, name);
   }
@@ -876,6 +916,7 @@ function requiredFollowupQuestionFor(
 
 function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  const mention = ideaMention(idea);
   if (isCrewDispatchIdea(idea)) {
     const questions: Record<CategoryKey, string> = {
       "core-idea": `What is the strongest one-line purpose for ${name}: matching the right crew to each job address, sending schedule updates, or both?`,
@@ -891,10 +932,10 @@ function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefin
     return questions[cat];
   }
   const questions: Record<CategoryKey, string> = {
-    "core-idea": `What is the strongest one-line purpose for ${name}?`,
-    clarity: `What still feels unclear, undecided, or worth sharpening in ${name}?`,
-    problem: `What pain point makes ${name} worth building?`,
-    audience: `Who exactly needs ${name} first?`,
+    "core-idea": `You mentioned ${mention}. What is the strongest one-line purpose for ${name}?`,
+    clarity: `What still feels unclear, undecided, or worth sharpening in “${mention}”?`,
+    problem: `What pain point inside “${mention}” makes ${name} worth building?`,
+    audience: `Who exactly needs ${name} first? Picture the person who would care about “${mention}.”`,
     features: `What feature or action matters most in the first useful version of ${name}?`,
     workflow: `What should happen step by step when someone uses ${name}?`,
     design: `How should ${name} look, feel, or behave so it is easy to use?`,
@@ -907,6 +948,7 @@ function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefin
 // Premade Clarity questions per category — used when a user clicks a category folder
 function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined): string {
   const name = projectQuestionName(idea);
+  const mention = ideaMention(idea);
   if (isCrewDispatchIdea(idea)) {
     const questions: Record<CategoryKey, string> = {
       "core-idea": `What is the clearest one-line promise for ${name}?`,
@@ -922,7 +964,7 @@ function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined):
     return questions[cat];
   }
   const label = postItCategoryPalette[cat].label;
-  const prefix = `Clarity opened the ${label} book for ${name}:`;
+  const prefix = `Clarity opened the ${label} book for ${name} and noticed “${mention}”:`;
   const questions: Record<CategoryKey, string> = {
     "core-idea": `${prefix} what is its main purpose in one line?`,
     clarity: `${prefix} what is already clear, and where is the direction still fuzzy?`,
@@ -2160,7 +2202,7 @@ function Dashboard() {
     const newAnswered = answeredQuestionsFromClarityDigest(cleaned, nextPosts);
     const answeredCurrent = detectAnswered(p.text, currentQuestion);
     const nextFollowupCount = Math.min(
-      MIN_CLARITY_FOLLOWUPS,
+      TOTAL_CLARITY_QUESTIONS,
       (selectedExtras.clarityFollowupCount ?? 0) + (currentQuestion ? 1 : 0),
     );
     updateExtras({
@@ -2871,8 +2913,8 @@ function Dashboard() {
             moveToPreClarity={moveToPreClarity}
             fileInputRef={fileInputRef}
             currentQuestion={currentQuestion}
-            answeredCount={selectedExtras.answeredQuestions.length}
-            totalQuestions={CLARITY_QUESTIONS.length}
+            answeredCount={selectedExtras.clarityFollowupCount ?? 0}
+            totalQuestions={TOTAL_CLARITY_QUESTIONS}
             onSkipClarityQuestion={skipClarityQuestion}
             getCategoryValue={getCategoryValue}
             overallPct={overallPct}
@@ -6126,13 +6168,23 @@ function ClarityGuide({
     !!currentQuestion &&
     currentQuestion.id.startsWith("required-") &&
     answeredCount < MIN_CLARITY_FOLLOWUPS;
+  const isEssentialRound = answeredCount < ESSENTIAL_CLARITY_QUESTIONS;
+  const questionNumber = Math.min(
+    isEssentialRound ? answeredCount + 1 : answeredCount - ESSENTIAL_CLARITY_QUESTIONS + 1,
+    isEssentialRound ? ESSENTIAL_CLARITY_QUESTIONS : BONUS_CLARITY_QUESTIONS,
+  );
+  const roundLabel = isEssentialRound
+    ? `Essential ${questionNumber}/${ESSENTIAL_CLARITY_QUESTIONS}`
+    : `Bonus ${questionNumber}/${BONUS_CLARITY_QUESTIONS}`;
   const bubbleText =
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `We have a starting point. I’ll ask personalized Clarity questions based on what is still weak or missing before this turns into a project brief.\n\n${currentQuestion!.prompt}`
+        ? `We have a starting point. I’ll ask the five essential questions first, using words from the idea so this does not feel generic.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
-      : currentQuestion!.prompt);
+      : answeredCount >= ESSENTIAL_CLARITY_QUESTIONS && currentQuestion
+        ? `I can move this forward, but I see room to make it stronger. This is one of the five bonus questions.\n\n${currentQuestion.prompt}`
+        : currentQuestion!.prompt);
   const showQuestionControls = !!selected && !!currentQuestion;
   const isCategoryQuestion = currentQuestion?.id.startsWith("cat-") ?? false;
 
@@ -6158,8 +6210,13 @@ function ClarityGuide({
           >
             <div className="flex items-center justify-between">
               <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/70">
-                Clarity asks
+                {showQuestionControls ? roundLabel : "Clarity asks"}
               </div>
+              {showQuestionControls && (
+                <div className="font-serif text-[10px] uppercase tracking-[0.16em] text-amber-900/55">
+                  {Math.min(answeredCount, totalQuestions)}/{totalQuestions}
+                </div>
+              )}
             </div>
             <p className="mt-1.5 whitespace-pre-wrap font-serif text-sm leading-snug text-amber-950">
               {showQuestionControls ? `“${bubbleText}”` : bubbleText}
@@ -6171,7 +6228,11 @@ function ClarityGuide({
                   onClick={onSkip}
                   className="font-serif text-[11px] italic text-amber-900/70 underline-offset-2 hover:underline"
                 >
-                  {isCategoryQuestion ? "Back to Clarity" : "Next Question"}
+                  {isCategoryQuestion
+                    ? "Back to Clarity"
+                    : isEssentialRound
+                      ? "Next essential"
+                      : "Next bonus"}
                 </button>
                 <button
                   onClick={() => setMinimized(true)}
