@@ -80,7 +80,7 @@ function readActiveProject(): ActiveProject | null {
     return {
       description: typeof active.description === "string" ? active.description : undefined,
       id: typeof active.id === "string" ? active.id : `idea-${Date.now()}`,
-      title: active.title,
+      title: active.title as string,
     };
   } catch {
     return null;
