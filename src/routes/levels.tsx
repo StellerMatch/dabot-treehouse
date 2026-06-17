@@ -1023,6 +1023,7 @@ const MUD_PIT_ANSWERS_KEY = "dabottree:mudPitPressureAnswers";
 const THE_NAME_DIRECTION_KEY = "dabottree:theNameDirection";
 const CANOPY_FOUNDATION_CHECK_KEY = "dabottree:canopyFoundationChecks";
 const WIND_TUNNEL_REVIEW_KEY = "dabottree:windTunnelReview";
+const BRANCHWORKS_FUTURE_VISION_KEY = "dabottree:branchworksFutureVision";
 
 const MONIKER_PRIMARY_NAME_SLOTS = Array.from({ length: 10 }, (_, index) => ({
   id: `primary-${index + 1}`,
@@ -1175,6 +1176,15 @@ const WIND_TUNNEL_LOOK_MORE_INTO = [
   "Which assumption could break first when real users touch it.",
   "Which risk needs a stronger boundary before build work moves too far.",
   "What proof would make the project feel ready instead of just promising.",
+];
+
+const BRANCHWORKS_FUTURE_OPTIONS = [
+  "Something small, useful, and easy to keep alive",
+  "Something polished that people remember",
+  "Something powerful that can do a lot",
+  "Something that helps a real community",
+  "Something that can become a real business",
+  "I am still not sure yet",
 ];
 
 const MUD_PIT_QUESTION_BUCKETS: Array<{
@@ -1385,9 +1395,7 @@ function buildMudPitQuestions(
       bucket: bucket.id,
       label: bucket.label,
       round: bucket.round,
-      prompt: snippet
-        ? bucket.deeperPrompt(name, snippet)
-        : bucket.missingPrompt(name, mention),
+      prompt: snippet ? bucket.deeperPrompt(name, snippet) : bucket.missingPrompt(name, mention),
     };
   });
 }
@@ -1691,6 +1699,7 @@ function ChapterOverview({
   const showTheNameGuide = chapter.id === "the-name";
   const showCanopyGuide = chapter.id === "canopy-foundation";
   const showWindTunnelGuide = chapter.id === "wind-tunnel";
+  const showBranchworksGuide = chapter.id === "branchworks";
 
   return (
     <div className="relative z-10 flex h-full min-h-[460px] flex-col justify-between p-5 sm:p-6">
@@ -1744,6 +1753,7 @@ function ChapterOverview({
         {showTheNameGuide ? <TheNameMonikerPanel project={project} /> : null}
         {showCanopyGuide ? <CanopyFoundationPanel project={project} /> : null}
         {showWindTunnelGuide ? <WindTunnelStagehandPanel project={project} /> : null}
+        {showBranchworksGuide ? <BranchworksMommaBearPanel project={project} /> : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1880,7 +1890,9 @@ function WindTunnelStagehandPanel({ project }: { project: LocalTreehouseProject 
           <div className="max-h-[86vh] w-full max-w-lg overflow-y-auto rounded-md border border-cyan-100/25 bg-stone-950 p-4 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-cyan-100">Wind Test Review</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-cyan-100">
+                  Wind Test Review
+                </p>
                 <h4 className="mt-1 text-xl font-semibold text-white">First stress result</h4>
               </div>
               <button
@@ -1920,6 +1932,214 @@ function WindTunnelStagehandPanel({ project }: { project: LocalTreehouseProject 
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function BranchworksMommaBearPanel({ project }: { project: LocalTreehouseProject | null }) {
+  const [futureVision, setFutureVision] = useState("");
+
+  const chooseFutureVision = (option: string) => {
+    setFutureVision(option);
+    try {
+      window.localStorage.setItem(
+        BRANCHWORKS_FUTURE_VISION_KEY,
+        JSON.stringify({
+          answeredAt: new Date().toISOString(),
+          projectId: project?.projectId ?? null,
+          answer: option,
+        }),
+      );
+    } catch {
+      // The scene can still work if local storage is unavailable.
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-md border border-lime-200/22 bg-lime-300/10 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.16em] text-lime-100">Momma Bear</p>
+          <h4 className="mt-1 text-lg font-semibold text-white">Branchworks treehouse build</h4>
+          <p className="mt-1 text-sm leading-6 text-slate-200">
+            My little builders are hard at work. They are making room for this idea to grow into
+            something pretty awesome.
+          </p>
+        </div>
+        <div className="rounded-md border border-lime-100/20 bg-black/24 px-3 py-2 text-right">
+          <p className="text-xs text-lime-100">
+            {futureVision ? "Future noted" : "Growth question"}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">Branchworks scene</p>
+        </div>
+      </div>
+
+      <div className="mt-3 overflow-hidden rounded-md border border-white/10 bg-stone-950/70 p-3">
+        <div className="relative min-h-[310px] rounded-md border border-lime-100/10 bg-[radial-gradient(circle_at_50%_16%,rgba(190,242,100,0.18),rgba(12,10,9,0.06)_44%,rgba(0,0,0,0.24)_100%)] p-4">
+          <div className="absolute bottom-0 left-1/2 h-52 w-16 -translate-x-1/2 rounded-t-full border border-amber-900/50 bg-[#6f4425] shadow-[inset_12px_0_rgba(255,255,255,0.08)]" />
+          <div className="absolute left-[16%] right-[16%] top-[128px] h-8 rounded-full border border-amber-900/55 bg-[#754925] shadow-[0_10px_28px_rgba(0,0,0,0.34)]" />
+          <div className="absolute left-1/2 top-[88px] h-24 w-16 -translate-x-1/2 rounded-t-full bg-[#6f4425]" />
+
+          <div className="relative z-10 grid min-h-[270px] grid-rows-[1fr_auto] gap-4">
+            <div className="grid items-end gap-3 sm:grid-cols-3">
+              <BranchworksTreehouse
+                accent="sky"
+                bear="Ace"
+                house="clear little house"
+                position="left"
+              />
+              <BranchworksTreehouse
+                accent="amber"
+                bear="Bolt"
+                house="busy little house"
+                position="center"
+              />
+              <BranchworksTreehouse
+                accent="rose"
+                bear="Craft"
+                house="warm little house"
+                position="right"
+              />
+            </div>
+
+            <div className="mx-auto flex w-full max-w-md items-center gap-3 rounded-md border border-lime-100/20 bg-black/55 p-3">
+              <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-lime-100/25 bg-[#8f5d3c]">
+                <div className="relative h-10 w-12 rounded-full bg-[#c58a58]">
+                  <span className="absolute -left-2 top-1 h-5 w-5 rounded-full bg-[#c58a58]" />
+                  <span className="absolute -right-2 top-1 h-5 w-5 rounded-full bg-[#c58a58]" />
+                  <span className="absolute left-3 top-4 h-1.5 w-1.5 rounded-full bg-stone-950" />
+                  <span className="absolute right-3 top-4 h-1.5 w-1.5 rounded-full bg-stone-950" />
+                  <span className="absolute left-1/2 top-6 h-2 w-3 -translate-x-1/2 rounded-full bg-stone-900" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-lime-100">Momma Bear</p>
+                <p className="mt-1 text-sm leading-6 text-slate-100">
+                  Before they get too far, tell me what you hope this project grows into.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-md border border-white/10 bg-black/24 p-3">
+        <p className="text-sm font-semibold text-white">
+          When you picture this project grown up, what do you hope it becomes?
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {BRANCHWORKS_FUTURE_OPTIONS.map((option) => {
+            const selected = futureVision === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => chooseFutureVision(option)}
+                className={`min-h-10 rounded-md border px-3 py-2 text-left text-sm transition ${
+                  selected
+                    ? "border-lime-100/70 bg-lime-300 text-stone-950"
+                    : "border-white/10 bg-stone-950/60 text-slate-200 hover:bg-white/10"
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+        {futureVision ? (
+          <div className="mt-3 rounded-md border border-lime-100/20 bg-lime-300/10 p-3">
+            <p className="text-sm font-semibold text-lime-50">
+              Good. I will keep that in mind while the little ones keep building.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-300">
+              Nothing is locked yet. Branchworks is just giving the project room to grow.
+            </p>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs leading-5 text-slate-300">
+            The houses are only a clue. The user does not need to know what each builder is shaping
+            behind the scenes.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BranchworksTreehouse({
+  accent,
+  bear,
+  house,
+  position,
+}: {
+  accent: "amber" | "rose" | "sky";
+  bear: string;
+  house: string;
+  position: "center" | "left" | "right";
+}) {
+  const palette = {
+    amber: {
+      border: "border-amber-100/35",
+      roof: "border-b-amber-300",
+      wall: "bg-amber-200/35",
+      bear: "bg-amber-300",
+      trim: "bg-amber-100/45",
+      text: "text-amber-100",
+    },
+    rose: {
+      border: "border-rose-100/35",
+      roof: "border-b-rose-300",
+      wall: "bg-rose-200/35",
+      bear: "bg-rose-300",
+      trim: "bg-rose-100/45",
+      text: "text-rose-100",
+    },
+    sky: {
+      border: "border-sky-100/35",
+      roof: "border-b-sky-300",
+      wall: "bg-sky-200/35",
+      bear: "bg-sky-300",
+      trim: "bg-sky-100/45",
+      text: "text-sky-100",
+    },
+  }[accent];
+  const lift =
+    position === "center"
+      ? "sm:-translate-y-5"
+      : position === "left"
+        ? "sm:translate-y-4"
+        : "sm:translate-y-2";
+
+  return (
+    <div className={`flex min-h-[180px] flex-col items-center justify-end ${lift}`}>
+      <div className="relative h-24 w-28">
+        <div
+          className={`absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[48px] border-b-[34px] border-x-transparent ${palette.roof}`}
+        />
+        <div
+          className={`absolute bottom-0 left-1/2 h-16 w-24 -translate-x-1/2 rounded-md border ${palette.border} ${palette.wall} shadow-[0_12px_22px_rgba(0,0,0,0.32)]`}
+        >
+          <div className={`mx-auto mt-4 h-9 w-5 rounded-t-md ${palette.trim}`} />
+          <div className="absolute left-3 top-5 h-4 w-4 rounded-sm bg-black/24" />
+          <div className="absolute right-3 top-5 h-4 w-4 rounded-sm bg-black/24" />
+        </div>
+      </div>
+      <div className="mt-2 flex items-end gap-1">
+        <div className={`relative h-9 w-10 rounded-full ${palette.bear}`}>
+          <span className={`absolute -left-1 top-1 h-3 w-3 rounded-full ${palette.bear}`} />
+          <span className={`absolute -right-1 top-1 h-3 w-3 rounded-full ${palette.bear}`} />
+          <span className="absolute left-2.5 top-4 h-1 w-1 rounded-full bg-stone-950" />
+          <span className="absolute right-2.5 top-4 h-1 w-1 rounded-full bg-stone-950" />
+          <span className="absolute left-1/2 top-5 h-1.5 w-2 -translate-x-1/2 rounded-full bg-stone-900" />
+        </div>
+        <div className="h-8 w-2 -rotate-12 rounded-full bg-stone-200/55" />
+      </div>
+      <p
+        className={`mt-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] ${palette.text}`}
+      >
+        {bear}
+      </p>
+      <p className="mt-1 text-center text-[11px] text-slate-400">{house}</p>
     </div>
   );
 }
@@ -1976,10 +2196,7 @@ function CanopyFoundationPanel({ project }: { project: LocalTreehouseProject | n
         {CANOPY_FOUNDATION_CHECKS.map((check) => {
           const selected = answers[check.id];
           return (
-            <div
-              key={check.id}
-              className="rounded-md border border-white/10 bg-black/24 p-3"
-            >
+            <div key={check.id} className="rounded-md border border-white/10 bg-black/24 p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="text-xs uppercase tracking-[0.15em] text-emerald-100">
@@ -2089,8 +2306,8 @@ function TheNameMonikerPanel({ project }: { project: LocalTreehouseProject | nul
           <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-100">Moniker</p>
           <h4 className="mt-1 text-lg font-semibold text-white">The Name process</h4>
           <p className="mt-1 text-sm leading-6 text-slate-200">
-            A good name has to fit the project, sound right, and have a path to being used.
-            Moniker asks for direction first, then works on a real shortlist.
+            A good name has to fit the project, sound right, and have a path to being used. Moniker
+            asks for direction first, then works on a real shortlist.
           </p>
         </div>
         <div className="rounded-md border border-fuchsia-100/20 bg-black/24 px-3 py-2 text-right">
