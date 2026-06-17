@@ -14,6 +14,7 @@ import shieldAsset from "@/assets/shield-presenting.png.asset.json";
 import {
   createTreehouseTaskPacket,
   getTreehouseChapterActivity,
+  requestClarityBonusQuestions,
   requestClarityIntakeQuestions,
   submitClarityQuestionAnswers,
 } from "@/lib/api/treehouse-task-packets.functions";
@@ -49,6 +50,15 @@ type ClarityAnswer = {
   answer: string;
   questionId: string;
 };
+type ClarityQuestionGroup = {
+  answers?: ClarityAnswer[];
+  id: string;
+  questions: ClarityQuestion[];
+  reviewMessage?: string | null;
+  round: number;
+  source: "initial" | "user_bonus" | "clarity_more_needed";
+  status?: "questions_ready" | "answers_submitted" | "waiting_for_questions";
+};
 type ClarityRequestStatus = "idle" | "requesting" | "waiting" | "questions-ready" | "submitted" | "error";
 
 const ROOT_ROOM_STORY_STEPS = ["Echo", "Shield", "Ledger", "Chief"];
@@ -81,7 +91,12 @@ export function ChapterTemplateDialog({
   const [rootRoomPacketId, setRootRoomPacketId] = useState<string | null>(null);
   const [clarityStatus, setClarityStatus] = useState<ClarityRequestStatus>("idle");
   const [clarityQuestions, setClarityQuestions] = useState<ClarityQuestion[]>([]);
+  const [clarityQuestionGroups, setClarityQuestionGroups] = useState<ClarityQuestionGroup[]>([]);
+  const [activeClarityGroupId, setActiveClarityGroupId] = useState<string | null>(null);
   const [clarityAnswers, setClarityAnswers] = useState<Record<string, string>>({});
+  const [canRequestBonusQuestions, setCanRequestBonusQuestions] = useState(false);
+  const [clarityNeedsMoreQuestions, setClarityNeedsMoreQuestions] = useState(false);
+  const [clarityReviewMessage, setClarityReviewMessage] = useState<string | null>(null);
   const [clarityMessage, setClarityMessage] = useState<string | null>(null);
   const isRootRoomChapter = chapter.id === "root-room";
   const isClarityChapter = chapter.id === "clarity";
@@ -170,7 +185,7 @@ export function ChapterTemplateDialog({
   ]);
 
   useEffect(() => {
-    if (!open || !isClarityChapter || !ideaId || clarityStatus === "submitted") return;
+    if (!open || !isClarityChapter || !ideaId) return;
     let cancelled = false;
 
     const syncClarityActivity = async () => {
@@ -180,14 +195,50 @@ export function ChapterTemplateDialog({
       if (cancelled || !result?.activity) return;
 
       const activity = result.activity as {
+        activeQuestionGroupId?: string | null;
         answers?: ClarityAnswer[];
+        canRequestBonusQuestions?: boolean;
+        clarityNeedsMoreQuestions?: boolean;
+        clarityReviewMessage?: string | null;
         message?: string | null;
+        questionGroups?: ClarityQuestionGroup[];
         questions?: ClarityQuestion[];
         status?: string;
       };
       if (activity.message) setClarityMessage(activity.message);
+      setCanRequestBonusQuestions(Boolean(activity.canRequestBonusQuestions));
+      setClarityNeedsMoreQuestions(Boolean(activity.clarityNeedsMoreQuestions));
+      setClarityReviewMessage(activity.clarityReviewMessage ?? null);
+      if (Array.isArray(activity.questionGroups) && activity.questionGroups.length > 0) {
+        const groups = activity.questionGroups;
+        const activeGroup =
+          groups.find((group) => group.id === activity.activeQuestionGroupId) ??
+          [...groups].reverse().find((group) => group.questions.length > 0) ??
+          groups[groups.length - 1];
+        setClarityQuestionGroups(groups);
+        setActiveClarityGroupId(activeGroup?.id ?? null);
+        if (activeGroup?.questions.length) {
+          setClarityQuestions(activeGroup.questions.slice(0, 5));
+          setClarityStatus(activity.status === "next_ready" ? "submitted" : "questions-ready");
+        }
+      }
       if (Array.isArray(activity.questions) && activity.questions.length > 0) {
         setClarityQuestions(activity.questions.slice(0, 5));
+        if (activity.questionGroups?.length === 0 || !activity.questionGroups) {
+          const initialGroup = {
+            id: "clarity-round-1",
+            questions: activity.questions.slice(0, 5),
+            reviewMessage: activity.clarityReviewMessage ?? null,
+            round: 1,
+            source: "initial" as const,
+            status:
+              activity.status === "next_ready"
+                ? ("answers_submitted" as const)
+                : ("questions_ready" as const),
+          };
+          setClarityQuestionGroups([initialGroup]);
+          setActiveClarityGroupId(initialGroup.id);
+        }
         setClarityStatus(activity.status === "next_ready" ? "submitted" : "questions-ready");
       } else if (activity.status === "bots_running") {
         setClarityStatus("waiting");
@@ -285,6 +336,11 @@ export function ChapterTemplateDialog({
 
   const submitClarityAnswers = async () => {
     if (!ideaId || clarityQuestions.length === 0) return;
+    const questionGroupId =
+      activeClarityGroupId ?? `clarity-round-${clarityQuestionGroups.length || 1}`;
+    const currentRound =
+      clarityQuestionGroups.find((group) => group.id === questionGroupId)?.round ??
+      (clarityQuestionGroups.length || 1);
     const answers = clarityQuestions
       .map((question) => ({
         questionId: question.id,
@@ -307,19 +363,85 @@ export function ChapterTemplateDialog({
             projectId: ideaId,
             title: ideaTitle || "Untitled idea",
           },
+          questionGroupId,
+          questionGroups:
+            clarityQuestionGroups.length > 0
+              ? clarityQuestionGroups
+              : [
+                  {
+                    id: questionGroupId,
+                    questions: clarityQuestions,
+                    round: currentRound,
+                    source: "initial",
+                    status: "questions_ready",
+                  },
+                ],
+          questionRound: currentRound,
           questions: clarityQuestions,
         },
       });
       setClarityStatus("submitted");
+      setCanRequestBonusQuestions(true);
       setClarityMessage("Clarity answers are saved to the Chapter 1 packet.");
+      setClarityReviewMessage(
+        "Clarity has this group of five. If she needs more, her review can return five more. You can also ask for five bonus questions.",
+      );
     } catch {
       setClarityStatus("error");
       setClarityMessage("The Clarity answers could not be submitted yet.");
     }
   };
 
+  const requestMoreClarityQuestions = async (
+    reason: "user_bonus" | "clarity_more_needed" = "user_bonus",
+  ) => {
+    if (!ideaId) return;
+    const nextRound = Math.max(1, ...clarityQuestionGroups.map((group) => group.round)) + 1;
+    setClarityStatus("requesting");
+    setCanRequestBonusQuestions(false);
+    setClarityNeedsMoreQuestions(reason === "clarity_more_needed");
+    setClarityMessage(
+      reason === "clarity_more_needed"
+        ? "Steward is sending Clarity's next-five request."
+        : "Steward is asking Clarity for five bonus questions.",
+    );
+    try {
+      await requestClarityBonusQuestions({
+        data: {
+          chapterId: chapter.id,
+          chapterTitle: `Chapter ${chapter.chapter}: ${chapter.title}`,
+          previousAnswers: clarityQuestions
+            .map((question) => ({
+              questionId: question.id,
+              answer: clarityAnswers[question.id]?.trim() ?? "",
+            }))
+            .filter((answer) => answer.answer),
+          previousQuestionGroups: clarityQuestionGroups,
+          project: {
+            description: ideaDescription || ideaIntakeText || "",
+            ideaType: ideaType || "",
+            intakeText: ideaIntakeText || ideaDescription || "",
+            projectId: ideaId,
+            title: ideaTitle || "Untitled idea",
+          },
+          reason,
+          requestedQuestionCount: 5,
+          round: nextRound,
+        },
+      });
+      setClarityQuestions([]);
+      setActiveClarityGroupId(`clarity-round-${nextRound}`);
+      setClarityStatus("waiting");
+    } catch {
+      setClarityStatus("error");
+      setCanRequestBonusQuestions(true);
+      setClarityMessage("The next five Clarity questions could not be requested yet.");
+    }
+  };
+
   const canContinueChapter =
-    !isClarityChapter || clarityStatus === "submitted" || demoComplete;
+    !isClarityChapter ||
+    ((clarityStatus === "submitted" || demoComplete) && !clarityNeedsMoreQuestions);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -365,12 +487,17 @@ export function ChapterTemplateDialog({
               onStartRootRoomRun={startRootRoomRun}
               clarityStatus={clarityStatus}
               clarityQuestions={clarityQuestions}
+              clarityQuestionGroups={clarityQuestionGroups}
               clarityAnswers={clarityAnswers}
               clarityMessage={clarityMessage}
+              clarityReviewMessage={clarityReviewMessage}
+              canRequestBonusQuestions={canRequestBonusQuestions}
+              clarityNeedsMoreQuestions={clarityNeedsMoreQuestions}
               canContinueChapter={canContinueChapter}
               onClarityAnswerChange={(questionId, answer) =>
                 setClarityAnswers((prev) => ({ ...prev, [questionId]: answer }))
               }
+              onRequestMoreClarityQuestions={requestMoreClarityQuestions}
               onSubmitClarityAnswers={submitClarityAnswers}
             />
           </div>
@@ -444,10 +571,15 @@ function ChapterTemplateBody({
   onChapterContinue,
   clarityStatus,
   clarityQuestions,
+  clarityQuestionGroups,
   clarityAnswers,
   clarityMessage,
+  clarityReviewMessage,
+  canRequestBonusQuestions,
+  clarityNeedsMoreQuestions,
   canContinueChapter,
   onClarityAnswerChange,
+  onRequestMoreClarityQuestions,
   onSubmitClarityAnswers,
   rootRoomRunStatus,
   rootRoomRunStep,
@@ -463,10 +595,15 @@ function ChapterTemplateBody({
   onChapterContinue: () => void;
   clarityStatus: ClarityRequestStatus;
   clarityQuestions: ClarityQuestion[];
+  clarityQuestionGroups: ClarityQuestionGroup[];
   clarityAnswers: Record<string, string>;
   clarityMessage: string | null;
+  clarityReviewMessage: string | null;
+  canRequestBonusQuestions: boolean;
+  clarityNeedsMoreQuestions: boolean;
   canContinueChapter: boolean;
   onClarityAnswerChange: (questionId: string, answer: string) => void;
+  onRequestMoreClarityQuestions: (reason?: "user_bonus" | "clarity_more_needed") => void;
   onSubmitClarityAnswers: () => void;
   rootRoomRunStatus: RootRoomRunStatus;
   rootRoomRunStep: number;
@@ -569,9 +706,14 @@ function ChapterTemplateBody({
         <ClarityQuestionPanel
           status={clarityStatus}
           questions={clarityQuestions}
+          questionGroups={clarityQuestionGroups}
           answers={clarityAnswers}
           answeredCount={answeredClarityCount}
+          reviewMessage={clarityReviewMessage}
+          canRequestBonus={canRequestBonusQuestions}
+          clarityNeedsMore={clarityNeedsMoreQuestions}
           onAnswerChange={onClarityAnswerChange}
+          onRequestMore={onRequestMoreClarityQuestions}
           onSubmit={onSubmitClarityAnswers}
           canSubmit={canSubmitClarityAnswers}
         />
@@ -667,21 +809,34 @@ function ChapterTemplateBody({
 function ClarityQuestionPanel({
   status,
   questions,
+  questionGroups,
   answers,
   answeredCount,
+  reviewMessage,
+  canRequestBonus,
+  clarityNeedsMore,
   canSubmit,
   onAnswerChange,
+  onRequestMore,
   onSubmit,
 }: {
   status: ClarityRequestStatus;
   questions: ClarityQuestion[];
+  questionGroups: ClarityQuestionGroup[];
   answers: Record<string, string>;
   answeredCount: number;
+  reviewMessage: string | null;
+  canRequestBonus: boolean;
+  clarityNeedsMore: boolean;
   canSubmit: boolean;
   onAnswerChange: (questionId: string, answer: string) => void;
+  onRequestMore: (reason?: "user_bonus" | "clarity_more_needed") => void;
   onSubmit: () => void;
 }) {
   const waiting = status === "requesting" || status === "waiting" || questions.length === 0;
+  const activeGroup = [...questionGroups].reverse().find((group) => group.questions.length > 0);
+  const currentRound = activeGroup?.round ?? Math.max(1, questionGroups.length);
+  const submitted = status === "submitted";
 
   return (
     <div className="mt-4 rounded-md border border-amber-900/30 bg-amber-50/70 p-4 shadow-inner">
@@ -691,7 +846,7 @@ function ClarityQuestionPanel({
             Real Clarity intake
           </div>
           <h4 className="mt-1 font-serif text-base font-semibold text-amber-950">
-            Five project-specific questions
+            Group {currentRound} of five project-specific questions
           </h4>
         </div>
         <div className="rounded-sm border border-amber-900/25 bg-amber-100/70 px-2.5 py-1 font-serif text-[11px] font-semibold text-amber-950">
@@ -701,8 +856,8 @@ function ClarityQuestionPanel({
 
       {waiting ? (
         <p className="mt-3 rounded-sm border border-dashed border-amber-900/30 bg-amber-100/45 p-3 text-sm leading-relaxed text-amber-950/75">
-          Steward has been pinged through the Chapter 1 bridge. Clarity's five questions will
-          appear here when n8n posts the Clarity packet back to this idea.
+          Steward has been pinged through the Chapter 1 bridge. Clarity's next five questions
+          will appear here when n8n posts the Clarity packet back to this idea.
         </p>
       ) : (
         <div className="mt-3 space-y-3">
@@ -737,8 +892,40 @@ function ClarityQuestionPanel({
             disabled={!canSubmit}
             className="rounded-sm border border-emerald-950/20 bg-emerald-800 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-50 shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-amber-950/35"
           >
-            {status === "submitted" ? "Answers Saved" : "Send Answers To Clarity"}
+            {submitted ? "Answers Saved" : "Send Answers To Clarity"}
           </button>
+          {submitted ? (
+            <div className="rounded-sm border border-amber-900/25 bg-amber-100/65 p-3">
+              <div className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+                Clarity review
+              </div>
+              <p className="mt-1 text-sm leading-relaxed text-amber-950/75">
+                {clarityNeedsMore
+                  ? "I have five more before this base is strong enough."
+                  : reviewMessage ||
+                    "Clarity has this group of five. You can continue or ask for five bonus questions."}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {clarityNeedsMore ? (
+                  <button
+                    type="button"
+                    onClick={() => onRequestMore("clarity_more_needed")}
+                    className="rounded-sm border border-amber-950/20 bg-amber-950 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-900"
+                  >
+                    Get Clarity's Next Five
+                  </button>
+                ) : canRequestBonus ? (
+                  <button
+                    type="button"
+                    onClick={() => onRequestMore("user_bonus")}
+                    className="rounded-sm border border-amber-950/20 bg-amber-950 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-900"
+                  >
+                    Ask 5 Bonus Questions
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

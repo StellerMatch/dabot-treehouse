@@ -60,12 +60,30 @@ async function handleTreehouseChapterActivity(request: Request): Promise<Respons
   }
 
   const body = (await request.json().catch(() => null)) as {
+    activeQuestionGroupId?: string | null;
     answers?: Array<{ questionId: string; answer: string }>;
+    canRequestBonusQuestions?: boolean;
+    clarityNeedsMoreQuestions?: boolean;
+    clarityReviewMessage?: string | null;
     currentChapterId?: string | null;
     message?: string | null;
     nextChapterId?: string | null;
     projectId?: string;
     question?: string | null;
+    questionGroups?: Array<{
+      answers?: Array<{ questionId: string; answer: string }>;
+      id: string;
+      questions: Array<{
+        id: string;
+        prompt: string;
+        reason?: string | null;
+        answerType?: string | null;
+      }>;
+      reviewMessage?: string | null;
+      round: number;
+      source: "initial" | "user_bonus" | "clarity_more_needed";
+      status?: "questions_ready" | "answers_submitted" | "waiting_for_questions";
+    }>;
     questions?: Array<{
       id: string;
       prompt: string;
@@ -91,12 +109,23 @@ async function handleTreehouseChapterActivity(request: Request): Promise<Respons
     "./lib/treehouse-chapter-activity.server"
   );
   const activity = await writeTreehouseChapterActivity({
+    activeQuestionGroupId: body.activeQuestionGroupId ?? null,
     answers: Array.isArray(body.answers) ? body.answers : undefined,
+    canRequestBonusQuestions:
+      typeof body.canRequestBonusQuestions === "boolean"
+        ? body.canRequestBonusQuestions
+        : undefined,
+    clarityNeedsMoreQuestions:
+      typeof body.clarityNeedsMoreQuestions === "boolean"
+        ? body.clarityNeedsMoreQuestions
+        : undefined,
+    clarityReviewMessage: body.clarityReviewMessage ?? null,
     currentChapterId: body.currentChapterId ?? null,
     message: body.message ?? null,
     nextChapterId: body.nextChapterId ?? null,
     projectId: body.projectId,
     question: body.question ?? null,
+    questionGroups: Array.isArray(body.questionGroups) ? body.questionGroups : undefined,
     questions: Array.isArray(body.questions) ? body.questions : undefined,
     source: body.source ?? "treehouse-chapter-activity-api",
     status,

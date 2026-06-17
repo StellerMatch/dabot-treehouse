@@ -15,14 +15,34 @@ export type TreehouseClarityAnswer = {
   answer: string;
 };
 
+export type TreehouseClarityQuestionGroupSource =
+  | "initial"
+  | "user_bonus"
+  | "clarity_more_needed";
+
+export type TreehouseClarityQuestionGroup = {
+  answers?: TreehouseClarityAnswer[];
+  id: string;
+  questions: TreehouseClarityQuestion[];
+  reviewMessage?: string | null;
+  round: number;
+  source: TreehouseClarityQuestionGroupSource;
+  status?: "questions_ready" | "answers_submitted" | "waiting_for_questions";
+};
+
 export type TreehouseChapterActivityRecord = {
   answers?: TreehouseClarityAnswer[];
+  activeQuestionGroupId?: string | null;
+  canRequestBonusQuestions?: boolean;
+  clarityNeedsMoreQuestions?: boolean;
+  clarityReviewMessage?: string | null;
   createdAt: string;
   currentChapterId?: string | null;
   message?: string | null;
   nextChapterId?: string | null;
   projectId: string;
   question?: string | null;
+  questionGroups?: TreehouseClarityQuestionGroup[];
   questions?: TreehouseClarityQuestion[];
   source: string;
   status: TreehouseChapterActivityStatus;
@@ -58,12 +78,17 @@ export async function readTreehouseChapterActivity(
 }
 
 export async function writeTreehouseChapterActivity(input: {
+  activeQuestionGroupId?: string | null;
   answers?: TreehouseClarityAnswer[];
+  canRequestBonusQuestions?: boolean;
+  clarityNeedsMoreQuestions?: boolean;
+  clarityReviewMessage?: string | null;
   currentChapterId?: string | null;
   message?: string | null;
   nextChapterId?: string | null;
   projectId: string;
   question?: string | null;
+  questionGroups?: TreehouseClarityQuestionGroup[];
   questions?: TreehouseClarityQuestion[];
   source?: string;
   status: TreehouseChapterActivityStatus;
@@ -72,11 +97,19 @@ export async function writeTreehouseChapterActivity(input: {
   const now = new Date().toISOString();
   const record: TreehouseChapterActivityRecord = {
     createdAt: existing?.createdAt ?? now,
+    activeQuestionGroupId:
+      input.activeQuestionGroupId ?? existing?.activeQuestionGroupId ?? null,
+    canRequestBonusQuestions:
+      input.canRequestBonusQuestions ?? existing?.canRequestBonusQuestions ?? false,
+    clarityNeedsMoreQuestions:
+      input.clarityNeedsMoreQuestions ?? existing?.clarityNeedsMoreQuestions ?? false,
+    clarityReviewMessage: input.clarityReviewMessage ?? existing?.clarityReviewMessage ?? null,
     currentChapterId: input.currentChapterId ?? existing?.currentChapterId ?? null,
     message: input.message ?? null,
     nextChapterId: input.nextChapterId ?? existing?.nextChapterId ?? null,
     projectId: input.projectId,
     question: input.question ?? null,
+    questionGroups: input.questionGroups ?? existing?.questionGroups ?? [],
     questions: input.questions ?? existing?.questions ?? [],
     answers: input.answers ?? existing?.answers ?? [],
     source: input.source ?? "treehouse-chapter-activity",

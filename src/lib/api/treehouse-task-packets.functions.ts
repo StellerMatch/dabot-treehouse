@@ -83,6 +83,16 @@ const clarityAnswerSchema = z.object({
   questionId: z.string().min(1),
 });
 
+const clarityQuestionGroupSchema = z.object({
+  answers: z.array(clarityAnswerSchema).optional(),
+  id: z.string().min(1),
+  questions: z.array(clarityQuestionSchema).min(1),
+  reviewMessage: z.string().nullable().optional(),
+  round: z.number().int().min(1),
+  source: z.enum(["initial", "user_bonus", "clarity_more_needed"]),
+  status: z.enum(["questions_ready", "answers_submitted", "waiting_for_questions"]).optional(),
+});
+
 const clarityIntakeRequestInputSchema = z.object({
   chapterId: z.string().min(1).default("clarity"),
   chapterTitle: z.string().min(1).default("Chapter 1: Spark Library"),
@@ -96,9 +106,29 @@ const clarityIntakeRequestInputSchema = z.object({
   requestedQuestionCount: z.number().int().min(1).max(10).default(5),
 });
 
+const clarityBonusRequestInputSchema = z.object({
+  chapterId: z.string().min(1).default("clarity"),
+  chapterTitle: z.string().min(1).default("Chapter 1: Spark Library"),
+  previousAnswers: z.array(clarityAnswerSchema).optional(),
+  previousQuestionGroups: z.array(clarityQuestionGroupSchema).optional(),
+  project: z.object({
+    description: z.string().optional(),
+    ideaType: z.string().optional(),
+    intakeText: z.string().optional(),
+    projectId: z.string().min(1),
+    title: z.string().min(1),
+  }),
+  reason: z.enum(["user_bonus", "clarity_more_needed"]).default("user_bonus"),
+  requestedQuestionCount: z.literal(5).default(5),
+  round: z.number().int().min(2),
+});
+
 const clarityAnswerSubmissionInputSchema = z.object({
   answers: z.array(clarityAnswerSchema).min(1),
   chapterId: z.string().min(1).default("clarity"),
+  questionGroupId: z.string().min(1).optional(),
+  questionGroups: z.array(clarityQuestionGroupSchema).optional(),
+  questionRound: z.number().int().min(1).default(1),
   project: z.object({
     description: z.string().optional(),
     ideaType: z.string().optional(),
@@ -126,12 +156,17 @@ const chapterActivityLookupSchema = z.object({
 });
 
 const chapterActivityUpdateSchema = z.object({
+  activeQuestionGroupId: z.string().min(1).nullable().optional(),
   answers: z.array(clarityAnswerSchema).optional(),
+  canRequestBonusQuestions: z.boolean().optional(),
+  clarityNeedsMoreQuestions: z.boolean().optional(),
+  clarityReviewMessage: z.string().nullable().optional(),
   currentChapterId: z.string().min(1).nullable().optional(),
   message: z.string().nullable().optional(),
   nextChapterId: z.string().min(1).nullable().optional(),
   projectId: z.string().min(1),
   question: z.string().nullable().optional(),
+  questionGroups: z.array(clarityQuestionGroupSchema).optional(),
   questions: z.array(clarityQuestionSchema).optional(),
   source: z.string().min(1).default("dabottree-app-server"),
   status: chapterActivityStatusSchema,
@@ -291,6 +326,7 @@ export const requestClarityIntakeQuestions = createServerFn({ method: "POST" })
       requestedQuestionCount: data.requestedQuestionCount,
       requiredOutput: {
         format: "json",
+        groupSize: 5,
         questions: [
           {
             id: "string",
@@ -299,6 +335,12 @@ export const requestClarityIntakeQuestions = createServerFn({ method: "POST" })
             answerType: "short_text | paragraph | choice | list",
           },
         ],
+        review: {
+          canRequestBonusQuestions: true,
+          clarityNeedsMoreQuestions: false,
+          clarityReviewMessage:
+            "If Clarity needs another group after the first answers, she says she has five more.",
+        },
       },
       project: data.project,
       boundary:
@@ -327,6 +369,97 @@ export const requestClarityIntakeQuestions = createServerFn({ method: "POST" })
     };
   });
 
+export const requestClarityBonusQuestions = createServerFn({ method: "POST" })
+  .validator(clarityBonusRequestInputSchema)
+  .handler(async ({ data }) => {
+    const requestId = `clarity-next-five-${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID()}`;
+    const event = {
+      event: "treehouse_clarity_bonus_questions_requested",
+      requestId,
+      source: "dabottree-app-server",
+      triggerIntent: "chapter_1_steward_ping_clarity_next_five",
+      chapterId: data.chapterId,
+      chapterTitle: data.chapterTitle,
+      requestedBot: "Steward",
+      stewardAction: "ping_clarity_for_next_five_questions",
+      targetBot: "Clarity",
+      questionGroup: {
+        requestedQuestionCount: 5,
+        reason: data.reason,
+        round: data.round,
+      },
+      previousAnswers: data.previousAnswers ?? [],
+      previousQuestionGroups: data.previousQuestionGroups ?? [],
+      requiredOutput: {
+        format: "json",
+        groupSize: 5,
+        questions: [
+          {
+            id: "string",
+            prompt: "next project-specific question from real Clarity via Steward",
+            reason: "why this additional question strengthens the project base",
+            answerType: "short_text | paragraph | choice | list",
+          },
+        ],
+        review: {
+          canRequestBonusQuestions: true,
+          clarityNeedsMoreQuestions: data.reason === "clarity_more_needed",
+          clarityReviewMessage:
+            data.reason === "clarity_more_needed"
+              ? "Clarity says she has five more before this base is strong enough."
+              : "The user asked Clarity for five bonus questions.",
+        },
+      },
+      project: data.project,
+      boundary:
+        "Chapter 1 Clarity next-five request. Steward owns the ping to Clarity. Sends only to the approved dabottree n8n webhook when configured. Does not deploy, spend, publish, or change runtime/config/authority.",
+    };
+
+    await writeTreehouseChapterActivity({
+      activeQuestionGroupId: `clarity-round-${data.round}`,
+      canRequestBonusQuestions: false,
+      clarityNeedsMoreQuestions: data.reason === "clarity_more_needed",
+      clarityReviewMessage:
+        data.reason === "clarity_more_needed"
+          ? "Clarity says she has five more."
+          : "Steward is asking Clarity for five bonus questions.",
+      currentChapterId: data.chapterId,
+      message:
+        data.reason === "clarity_more_needed"
+          ? "Steward is sending Clarity's next-five request."
+          : "Steward is asking Clarity for five bonus questions.",
+      projectId: data.project.projectId,
+      questionGroups: [
+        ...(data.previousQuestionGroups ?? []),
+        {
+          id: `clarity-round-${data.round}`,
+          questions: [],
+          reviewMessage:
+            data.reason === "clarity_more_needed"
+              ? "Clarity says she has five more."
+              : "Waiting on Clarity's five bonus questions.",
+          round: data.round,
+          source: data.reason,
+          status: "waiting_for_questions" as const,
+        },
+      ],
+      source: "dabottree-clarity-next-five-request",
+      status: "bots_running",
+    });
+
+    const n8nTrigger = await postLiveN8n(event);
+    return {
+      n8nTriggerStatus: n8nTrigger.status,
+      requestId,
+      status:
+        n8nTrigger.status === "triggered_live_n8n"
+          ? "clarity_next_five_request_sent_to_n8n"
+          : n8nTrigger.status === "live_n8n_failed"
+            ? "clarity_next_five_request_n8n_failed"
+            : "clarity_next_five_request_created_local_only",
+    };
+  });
+
 export const submitClarityQuestionAnswers = createServerFn({ method: "POST" })
   .validator(clarityAnswerSubmissionInputSchema)
   .handler(async ({ data }) => {
@@ -341,17 +474,39 @@ export const submitClarityQuestionAnswers = createServerFn({ method: "POST" })
       stewardAction: "send_clarity_answers_to_admin_packet",
       targetBot: "Clarity",
       project: data.project,
+      questionGroupId: data.questionGroupId ?? null,
+      questionRound: data.questionRound,
+      questionGroups: data.questionGroups ?? [],
       questions: data.questions ?? [],
       answers: data.answers,
+      nextStepContract: {
+        groupSize: 5,
+        ifClarityNeedsMore: "return clarityNeedsMoreQuestions=true with five more questions",
+        ifUserWantsBonus:
+          "app may send treehouse_clarity_bonus_questions_requested for the next group of five",
+      },
       boundary:
         "Chapter 1 Clarity answer submission. Sends user answers to the approved dabottree n8n webhook when configured. Does not deploy, spend, publish, or change runtime/config/authority.",
     };
 
+    const submittedGroups =
+      data.questionGroups?.map((group) =>
+        group.id === data.questionGroupId
+          ? { ...group, answers: data.answers, status: "answers_submitted" as const }
+          : group,
+      ) ?? [];
+
     await writeTreehouseChapterActivity({
       answers: data.answers,
+      canRequestBonusQuestions: true,
+      clarityNeedsMoreQuestions: false,
+      clarityReviewMessage:
+        "Clarity has this group of five. If she needs more, her review can return another five; the user can also ask for five bonus questions.",
       currentChapterId: data.chapterId,
-      message: "Clarity answers submitted for the Chapter 1 base packet.",
+      message:
+        "Clarity answers submitted for this group of five. Bonus questions are available in another group of five.",
       projectId: data.project.projectId,
+      questionGroups: submittedGroups.length > 0 ? submittedGroups : undefined,
       questions: data.questions ?? [],
       source: "dabottree-clarity-answer-submit",
       status: "next_ready",
