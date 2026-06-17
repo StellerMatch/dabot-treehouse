@@ -273,10 +273,10 @@ const categoryDefs: { key: CategoryKey; label: string; hint: string; guidance: s
   },
   {
     key: "clarity",
-    label: "Clarity",
+    label: "Mini Clarity",
     hint: "Overall readout & 90% direction",
     guidance:
-      "Clarity's overall readout: what's understood, the current 90% direction, and what's still fuzzy.",
+      "Mini Clarity's overall readout: what's understood, the current 90% direction, and what's still fuzzy.",
   },
   {
     key: "problem",
@@ -339,7 +339,7 @@ const postItCategoryPalette: Record<
     edge: "#6a4818",
     tape: "rgba(78,52,16,0.55)",
     chip: "#d6c192",
-    label: "Clarity",
+    label: "Mini Clarity",
   },
   problem: {
     bg: "linear-gradient(180deg,#b7b67d 0%,#85874e 100%)",
@@ -957,8 +957,8 @@ function categoryAnswerSnippetFor(
     .map((line) =>
       line
         .replace(/^[-•·\s]+/, "")
-        .replace(/^Verbatim intake notes Clarity found for this folder:\s*/i, "")
-        .replace(/^Clarity readout:\s*/i, "")
+        .replace(/^Verbatim intake notes (?:Mini )?Clarity found for this folder:\s*/i, "")
+        .replace(/^(?:Mini )?Clarity readout:\s*/i, "")
         .trim(),
     )
     .filter((line) => line.length >= 18 && !line.startsWith(CATEGORY_MISSING[cat]))[0];
@@ -990,15 +990,15 @@ function deeperCategoryQuestionFor(
   const snippet = categoryAnswerSnippetFor(idea, extras, cat);
   if (!snippet) return categoryQuestionFor(cat, idea);
   const questions: Record<CategoryKey, string> = {
-    "core-idea": `Clarity already found this core idea: “${snippet}.” What is the cleanest one-sentence promise underneath it?`,
-    clarity: `Clarity already found this signal: “${snippet}.” What still needs to be decided before ${name} moves forward?`,
-    problem: `Clarity already found this problem signal: “${snippet}.” What is the sharpest pain point inside that problem?`,
-    audience: `Clarity already found this audience signal: “${snippet}.” Who is the first real person who would care most?`,
-    features: `Clarity already found this feature signal: “${snippet}.” Which one action should version one do first?`,
-    workflow: `Clarity already found this workflow signal: “${snippet}.” What is the next step after that in the user's path?`,
-    design: `Clarity already found this design signal: “${snippet}.” What should the first screen or moment feel like?`,
-    business: `Clarity already found this money signal: “${snippet}.” What would make someone pay, save money, or say it is worth using?`,
-    concerns: `Clarity already found this risk signal: “${snippet}.” What is the main thing to protect, test, or avoid?`,
+    "core-idea": `Mini Clarity already found this core idea: “${snippet}.” What is the cleanest one-sentence promise underneath it?`,
+    clarity: `Mini Clarity already found this signal: “${snippet}.” What still needs to be decided before ${name} moves forward?`,
+    problem: `Mini Clarity already found this problem signal: “${snippet}.” What is the sharpest pain point inside that problem?`,
+    audience: `Mini Clarity already found this audience signal: “${snippet}.” Who is the first real person who would care most?`,
+    features: `Mini Clarity already found this feature signal: “${snippet}.” Which one action should version one do first?`,
+    workflow: `Mini Clarity already found this workflow signal: “${snippet}.” What is the next step after that in the user's path?`,
+    design: `Mini Clarity already found this design signal: “${snippet}.” What should the first screen or moment feel like?`,
+    business: `Mini Clarity already found this money signal: “${snippet}.” What would make someone pay, save money, or say it is worth using?`,
+    concerns: `Mini Clarity already found this risk signal: “${snippet}.” What is the main thing to protect, test, or avoid?`,
   };
   return questions[cat];
 }
@@ -1022,7 +1022,7 @@ function categoryQuestionFor(cat: CategoryKey, idea: LightbulbIdea | undefined):
     return questions[cat];
   }
   const label = postItCategoryPalette[cat].label;
-  const prefix = `Clarity opened the ${label} book for ${name} and noticed “${mention}”:`;
+  const prefix = `Mini Clarity opened the ${label} book for ${name} and noticed “${mention}”:`;
   const questions: Record<CategoryKey, string> = {
     "core-idea": `${prefix} what is its main purpose in one line?`,
     clarity: `${prefix} what is already clear, and where is the direction still fuzzy?`,
@@ -1513,8 +1513,8 @@ function bodyForCategoryItems(cat: CategoryKey, items: string[]): string {
   return items.length
     ? [
         cat === "clarity"
-          ? "Clarity readout:"
-          : "Verbatim intake notes Clarity found for this folder:",
+          ? "Mini Clarity readout:"
+          : "Verbatim intake notes Mini Clarity found for this folder:",
         items.map((s) => (cat === "clarity" ? s : `• ${s}`)).join("\n"),
       ].join("\n")
     : CATEGORY_MISSING[cat];
@@ -2871,7 +2871,7 @@ function Dashboard() {
             return (
               <img
                 src={nextStepUnlocked ? claritySquirrelReady : claritySquirrel}
-                alt="Clarity"
+              alt="Mini Clarity"
                 aria-hidden
                 className={
                   nextStepUnlocked
@@ -3544,7 +3544,7 @@ function ProgressPopover({
             Category Books
           </span>
           <span className="text-[10px] italic text-amber-900/70">
-            Click a book to steer Clarity's question
+            Click a book to steer Mini Clarity's question
           </span>
         </div>
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -4214,7 +4214,7 @@ function OrganizeButton({
         : weakFolderCount > 0
           ? `${weakFolderCount} folder${weakFolderCount === 1 ? "" : "s"} still need 3+ stars`
           : remainingFollowups > 0
-            ? `Answer ${remainingFollowups} more Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
+            ? `Answer ${remainingFollowups} more Mini Clarity follow-up${remainingFollowups === 1 ? "" : "s"}`
             : `Asleep — unlocks at 90% (currently ${overall}%)`;
 
   const handleClick = () => {
@@ -4286,7 +4286,7 @@ function OrganizeButton({
             <>The next chapter opens after The Crew has it ready.</>
           ) : remainingFollowups > 0 ? (
             <>
-              Answer <strong>{remainingFollowups}</strong> more Clarity follow-up
+              Answer <strong>{remainingFollowups}</strong> more Mini Clarity follow-up
               {remainingFollowups === 1 ? "" : "s"} first.
             </>
           ) : weakFolderCount > 0 ? (
@@ -4445,7 +4445,7 @@ function LibraryLevelReportModal({
     "Master Library Review",
     ...categoryReview.map((item) => `${item.label} (${item.stars}/4 stars)\n${item.body}`),
     "",
-    "Original Intake Saved By Clarity",
+    "Original Intake Saved By Mini Clarity",
     extras.sourceText?.trim() || idea.messy || "No original intake text saved.",
     "",
     "Next Choices",
@@ -4503,7 +4503,7 @@ function LibraryLevelReportModal({
           </p>
           <p>
             <strong>{idea.title}</strong> now has enough Library clarity to move forward because
-            every category has reached 3 or 4 stars. Clarity keeps the original intake below, then
+            every category has reached 3 or 4 stars. Mini Clarity keeps the original intake below, then
             uses the folder notes to build this master review.
           </p>
           <button
@@ -4570,7 +4570,7 @@ function LibraryLevelReportModal({
 
         <details className="mt-4 rounded-xl border border-amber-200/15 bg-black/25 p-4">
           <summary className="cursor-pointer font-serif text-sm font-semibold text-amber-100">
-            Original intake saved by Clarity
+            Original intake saved by Mini Clarity
           </summary>
           <p className="mt-3 whitespace-pre-wrap break-words text-xs leading-relaxed text-amber-50/75">
             {extras.sourceText?.trim() || idea.messy || "No original intake text saved."}
@@ -5501,6 +5501,7 @@ function objectKindFor(label: string): ObjectKind {
     case "Info Gathered":
       return "book-stack";
     case "Clarity":
+    case "Mini Clarity":
       return "vial";
     case "Audience":
       return "lantern";
@@ -6223,7 +6224,7 @@ function ClarityGuide({
     if (!selected)
       return "Welcome to the Creator Library. Open the Idea Shelf and choose a spark to begin.";
     if (!currentQuestion)
-      return "You've answered the current Clarity questions. View Report is ready when the idea is strong enough.";
+      return "You've answered the current Mini Clarity questions. View Report is ready when the idea is strong enough.";
     return null;
   }, [selected, currentQuestion]);
 
@@ -6244,7 +6245,7 @@ function ClarityGuide({
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `Clarity has a starting point. I’ll ask only for missing or deeper pieces, using words from the idea so this does not feel generic.\n\n${currentQuestion!.prompt}`
+        ? `Mini Clarity has a starting point. I’ll ask only for missing or deeper pieces, using words from the idea so this does not feel generic.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : answeredCount >= ESSENTIAL_CLARITY_QUESTIONS && currentQuestion
         ? `I can move this forward, but I see room to make it stronger. This is one of the five bonus questions.\n\n${currentQuestion.prompt}`
@@ -6274,7 +6275,7 @@ function ClarityGuide({
           >
             <div className="flex items-center justify-between">
               <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/70">
-                {showQuestionControls ? roundLabel : "Clarity asks"}
+                {showQuestionControls ? roundLabel : "Mini Clarity asks"}
               </div>
               {showQuestionControls && (
                 <div className="font-serif text-[10px] uppercase tracking-[0.16em] text-amber-900/55">
@@ -6293,7 +6294,7 @@ function ClarityGuide({
                   className="font-serif text-[11px] italic text-amber-900/70 underline-offset-2 hover:underline"
                 >
                   {isCategoryQuestion
-                    ? "Back to Clarity"
+                    ? "Back to Mini Clarity"
                     : isEssentialRound
                       ? "Next essential"
                       : "Next bonus"}
@@ -6329,14 +6330,14 @@ function ClarityGuide({
               setOpen(true);
               setMinimized(false);
             }}
-            aria-label="Show Clarity's question"
+            aria-label="Show Mini Clarity's question"
             className="rounded-full border border-amber-950/60 px-3 py-1.5 font-serif text-[11px] uppercase tracking-[0.18em] text-amber-950 shadow-lg transition hover:brightness-105"
             style={{
               background: "linear-gradient(180deg, #fbf0cb 0%, #f0dca5 100%)",
               animation: "clarity-float 5s ease-in-out infinite",
             }}
           >
-            Clarity asks{showQuestionControls ? " ?" : "…"}
+            Mini Clarity asks{showQuestionControls ? " ?" : "…"}
           </button>
         )}
       </div>
