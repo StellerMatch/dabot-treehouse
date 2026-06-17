@@ -453,8 +453,8 @@ function backfillMissingIntakeExtras(ideas: LightbulbIdea[]): LightbulbIdea[] {
         currentExtras.posts.length > 0;
       const hasUserCapturedPosts =
         hasPosts &&
-        currentExtras.posts.some(
-          (post: { source?: string }) => post && post.source === "captured-note",
+        (currentExtras.posts as Array<{ source?: string }>).some(
+          (post) => post && post.source === "captured-note",
         );
 
       if (hasUsefulText && !hasPosts) {
