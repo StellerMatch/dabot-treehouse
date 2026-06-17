@@ -107,7 +107,8 @@ const ROOT_ROOM_BOT_INTROS: RootRoomBotIntro[] = [
     role: "Perspective and meaning",
     description:
       "Echo reads the idea from another angle and listens for meaning, intent, and anything the first pass may not have named yet.",
-    prompt: "Do you have anything you want Echo to notice, remember, or think about?",
+    prompt:
+      "Echo likes hidden meaning and alternate angles. Is there anything you want Echo to listen for, remember, or challenge before this moves forward?",
     image: echoPresentingAsset.url,
   },
   {
@@ -116,7 +117,8 @@ const ROOT_ROOM_BOT_INTROS: RootRoomBotIntro[] = [
     role: "Risk and boundaries",
     description:
       "Shield checks the idea for sharp edges, safety concerns, trust issues, and boundaries that should be protected before the work moves forward.",
-    prompt: "Do you have any concern, boundary, or risk you want Shield to watch?",
+    prompt:
+      "Shield watches the edges. Is there a boundary, worry, trust issue, or thing-you-do-not-want that Shield should protect during the build?",
     image: shieldPresentingAsset.url,
   },
   {
@@ -125,7 +127,8 @@ const ROOT_ROOM_BOT_INTROS: RootRoomBotIntro[] = [
     role: "Record and baseline",
     description:
       "Ledger keeps the baseline clear: what the idea is, what was decided, and what should be remembered when the next chapter starts.",
-    prompt: "Is there anything you want Ledger to write down clearly for this project?",
+    prompt:
+      "Ledger loves notes. Do you have any specific request for what should be written down during this whole building process?",
     image: ledgerPresentingAsset.url,
   },
   {
@@ -134,7 +137,8 @@ const ROOT_ROOM_BOT_INTROS: RootRoomBotIntro[] = [
     role: "Handoff and readiness",
     description:
       "Chief gathers the Root Room notes into a clean handoff and checks whether the packet is ready to move toward the next chapter.",
-    prompt: "Do you have one final instruction or question for Chief before the crew goes to work?",
+    prompt:
+      "Chief is watching the handoff. Is there a final instruction, priority, or question you want kept in front of the crew before they start?",
     image: stampPresentingAsset.url,
   },
 ];
@@ -1031,6 +1035,9 @@ function RootRoomBotBriefingPanel({
       </div>
 
       <div className="mt-4 rounded-xl border border-amber-200/35 bg-black/25 p-3 shadow-[inset_0_1px_0_rgba(255,235,170,0.14)]">
+        <div className="mb-1 text-[10px] uppercase tracking-[0.22em] text-amber-200/75">
+          {bot.name} asks
+        </div>
         <label className="block text-[12px] leading-relaxed text-amber-50/95" htmlFor="bot-note">
           {bot.prompt}
         </label>
@@ -1038,7 +1045,7 @@ function RootRoomBotBriefingPanel({
           id="bot-note"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder={`Ask ${bot.name} a question or leave a note...`}
+          placeholder={`Answer ${bot.name} or leave a note...`}
           className="mt-2 min-h-[84px] w-full resize-none rounded-lg border border-amber-200/35 bg-amber-50/95 px-3 py-2 text-sm leading-relaxed text-stone-950 outline-none transition focus:border-amber-200 focus:ring-2 focus:ring-amber-200/30"
         />
         <div className="mt-3 flex justify-center">
