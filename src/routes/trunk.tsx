@@ -38,6 +38,7 @@ const TRUNK_NEXT_PALETTE = {
 };
 
 type TrunkStageId = "arrival" | "luma" | "bloom" | "vault" | "compass" | "ready";
+type TrunkLanternId = "luma" | "bloom" | "vault";
 
 const TRUNK_STAGES: Array<{
   id: TrunkStageId;
@@ -83,10 +84,46 @@ const TRUNK_STAGES: Array<{
   },
 ];
 
+const TRUNK_LANTERN_QUESTIONS: Array<{
+  id: TrunkLanternId;
+  name: string;
+  title: string;
+  role: string;
+  question: string;
+}> = [
+  {
+    id: "luma",
+    name: "Luma",
+    title: "Design Lantern",
+    role: "Looks for feeling, trust, and how the product should come across.",
+    question: "What feeling, experience, or moment made this idea matter to you?",
+  },
+  {
+    id: "bloom",
+    name: "Bloom",
+    title: "Growth Lantern",
+    role: "Looks for audience, reach, and how the idea could spread.",
+    question: "Where do you think the right people for this idea already gather, talk, search, or ask for help?",
+  },
+  {
+    id: "vault",
+    name: "Vault",
+    title: "Money Lantern",
+    role: "Looks for value, risk, and real-world grounding.",
+    question: "What background, access, or real-world knowledge do you already bring to this problem?",
+  },
+];
+
 function TrunkPage() {
   const [bookArrived, setBookArrived] = useState(false);
+  const [questionnaireStarted, setQuestionnaireStarted] = useState(false);
   const [reviewStarted, setReviewStarted] = useState(false);
   const [stageIndex, setStageIndex] = useState(0);
+  const [lanternAnswers, setLanternAnswers] = useState<Record<TrunkLanternId, string>>({
+    luma: "",
+    bloom: "",
+    vault: "",
+  });
 
   useEffect(() => {
     const t1 = window.setTimeout(() => setBookArrived(true), 1800);
@@ -103,15 +140,30 @@ function TrunkPage() {
     return () => window.clearTimeout(t);
   }, [bookArrived, reviewStarted, stageIndex]);
 
-  const handleStartReview = () => {
-    if (!bookArrived) return;
+  const handleSendToCompass = () => {
+    if (!bookArrived || !questionnaireStarted) return;
+    try {
+      window.localStorage.setItem(
+        "dabottree:trunkAscentLanternAnswers",
+        JSON.stringify({
+          completedAt: new Date().toISOString(),
+          answers: lanternAnswers,
+        }),
+      );
+    } catch {
+      // The user can still continue if local storage is blocked.
+    }
     setStageIndex(1);
     setReviewStarted(true);
   };
 
   const activeStage = bookArrived ? TRUNK_STAGES[stageIndex] : null;
   const nextUnlocked = activeStage?.id === "ready";
-  const activeGuide = reviewStarted ? activeStage?.id : undefined;
+  const activeGuide = reviewStarted ? activeStage?.id : "compass";
+  const answeredCount = TRUNK_LANTERN_QUESTIONS.filter(
+    (item) => lanternAnswers[item.id].trim().length > 0,
+  ).length;
+  const canSendToCompass = answeredCount === TRUNK_LANTERN_QUESTIONS.length;
 
   return (
     <main className="relative h-[100dvh] w-screen overflow-hidden bg-black text-amber-50">
@@ -230,7 +282,7 @@ function TrunkPage() {
         className="pointer-events-none absolute left-1/2 z-10 w-[min(540px,92vw)] -translate-x-1/2 px-4"
         style={{ bottom: "4.5%" }}
       >
-        <div className="pointer-events-auto trunk-status-panel relative overflow-hidden rounded-[14px] px-5 py-4 text-amber-50 sm:px-6 sm:py-5">
+        <div className="pointer-events-auto trunk-status-panel relative max-h-[82dvh] overflow-x-hidden overflow-y-auto rounded-[14px] px-5 py-3 text-amber-50 sm:px-6 sm:py-5">
           <div className="trunk-ring-field" aria-hidden />
           <div className="trunk-bark-edge" aria-hidden />
           <div className="relative flex items-center justify-center gap-2">
@@ -239,21 +291,118 @@ function TrunkPage() {
               Trunk Layer
             </span>
           </div>
-          <h2 className="trunk-panel-title relative mt-1 text-center text-[23px] font-bold text-amber-50 sm:text-[26px]">
-            {activeStage ? activeStage.title : "Carrying the Packet…"}
-          </h2>
-          <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
-            {activeStage?.body ?? "The packet is rising through the trunk on a thread of light."}
-          </p>
-          {bookArrived && !reviewStarted && (
+          {!bookArrived ? (
+            <>
+              <h2 className="trunk-panel-title relative mt-1 text-center text-[23px] font-bold text-amber-50 sm:text-[26px]">
+                Carrying the Packet…
+              </h2>
+              <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
+                The packet is rising through the trunk on a thread of light.
+              </p>
+            </>
+          ) : !questionnaireStarted ? (
+            <>
+              <h2 className="trunk-panel-title relative mt-1 text-center text-[23px] font-bold text-amber-50 sm:text-[26px]">
+                Compass Opens the Path
+              </h2>
+              <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
+                Welcome to Trunk Ascent. My job is to keep this project pointed due north.
+                Before the lanterns begin, we need to understand why this idea belongs to you.
+              </p>
+              <div className="relative mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setQuestionnaireStarted(true)}
+                  className="trunk-start-button inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.16em] text-amber-950 transition hover:-translate-y-[1px] hover:brightness-110"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Continue
+                </button>
+              </div>
+            </>
+          ) : !reviewStarted ? (
+            <>
+              <h2 className="trunk-panel-title relative mt-1 text-center text-[23px] font-bold text-amber-50 sm:text-[26px]">
+                Lantern Questionnaire
+              </h2>
+              <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
+                Answer each lantern once. When you send this to Compass, the real Trunk work begins.
+              </p>
+              <div className="relative mt-3 grid gap-2 text-left sm:mt-4 sm:gap-3">
+                {TRUNK_LANTERN_QUESTIONS.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-amber-200/30 bg-black/20 p-2.5 shadow-[inset_0_1px_0_rgba(255,235,170,0.1)] sm:p-3"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-1.5">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.24em] text-amber-200/80">
+                          {item.name}
+                        </div>
+                        <div className="text-[13px] font-semibold text-amber-50">{item.title}</div>
+                      </div>
+                      <div className="text-[10px] text-amber-100/70">
+                        {lanternAnswers[item.id].trim() ? "Answered" : "Waiting"}
+                      </div>
+                    </div>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-amber-100/78 sm:mt-1">
+                      {item.role}
+                    </p>
+                    <label
+                      className="mt-1.5 block text-[12px] leading-relaxed text-amber-50/95 sm:mt-2"
+                      htmlFor={`trunk-${item.id}-answer`}
+                    >
+                      {item.question}
+                    </label>
+                    <textarea
+                      id={`trunk-${item.id}-answer`}
+                      value={lanternAnswers[item.id]}
+                      onChange={(event) =>
+                        setLanternAnswers((current) => ({
+                          ...current,
+                          [item.id]: event.target.value,
+                        }))
+                      }
+                      placeholder={`Answer ${item.name}...`}
+                      className="mt-1.5 min-h-[54px] w-full resize-none rounded-lg border border-amber-200/35 bg-amber-50/95 px-3 py-2 text-sm leading-relaxed text-stone-950 outline-none transition focus:border-amber-200 focus:ring-2 focus:ring-amber-200/30 sm:mt-2 sm:min-h-[70px]"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="relative mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row sm:justify-between">
+                <div className="text-[11px] text-amber-100/75">
+                  {answeredCount}/{TRUNK_LANTERN_QUESTIONS.length} lantern answers ready.
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSendToCompass}
+                  disabled={!canSendToCompass}
+                  className="trunk-start-button inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.16em] text-amber-950 transition hover:-translate-y-[1px] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Send to Compass
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="trunk-panel-title relative mt-1 text-center text-[23px] font-bold text-amber-50 sm:text-[26px]">
+                {activeStage ? activeStage.title : "Carrying the Packet…"}
+              </h2>
+              <p className="relative mt-2 text-center text-[13px] leading-relaxed text-amber-50/95">
+                {activeStage?.body ?? "The packet is rising through the trunk on a thread of light."}
+              </p>
+            </>
+          )}
+          {bookArrived && reviewStarted && (
             <div className="relative mt-4 flex justify-center">
               <button
                 type="button"
-                onClick={handleStartReview}
+                disabled
                 className="trunk-start-button inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.16em] text-amber-950 transition hover:-translate-y-[1px] hover:brightness-110"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                Start Trunk Review
+                Lanterns Reading
               </button>
             </div>
           )}
