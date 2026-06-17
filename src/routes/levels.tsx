@@ -1008,6 +1008,116 @@ type LocalTreehouseProject = {
   title: string;
 };
 
+type MudPitQuestion = {
+  id: string;
+  bucket: string;
+  label: string;
+  round: "essential" | "bonus";
+  prompt: string;
+};
+
+const ROOT_ROOM_BOT_QUESTIONS_KEY = "dabottree:rootRoomBotQuestions";
+const MUD_PIT_ANSWERS_KEY = "dabottree:mudPitPressureAnswers";
+
+const MUD_PIT_QUESTION_BUCKETS: Array<{
+  id: string;
+  label: string;
+  round: "essential" | "bonus";
+  missingPrompt: (name: string, mention: string) => string;
+  deeperPrompt: (name: string, snippet: string) => string;
+}> = [
+  {
+    id: "must-be-true",
+    label: "Must Be True",
+    round: "essential",
+    missingPrompt: (name, mention) =>
+      `For ${name} to work, what has to be true about “${mention}”?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this already: “${snippet}.” What has to be true for that piece of ${name} to hold up in real life?`,
+  },
+  {
+    id: "weak-assumption",
+    label: "Weak Assumption",
+    round: "essential",
+    missingPrompt: (name, mention) =>
+      `What is the riskiest guess inside “${mention}” that could make ${name} weaker than it looks?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this assumption: “${snippet}.” Where could that be wrong, too broad, or too easy to misunderstand?`,
+  },
+  {
+    id: "proof-needed",
+    label: "Proof Needed",
+    round: "essential",
+    missingPrompt: (name) =>
+      `What proof would make ${name} feel real instead of just like a good idea?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this signal: “${snippet}.” What proof would show that part of ${name} is actually true?`,
+  },
+  {
+    id: "failure-point",
+    label: "Failure Point",
+    round: "essential",
+    missingPrompt: (name) =>
+      `Where would ${name} most likely break first: user interest, trust, money, workflow, design, or something else?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this part: “${snippet}.” What could break first if ${name} reached real users?`,
+  },
+  {
+    id: "smaller-stronger",
+    label: "Smaller Stronger Version",
+    round: "essential",
+    missingPrompt: (name) =>
+      `What is the smaller version of ${name} that could prove the idea before building the bigger version?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this shape: “${snippet}.” What smaller version could test that before ${name} grows bigger?`,
+  },
+  {
+    id: "user-resistance",
+    label: "User Resistance",
+    round: "bonus",
+    missingPrompt: (name) =>
+      `Why might the first user say no, ignore it, or keep doing things the old way instead of using ${name}?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this user signal: “${snippet}.” Why might that person still say no or not care enough yet?`,
+  },
+  {
+    id: "trust-risk",
+    label: "Trust Risk",
+    round: "bonus",
+    missingPrompt: (name) =>
+      `What would make someone not trust ${name}: data, claims, cost, complexity, quality, or something else?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this trust-sensitive part: “${snippet}.” What would make a user hesitate or not believe it?`,
+  },
+  {
+    id: "money-pressure",
+    label: "Money Pressure",
+    round: "bonus",
+    missingPrompt: (name) =>
+      `What money pressure should ${name} survive: price, cost to build, support, ads, subscriptions, or time saved?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this money-related piece: “${snippet}.” What would need to be true for ${name} to be worth the money or time?`,
+  },
+  {
+    id: "workflow-friction",
+    label: "Workflow Friction",
+    round: "bonus",
+    missingPrompt: (name) =>
+      `What step in ${name} could feel annoying, confusing, slow, or too much work for the user?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this workflow piece: “${snippet}.” Which step could become annoying, confusing, or too slow?`,
+  },
+  {
+    id: "kill-or-change",
+    label: "Kill Or Change Signal",
+    round: "bonus",
+    missingPrompt: (name) =>
+      `What result would tell us to change ${name}, shrink it, or stop this direction before wasting energy?`,
+    deeperPrompt: (name, snippet) =>
+      `Mini Crossfire sees this direction: “${snippet}.” What result would tell us to change, shrink, or stop that direction?`,
+  },
+];
+
 function readActiveTreehouseProject(): LocalTreehouseProject | null {
   if (typeof window === "undefined") return null;
 
@@ -1044,13 +1154,95 @@ function readActiveTreehouseProject(): LocalTreehouseProject | null {
   }
 }
 
+function readRootRoomBotQuestionText(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = window.localStorage.getItem(ROOT_ROOM_BOT_QUESTIONS_KEY);
+    if (!raw) return "";
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || !("questions" in parsed)) return "";
+    const questions = (parsed as { questions?: unknown }).questions;
+    if (!questions || typeof questions !== "object") return "";
+    return Object.values(questions)
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .join(" ");
+  } catch {
+    return "";
+  }
+}
+
+function mudPitProjectName(project: LocalTreehouseProject | null): string {
+  return project?.title?.trim() || "this idea";
+}
+
+function mudPitMention(project: LocalTreehouseProject | null, rootRoomNotes: string): string {
+  const source = [project?.description, project?.ideaType, rootRoomNotes]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!source) return mudPitProjectName(project);
+  return source.length > 86 ? `${source.slice(0, 84).replace(/\s+\S*$/, "")}...` : source;
+}
+
+function mudPitSnippetFor(questionId: string, context: string): string {
+  const wordsByQuestion: Record<string, string[]> = {
+    "must-be-true": ["need", "must", "should", "work", "help", "make", "create", "build"],
+    "weak-assumption": ["always", "everyone", "people", "user", "customer", "client", "easy"],
+    "proof-needed": ["prove", "real", "trust", "result", "save", "paid", "worth"],
+    "failure-point": ["problem", "hard", "miss", "lose", "confusing", "risk", "wrong"],
+    "smaller-stronger": ["first", "version", "simple", "small", "start", "mvp"],
+    "user-resistance": ["user", "customer", "client", "audience", "people", "buyer"],
+    "trust-risk": ["trust", "private", "safe", "claim", "quality", "data"],
+    "money-pressure": ["money", "pay", "price", "cost", "save", "subscription", "revenue"],
+    "workflow-friction": ["step", "process", "workflow", "screen", "click", "use"],
+    "kill-or-change": ["stop", "change", "fail", "test", "signal", "result"],
+  };
+  const sentences = context
+    .split(/[.!?\n]+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length >= 18);
+  const words = wordsByQuestion[questionId] ?? [];
+  const match =
+    sentences.find((sentence) => words.some((word) => sentence.toLowerCase().includes(word))) ??
+    sentences[0];
+  if (!match) return "";
+  return match.length > 92 ? `${match.slice(0, 90).replace(/\s+\S*$/, "")}...` : match;
+}
+
+function buildMudPitQuestions(
+  project: LocalTreehouseProject | null,
+  rootRoomNotes: string,
+): MudPitQuestion[] {
+  const name = mudPitProjectName(project);
+  const mention = mudPitMention(project, rootRoomNotes);
+  const context = [project?.title, project?.description, project?.ideaType, rootRoomNotes]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return MUD_PIT_QUESTION_BUCKETS.map((bucket) => {
+    const snippet = mudPitSnippetFor(bucket.id, context);
+    return {
+      id: bucket.id,
+      bucket: bucket.id,
+      label: bucket.label,
+      round: bucket.round,
+      prompt: snippet
+        ? bucket.deeperPrompt(name, snippet)
+        : bucket.missingPrompt(name, mention),
+    };
+  });
+}
+
 function LevelsPage() {
   const [activeChapterId, setActiveChapterId] = useState(TREEHOUSE_CHAPTERS[1]?.id ?? "library");
   const [activePartId, setActivePartId] = useState<string | null>(null);
   const [activeProject, setActiveProject] = useState<LocalTreehouseProject | null>(null);
+  const [rootRoomNotes, setRootRoomNotes] = useState("");
 
   useEffect(() => {
     setActiveProject(readActiveTreehouseProject());
+    setRootRoomNotes(readRootRoomBotQuestionText());
   }, []);
 
   const activeChapter = useMemo(
@@ -1209,7 +1401,11 @@ function LevelsPage() {
                       onGo={() => setActivePartId(null)}
                     />
                   ) : (
-                    <ChapterOverview chapter={activeChapter} project={activeProject} />
+                    <ChapterOverview
+                      chapter={activeChapter}
+                      project={activeProject}
+                      rootRoomNotes={rootRoomNotes}
+                    />
                   )}
                 </article>
               </div>
@@ -1326,11 +1522,14 @@ function TreehouseActionButtons({
 function ChapterOverview({
   chapter,
   project,
+  rootRoomNotes,
 }: {
   chapter: TreehouseChapter;
   project: LocalTreehouseProject | null;
+  rootRoomNotes: string;
 }) {
   const n8nConnection = n8nConnectionFor(chapter.id);
+  const showMudPitGuide = chapter.id === "mud-pit";
 
   return (
     <div className="relative z-10 flex h-full min-h-[460px] flex-col justify-between p-5 sm:p-6">
@@ -1378,6 +1577,9 @@ function ChapterOverview({
             </p>
           </div>
         )}
+        {showMudPitGuide ? (
+          <MudPitMiniCrossfirePanel project={project} rootRoomNotes={rootRoomNotes} />
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1388,6 +1590,121 @@ function ChapterOverview({
             <p className="mt-1 text-sm text-slate-300">{part.actor}</p>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function MudPitMiniCrossfirePanel({
+  project,
+  rootRoomNotes,
+}: {
+  project: LocalTreehouseProject | null;
+  rootRoomNotes: string;
+}) {
+  const questions = useMemo(
+    () => buildMudPitQuestions(project, rootRoomNotes),
+    [project, rootRoomNotes],
+  );
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [draft, setDraft] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  const currentQuestion = questions[activeIndex] ?? questions[0];
+  const answeredCount = Object.values(answers).filter((answer) => answer.trim()).length;
+  const essentialCount = questions.filter((question) => question.round === "essential").length;
+  const isLastQuestion = activeIndex >= questions.length - 1;
+  const roundLabel = currentQuestion?.round === "bonus" ? "Bonus" : "Essential";
+
+  const persistAnswers = (nextAnswers: Record<string, string>) => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        MUD_PIT_ANSWERS_KEY,
+        JSON.stringify({
+          completedAt: new Date().toISOString(),
+          projectId: project?.projectId ?? null,
+          answers: nextAnswers,
+        }),
+      );
+    } catch {
+      // The live panel can continue even when local storage is unavailable.
+    }
+  };
+
+  const finishCurrent = (answer?: string) => {
+    if (!currentQuestion) return;
+    const trimmed = answer?.trim() ?? "";
+    const nextAnswers = trimmed ? { ...answers, [currentQuestion.id]: trimmed } : answers;
+    if (trimmed) {
+      setAnswers(nextAnswers);
+      persistAnswers(nextAnswers);
+    }
+    setDraft("");
+    if (!isLastQuestion) {
+      setActiveIndex((index) => index + 1);
+    } else {
+      persistAnswers(nextAnswers);
+    }
+  };
+
+  if (!currentQuestion) return null;
+
+  return (
+    <div className="mt-4 rounded-md border border-red-200/22 bg-red-300/10 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.16em] text-red-100">Mini Crossfire</p>
+          <h4 className="mt-1 text-lg font-semibold text-white">Mud Pit pressure questions</h4>
+          <p className="mt-1 text-sm leading-6 text-slate-200">
+            Mini Crossfire reads the idea and Root Room notes, then asks for weak spots instead of
+            repeating basics the user already gave.
+          </p>
+        </div>
+        <div className="rounded-md border border-red-100/20 bg-black/24 px-3 py-2 text-right">
+          <p className="text-xs text-red-100">
+            {roundLabel} {activeIndex + 1}/{questions.length}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">
+            First {essentialCount} matter most · {answeredCount} saved
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-md border border-white/10 bg-black/28 p-3">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-red-100">
+          {currentQuestion.label}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-white">{currentQuestion.prompt}</p>
+        <textarea
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder="Answer Mini Crossfire, or skip if this pressure point is not a concern yet..."
+          className="mt-3 min-h-[86px] w-full resize-none rounded-md border border-red-100/20 bg-stone-950/75 px-3 py-2 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-red-100/45 focus:ring-2 focus:ring-red-200/15"
+        />
+      </div>
+
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-slate-300">
+          Bonus questions help if the idea still has weak buckets after the first five.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => finishCurrent()}
+            className="rounded-md border border-white/12 bg-black/30 px-3 py-2 text-xs font-semibold text-white/85 transition hover:bg-white/10"
+          >
+            Not a concern yet
+          </button>
+          <button
+            type="button"
+            onClick={() => finishCurrent(draft)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-red-100/25 bg-red-300 px-3 py-2 text-xs font-semibold text-stone-950 transition hover:bg-red-200"
+          >
+            {isLastQuestion ? "Save pressure pass" : draft.trim() ? "Save and next" : "Next"}
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
