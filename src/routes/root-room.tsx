@@ -89,6 +89,56 @@ const STEP_COPY: Record<StepId, { character: string; panelTitle: string; message
   },
 };
 
+type RootRoomBotId = "echo" | "shield" | "ledger" | "chief";
+
+type RootRoomBotIntro = {
+  id: RootRoomBotId;
+  name: string;
+  role: string;
+  description: string;
+  prompt: string;
+  image: string;
+};
+
+const ROOT_ROOM_BOT_INTROS: RootRoomBotIntro[] = [
+  {
+    id: "echo",
+    name: "Echo",
+    role: "Perspective and meaning",
+    description:
+      "Echo reads the idea from another angle and listens for meaning, intent, and anything the first pass may not have named yet.",
+    prompt: "Do you have anything you want Echo to notice, remember, or think about?",
+    image: echoPresentingAsset.url,
+  },
+  {
+    id: "shield",
+    name: "Shield",
+    role: "Risk and boundaries",
+    description:
+      "Shield checks the idea for sharp edges, safety concerns, trust issues, and boundaries that should be protected before the work moves forward.",
+    prompt: "Do you have any concern, boundary, or risk you want Shield to watch?",
+    image: shieldPresentingAsset.url,
+  },
+  {
+    id: "ledger",
+    name: "Ledger",
+    role: "Record and baseline",
+    description:
+      "Ledger keeps the baseline clear: what the idea is, what was decided, and what should be remembered when the next chapter starts.",
+    prompt: "Is there anything you want Ledger to write down clearly for this project?",
+    image: ledgerPresentingAsset.url,
+  },
+  {
+    id: "chief",
+    name: "Chief",
+    role: "Handoff and readiness",
+    description:
+      "Chief gathers the Root Room notes into a clean handoff and checks whether the packet is ready to move toward the next chapter.",
+    prompt: "Do you have one final instruction or question for Chief before the crew goes to work?",
+    image: stampPresentingAsset.url,
+  },
+];
+
 const ROOT_ROOM_NEXT_PALETTE = {
   leather: {
     cover: "linear-gradient(180deg, #6b3a14 0%, #4a230a 55%, #2d1405 100%)",
@@ -113,6 +163,10 @@ function RootRoom() {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [ascending, setAscending] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [briefingIndex, setBriefingIndex] = useState(0);
+  const [briefingComplete, setBriefingComplete] = useState(false);
+  const [botQuestions, setBotQuestions] = useState<Partial<Record<RootRoomBotId, string>>>({});
+  const [botQuestionDraft, setBotQuestionDraft] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -131,6 +185,37 @@ function RootRoom() {
   const handleAscend = () => {
     setReportOpen(false);
     setAscending(true);
+  };
+
+  const currentBot = ROOT_ROOM_BOT_INTROS[briefingIndex] ?? ROOT_ROOM_BOT_INTROS[0];
+  const isLastBot = briefingIndex >= ROOT_ROOM_BOT_INTROS.length - 1;
+  const answeredBotCount = Object.values(botQuestions).filter((value) => value?.trim()).length;
+
+  const finishBotBriefingStep = (answer?: string) => {
+    const trimmed = answer?.trim() ?? "";
+    if (trimmed) {
+      setBotQuestions((prev) => ({ ...prev, [currentBot.id]: trimmed }));
+    }
+    setBotQuestionDraft("");
+    if (isLastBot) {
+      const finalQuestions = trimmed ? { ...botQuestions, [currentBot.id]: trimmed } : botQuestions;
+      try {
+        window.localStorage.setItem(
+          "dabottree:rootRoomBotQuestions",
+          JSON.stringify({
+            completedAt: new Date().toISOString(),
+            questions: finalQuestions,
+          }),
+        );
+      } catch {
+        // Local storage can fail in private contexts; the in-memory flow still works.
+      }
+      setBriefingComplete(true);
+      setActiveStepIndex(0);
+      setPhase("smoke");
+      return;
+    }
+    setBriefingIndex((index) => index + 1);
   };
 
   // Sequence after Start
@@ -457,7 +542,18 @@ function RootRoom() {
             </svg>
           </div>
 
-          {showActiveStepText ? (
+          {!briefingComplete ? (
+            <RootRoomBotBriefingPanel
+              bot={currentBot}
+              index={briefingIndex}
+              total={ROOT_ROOM_BOT_INTROS.length}
+              answeredCount={answeredBotCount}
+              value={botQuestionDraft}
+              onChange={setBotQuestionDraft}
+              onSkip={() => finishBotBriefingStep()}
+              onSubmit={() => finishBotBriefingStep(botQuestionDraft)}
+            />
+          ) : showActiveStepText ? (
             <>
               <h2 className="rr-intro-title relative text-center text-[22px] leading-tight">
                 {activeStepCopy.panelTitle}
@@ -881,6 +977,101 @@ function RootRoom() {
         <RootRoomReport onClose={() => setReportOpen(false)} onComplete={handleAscend} />
       )}
     </main>
+  );
+}
+
+function RootRoomBotBriefingPanel({
+  bot,
+  index,
+  total,
+  answeredCount,
+  value,
+  onChange,
+  onSkip,
+  onSubmit,
+}: {
+  bot: RootRoomBotIntro;
+  index: number;
+  total: number;
+  answeredCount: number;
+  value: string;
+  onChange: (value: string) => void;
+  onSkip: () => void;
+  onSubmit: () => void;
+}) {
+  const hasAnswer = value.trim().length > 0;
+  const nextLabel = index >= total - 1 ? "Send the crew to work" : "Next bot";
+  const primaryLabel = hasAnswer
+    ? index >= total - 1
+      ? "Save and send crew"
+      : "Save and next bot"
+    : nextLabel;
+  return (
+    <div className="relative">
+      <div className="flex items-start gap-4">
+        <div
+          className="relative flex h-24 w-24 shrink-0 items-end justify-center overflow-hidden rounded-2xl border border-amber-200/50 bg-black/25 shadow-[inset_0_1px_0_rgba(255,235,170,0.2)]"
+          aria-label={`${bot.name} image slot`}
+        >
+          <img
+            src={bot.image}
+            alt={bot.name}
+            className="h-full w-full object-contain object-bottom p-1 drop-shadow-[0_10px_16px_rgba(0,0,0,0.45)]"
+            draggable={false}
+          />
+          <div className="absolute inset-x-2 bottom-1 rounded-full bg-black/45 px-2 py-0.5 text-center text-[8px] uppercase tracking-[0.18em] text-amber-100/80">
+            Photo slot
+          </div>
+        </div>
+
+        <div className="min-w-0 flex-1 text-left">
+          <div className="text-[10px] uppercase tracking-[0.3em] text-amber-100/80">
+            Meet the Crew {index + 1}/{total}
+          </div>
+          <h2 className="rr-intro-title mt-1 text-[24px] leading-tight">{bot.name}</h2>
+          <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-amber-200/80">
+            {bot.role}
+          </div>
+          <p className="mt-2 text-[13px] leading-relaxed text-amber-50/95">{bot.description}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-amber-200/35 bg-black/25 p-3 shadow-[inset_0_1px_0_rgba(255,235,170,0.14)]">
+        <label className="block text-[12px] leading-relaxed text-amber-50/95" htmlFor="bot-note">
+          {bot.prompt}
+        </label>
+        <textarea
+          id="bot-note"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={`Ask ${bot.name} a question or leave a note...`}
+          className="mt-2 min-h-[84px] w-full resize-none rounded-lg border border-amber-200/35 bg-amber-50/95 px-3 py-2 text-sm leading-relaxed text-stone-950 outline-none transition focus:border-amber-200 focus:ring-2 focus:ring-amber-200/30"
+        />
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-[11px] text-amber-100/75">
+          {answeredCount} crew note{answeredCount === 1 ? "" : "s"} captured so far.
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onSkip}
+            className="rounded-full border border-amber-200/40 bg-black/30 px-4 py-2 text-xs font-semibold text-amber-50/90 transition hover:bg-black/50"
+          >
+            Not right now
+          </button>
+          <button
+            type="button"
+            onClick={onSubmit}
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 text-xs font-semibold text-amber-950 shadow-[0_4px_18px_-4px_rgba(255,180,80,0.7)] transition hover:from-amber-200 hover:to-amber-400"
+          >
+            {primaryLabel}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
