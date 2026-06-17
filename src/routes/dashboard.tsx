@@ -40,6 +40,9 @@ import {
   Plus,
   Lightbulb,
   ArrowRight,
+  Play,
+  AlertTriangle,
+  TriangleAlert,
   Pencil,
   User,
   Wand2,
@@ -507,6 +510,21 @@ function postItPaletteFor(categories: CategoryKey[] | undefined, fallback: Categ
 
 type CategoryNotes = Partial<Record<CategoryKey, string>>;
 type Attachment = { id: string; kind: "file" | "link" | "note"; label: string };
+type ChapterActivityStatus =
+  | "ready"
+  | "bots_running"
+  | "needs_question"
+  | "next_ready"
+  | "complete";
+type ChapterActivity = {
+  status: ChapterActivityStatus;
+  currentChapterId: string;
+  completedChapterId?: string;
+  nextChapterId?: string;
+  n8nTriggerStatus?: string;
+  receiptId?: string;
+  updatedAt: number;
+};
 type PostIt = {
   id: string;
   kind: "idea-notes" | "info-gathered";
@@ -525,6 +543,7 @@ type IdeaExtras = {
   skippedQuestions: string[];
   clarityFollowupCount: number;
   currentChapterId?: string;
+  chapterActivity?: ChapterActivity;
 };
 
 function emptyExtras(): IdeaExtras {
@@ -537,6 +556,7 @@ function emptyExtras(): IdeaExtras {
     skippedQuestions: [],
     clarityFollowupCount: 0,
     currentChapterId: undefined,
+    chapterActivity: undefined,
   };
 }
 
@@ -555,6 +575,41 @@ function normalizeIdeaExtras(extras?: Partial<IdeaExtras> | null): IdeaExtras {
       typeof extras?.clarityFollowupCount === "number" ? extras.clarityFollowupCount : 0,
     currentChapterId:
       typeof extras?.currentChapterId === "string" ? extras.currentChapterId : undefined,
+    chapterActivity:
+      extras?.chapterActivity &&
+      typeof extras.chapterActivity === "object" &&
+      !Array.isArray(extras.chapterActivity) &&
+      typeof extras.chapterActivity.status === "string" &&
+      typeof extras.chapterActivity.currentChapterId === "string"
+        ? {
+            status: ["ready", "bots_running", "needs_question", "next_ready", "complete"].includes(
+              extras.chapterActivity.status,
+            )
+              ? (extras.chapterActivity.status as ChapterActivityStatus)
+              : "ready",
+            currentChapterId: extras.chapterActivity.currentChapterId,
+            completedChapterId:
+              typeof extras.chapterActivity.completedChapterId === "string"
+                ? extras.chapterActivity.completedChapterId
+                : undefined,
+            nextChapterId:
+              typeof extras.chapterActivity.nextChapterId === "string"
+                ? extras.chapterActivity.nextChapterId
+                : undefined,
+            n8nTriggerStatus:
+              typeof extras.chapterActivity.n8nTriggerStatus === "string"
+                ? extras.chapterActivity.n8nTriggerStatus
+                : undefined,
+            receiptId:
+              typeof extras.chapterActivity.receiptId === "string"
+                ? extras.chapterActivity.receiptId
+                : undefined,
+            updatedAt:
+              typeof extras.chapterActivity.updatedAt === "number"
+                ? extras.chapterActivity.updatedAt
+                : Date.now(),
+          }
+        : undefined,
   };
 }
 
@@ -1982,6 +2037,7 @@ function Dashboard() {
           skippedQuestions: patch.skippedQuestions ?? current.skippedQuestions,
           clarityFollowupCount: patch.clarityFollowupCount ?? current.clarityFollowupCount ?? 0,
           currentChapterId: patch.currentChapterId ?? current.currentChapterId,
+          chapterActivity: patch.chapterActivity ?? current.chapterActivity,
         },
       };
     });
@@ -2418,6 +2474,22 @@ function Dashboard() {
     currentChapterId: selectedExtras.currentChapterId,
   });
   const selectedChapterId = selectedChapterTemplate?.id ?? TREEHOUSE_CHAPTER_TEMPLATES[0].id;
+  const selectedChapterActivity =
+    selectedChapterTemplate &&
+    selectedExtras.chapterActivity?.currentChapterId === selectedChapterTemplate.id
+      ? selectedExtras.chapterActivity
+      : undefined;
+  const chapterGateLocked = selectedChapterActivity?.status === "bots_running";
+  const chapterGateLabel =
+    selectedChapterActivity?.status === "bots_running"
+      ? "The Crew working"
+      : selectedChapterActivity?.status === "needs_question"
+        ? "Question needed"
+        : selectedChapterActivity?.status === "next_ready"
+          ? "Next chapter ready"
+          : selectedChapterActivity?.status === "complete"
+            ? "Chapter complete"
+            : undefined;
 
   const createSelectedChapterHandoff = async (targetChapter: TreehouseChapterTemplate) => {
     if (!selected || typeof window === "undefined") return;
@@ -2632,6 +2704,9 @@ function Dashboard() {
             stage={selected?.stage ?? "lightbulb"}
             currentChapter={selectedChapterTemplate?.chapter}
             currentChapterTitle={selectedChapterTemplate?.title}
+            chapterActivityStatus={selectedChapterActivity?.status}
+            chapterGateLocked={chapterGateLocked}
+            chapterGateLabel={chapterGateLabel}
             followupsAnswered={selectedExtras.clarityFollowupCount ?? 0}
             weakFolderCount={libraryReadiness.weak.length}
             onClick={() => {
@@ -2822,7 +2897,7 @@ function Dashboard() {
 // ============================================================
 // Laid-down book button — horizontal book with left→right glowing fill
 // ============================================================
-type LaidBookVariant = "leather" | "gold" | "emerald" | "ember";
+type LaidBookVariant = "leather" | "gold" | "emerald" | "caution" | "ember";
 
 const laidBookPalette: Record<
   LaidBookVariant,
@@ -2849,6 +2924,13 @@ const laidBookPalette: Record<
     text: "#dff5e2",
     spine: "#0c2e1a",
   },
+  caution: {
+    cover: "linear-gradient(180deg, #f4c84f 0%, #c99018 55%, #6a3f05 100%)",
+    edge: "linear-gradient(180deg, #fff0ad 0%, #dca72b 100%)",
+    stroke: "rgba(75,42,0,0.9)",
+    text: "#241202",
+    spine: "#5a3506",
+  },
   ember: {
     cover: "linear-gradient(180deg, #7a2a14 0%, #4a1408 55%, #2a0805 100%)",
     edge: "linear-gradient(180deg, #ffd2a3 0%, #e88040 100%)",
@@ -2866,7 +2948,9 @@ function LaidBook({
   open,
   glow,
   size = "md",
+  chapterAction = false,
   disabled,
+  leading,
   trailing,
   onClick,
   title,
@@ -2878,18 +2962,28 @@ function LaidBook({
   open?: boolean;
   glow?: boolean;
   size?: "sm" | "md" | "lg";
+  chapterAction?: boolean;
   disabled?: boolean;
+  leading?: React.ReactNode;
   trailing?: React.ReactNode;
   onClick?: () => void;
   title?: string;
 }) {
   const pal = laidBookPalette[variant];
   const ready = glow && !disabled;
-  const dims = {
+  const baseDims = {
     sm: { h: 30, w: 130, pad: "px-2.5", font: "text-[10px]", sub: "text-[8px]" },
     md: { h: 40, w: 188, pad: "px-3.5", font: "text-[12px]", sub: "text-[9px]" },
     lg: { h: 46, w: 230, pad: "px-4", font: "text-[13px]", sub: "text-[9px]" },
   }[size];
+  const dims = chapterAction
+    ? {
+        ...baseDims,
+        h: size === "lg" ? 52 : 46,
+        w: size === "lg" ? 260 : 220,
+        pad: size === "lg" ? "px-5" : "px-4",
+      }
+    : baseDims;
   const fillPct = typeof pct === "number" ? Math.max(0, Math.min(100, pct)) : null;
   const lifted = open ? "translate-y-[1px] rotate-[-0.4deg]" : "hover:-translate-y-[1px]";
 
@@ -3002,7 +3096,7 @@ function LaidBook({
 
         {/* label */}
         <span
-          className={`relative z-10 flex w-full items-center justify-center gap-1.5 ${dims.pad} ${dims.font} font-semibold uppercase tracking-[0.18em]`}
+          className={`relative z-10 flex w-full items-center justify-center gap-2 ${dims.pad} ${dims.font} font-semibold uppercase tracking-[0.18em]`}
           style={{
             color: pal.text,
             textShadow: ready
@@ -3010,7 +3104,12 @@ function LaidBook({
               : "0 1px 0 rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.4)",
           }}
         >
-          <span className="truncate">{label}</span>
+          {leading && (
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center text-current">
+              {leading}
+            </span>
+          )}
+          <span className="min-w-0 truncate">{label}</span>
           {trailing}
         </span>
         {sublabel && (
@@ -3759,6 +3858,9 @@ function OrganizeButton({
   stage,
   currentChapter,
   currentChapterTitle,
+  chapterGateLocked = false,
+  chapterActivityStatus,
+  chapterGateLabel,
   followupsAnswered,
   weakFolderCount,
   onClick,
@@ -3767,6 +3869,9 @@ function OrganizeButton({
   stage: LightbulbIdea["stage"];
   currentChapter?: number;
   currentChapterTitle?: string;
+  chapterGateLocked?: boolean;
+  chapterActivityStatus?: ChapterActivityStatus;
+  chapterGateLabel?: string;
   followupsAnswered: number;
   weakFolderCount: number;
   onClick: () => void;
@@ -3774,8 +3879,11 @@ function OrganizeButton({
   const remainingFollowups = Math.max(0, MIN_CLARITY_FOLLOWUPS - followupsAnswered);
   const isRootRoomStage = stage === "paid-creation";
   const hasCurrentChapter = typeof currentChapter === "number";
+  const isChapterHoldState = hasCurrentChapter && chapterActivityStatus === "bots_running";
+  const isChapterAnswerState = hasCurrentChapter && chapterActivityStatus === "needs_question";
   const unlocked =
-    hasCurrentChapter ||
+    isChapterAnswerState ||
+    (hasCurrentChapter && !chapterGateLocked) ||
     isRootRoomStage ||
     (overall >= 90 && remainingFollowups === 0 && weakFolderCount === 0);
   const canonicalChapterLabel =
@@ -3783,7 +3891,11 @@ function OrganizeButton({
       ? `Open Chapter ${currentChapter}: ${currentChapterTitle}`
       : `Open Chapter ${currentChapter}`;
   const label = hasCurrentChapter
-    ? canonicalChapterLabel
+    ? isChapterHoldState
+      ? "HOLD"
+      : isChapterAnswerState
+        ? "ANSWER"
+        : "LET'S GO!"
     : isRootRoomStage
       ? "Continue"
       : unlocked
@@ -3791,7 +3903,11 @@ function OrganizeButton({
         : "Next Step";
   const [showLockMsg, setShowLockMsg] = useState(false);
   const title = hasCurrentChapter
-    ? canonicalChapterLabel
+    ? isChapterHoldState
+      ? "The user review is finished. Waiting for The Crew before opening the next step."
+      : isChapterAnswerState
+        ? "Answer the question The Crew needs before the next chapter can open."
+        : canonicalChapterLabel
     : isRootRoomStage
       ? "Open Chapter 2: Root Room"
       : unlocked
@@ -3803,7 +3919,7 @@ function OrganizeButton({
             : `Asleep — unlocks at 90% (currently ${overall}%)`;
 
   const handleClick = () => {
-    if (!unlocked) {
+    if (!unlocked || isChapterHoldState) {
       setShowLockMsg(true);
       window.setTimeout(() => setShowLockMsg(false), 2400);
       return;
@@ -3811,24 +3927,53 @@ function OrganizeButton({
     onClick();
   };
 
-  const variant: LaidBookVariant = unlocked ? "gold" : "leather";
+  const variant: LaidBookVariant = isChapterHoldState
+    ? "caution"
+    : isChapterAnswerState
+      ? "ember"
+      : unlocked
+        ? hasCurrentChapter
+          ? "emerald"
+          : "gold"
+        : "leather";
   const isMobile = useIsMobile();
-  const size = isMobile ? "sm" : unlocked ? "lg" : "md";
+  const size = hasCurrentChapter
+    ? isMobile
+      ? "md"
+      : "lg"
+    : isMobile
+      ? "sm"
+      : unlocked
+        ? "lg"
+        : "md";
+  const leading = hasCurrentChapter ? (
+    isChapterHoldState ? (
+      <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+    ) : isChapterAnswerState ? (
+      <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+    ) : (
+      <Play className="h-4 w-4 shrink-0 fill-current" aria-hidden="true" />
+    )
+  ) : null;
 
   return (
     <div className="relative">
-      <div className={unlocked ? "" : "opacity-60 saturate-[0.55]"}>
+      <div className={!unlocked || isChapterHoldState ? "opacity-80 saturate-[0.8]" : ""}>
         <LaidBook
           label={label}
-          sublabel={unlocked ? "Ready" : "Not Yet"}
+          sublabel={hasCurrentChapter ? chapterGateLabel : unlocked ? "Ready" : "Not Yet"}
           pct={unlocked ? overall : undefined}
           variant={variant}
-          glow={unlocked}
+          glow={unlocked && !isChapterHoldState}
           size={size}
-          disabled={false}
+          chapterAction={hasCurrentChapter}
+          disabled={isChapterHoldState}
           onClick={handleClick}
           title={title}
-          trailing={unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null}
+          leading={leading}
+          trailing={
+            !hasCurrentChapter && unlocked ? <ArrowRight className="h-3 w-3 opacity-90" /> : null
+          }
         />
       </div>
       {showLockMsg && (
@@ -3838,7 +3983,9 @@ function OrganizeButton({
             background: "linear-gradient(180deg, #f6e6bd 0%, #e2c98a 100%)",
           }}
         >
-          {remainingFollowups > 0 ? (
+          {chapterGateLocked ? (
+            <>The next chapter opens after The Crew has it ready.</>
+          ) : remainingFollowups > 0 ? (
             <>
               Answer <strong>{remainingFollowups}</strong> more Clarity follow-up
               {remainingFollowups === 1 ? "" : "s"} first.
