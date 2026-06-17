@@ -1021,6 +1021,7 @@ type MudPitQuestion = {
 const ROOT_ROOM_BOT_QUESTIONS_KEY = "dabottree:rootRoomBotQuestions";
 const MUD_PIT_ANSWERS_KEY = "dabottree:mudPitPressureAnswers";
 const THE_NAME_DIRECTION_KEY = "dabottree:theNameDirection";
+const CANOPY_FOUNDATION_CHECK_KEY = "dabottree:canopyFoundationChecks";
 
 const MONIKER_PRIMARY_NAME_SLOTS = Array.from({ length: 10 }, (_, index) => ({
   id: `primary-${index + 1}`,
@@ -1033,6 +1034,135 @@ const MONIKER_RESERVE_NAME_SLOTS = Array.from({ length: 10 }, (_, index) => ({
   label: `Reserve name ${index + 1}`,
   status: "Reserve bench",
 }));
+
+const CANOPY_FOUNDATION_CHECKS = [
+  {
+    id: "bones-structure",
+    actor: "Bones",
+    role: "Structure check",
+    question: "What part of this project feels least defined right now?",
+    options: [
+      "The main user",
+      "The main problem",
+      "The main flow",
+      "The pages or features",
+      "How it makes money",
+      "I am not sure yet",
+    ],
+  },
+  {
+    id: "gauge-proof",
+    actor: "Gauge",
+    role: "Measurement squirrel",
+    question: "What would prove this project is working?",
+    options: [
+      "More users",
+      "Time saved",
+      "Money made",
+      "Fewer mistakes",
+      "Better feedback",
+      "I am not sure yet",
+    ],
+  },
+  {
+    id: "quill-words",
+    actor: "Quill",
+    role: "Words squirrel",
+    question: "What part will need the clearest wording?",
+    options: [
+      "The homepage",
+      "The main offer",
+      "The instructions",
+      "The pricing",
+      "The app buttons",
+      "The whole thing",
+    ],
+  },
+  {
+    id: "signal-demand",
+    actor: "Signal",
+    role: "Attention squirrel",
+    question: "Where do you think the strongest signal will come from?",
+    options: [
+      "People searching for it",
+      "People sharing it",
+      "A workplace or community need",
+      "A repeated frustration",
+      "A trend or opportunity",
+      "Unknown right now",
+    ],
+  },
+  {
+    id: "trail-flow",
+    actor: "Trail",
+    role: "Path squirrel",
+    question: "Where might the user path get confusing?",
+    options: [
+      "Starting the app",
+      "Knowing what to do next",
+      "Finishing the main task",
+      "Saving or receiving results",
+      "Coming back later",
+      "I do not know yet",
+    ],
+  },
+  {
+    id: "circuit-tools",
+    actor: "Circuit",
+    role: "Tools squirrel",
+    question: "What kind of outside connection might this project need?",
+    options: [
+      "Payments",
+      "Email or messages",
+      "Calendar or scheduling",
+      "File uploads",
+      "AI, search, or data",
+      "None yet",
+    ],
+  },
+  {
+    id: "skillsmith-process",
+    actor: "SkillSmith",
+    role: "Workflow squirrel",
+    question: "What should this project become good at doing repeatedly?",
+    options: [
+      "Collecting info",
+      "Making decisions",
+      "Producing outputs",
+      "Guiding users step by step",
+      "Tracking progress",
+      "Improving over time",
+    ],
+  },
+  {
+    id: "glyph-interface",
+    actor: "Glyph",
+    role: "Interface squirrel",
+    question: "What needs to be easiest to recognize on screen?",
+    options: [
+      "Main action button",
+      "Progress or status",
+      "Warnings",
+      "Categories or sections",
+      "Results or output",
+      "Navigation",
+    ],
+  },
+  {
+    id: "tally-scope",
+    actor: "Tally",
+    role: "Scope squirrel",
+    question: "What feels most likely to grow too large?",
+    options: [
+      "Number of features",
+      "Number of pages",
+      "Number of user choices",
+      "Cost or time",
+      "Data or details",
+      "Bot involvement",
+    ],
+  },
+];
 
 const MUD_PIT_QUESTION_BUCKETS: Array<{
   id: string;
@@ -1546,6 +1676,7 @@ function ChapterOverview({
   const n8nConnection = n8nConnectionFor(chapter.id);
   const showMudPitGuide = chapter.id === "mud-pit";
   const showTheNameGuide = chapter.id === "the-name";
+  const showCanopyGuide = chapter.id === "canopy-foundation";
 
   return (
     <div className="relative z-10 flex h-full min-h-[460px] flex-col justify-between p-5 sm:p-6">
@@ -1597,6 +1728,7 @@ function ChapterOverview({
           <MudPitMiniCrossfirePanel project={project} rootRoomNotes={rootRoomNotes} />
         ) : null}
         {showTheNameGuide ? <TheNameMonikerPanel project={project} /> : null}
+        {showCanopyGuide ? <CanopyFoundationPanel project={project} /> : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1607,6 +1739,134 @@ function ChapterOverview({
             <p className="mt-1 text-sm text-slate-300">{part.actor}</p>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function CanopyFoundationPanel({ project }: { project: LocalTreehouseProject | null }) {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [foundationStarted, setFoundationStarted] = useState(false);
+  const answeredCount = CANOPY_FOUNDATION_CHECKS.filter((check) => answers[check.id]).length;
+  const canBuild = answeredCount === CANOPY_FOUNDATION_CHECKS.length;
+
+  const chooseAnswer = (checkId: string, option: string) => {
+    setAnswers((current) => ({ ...current, [checkId]: option }));
+  };
+
+  const buildFoundationPacket = () => {
+    if (!canBuild) return;
+    try {
+      window.localStorage.setItem(
+        CANOPY_FOUNDATION_CHECK_KEY,
+        JSON.stringify({
+          completedAt: new Date().toISOString(),
+          projectId: project?.projectId ?? null,
+          answers,
+        }),
+      );
+    } catch {
+      // The chapter can still show the handoff state if local storage is unavailable.
+    }
+    setFoundationStarted(true);
+  };
+
+  return (
+    <div className="mt-4 rounded-md border border-emerald-200/22 bg-emerald-300/10 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.16em] text-emerald-100">Rook</p>
+          <h4 className="mt-1 text-lg font-semibold text-white">Canopy Foundation check</h4>
+          <p className="mt-1 text-sm leading-6 text-slate-200">
+            Welcome to Canopy Foundation. I will turn this project into a stronger foundation.
+            First, Bones checks the main structure. Then the Squirrels inspect the small beams.
+          </p>
+        </div>
+        <div className="rounded-md border border-emerald-100/20 bg-black/24 px-3 py-2 text-right">
+          <p className="text-xs text-emerald-100">
+            {foundationStarted ? "Packet started" : "Multiple choice"}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">
+            {answeredCount}/{CANOPY_FOUNDATION_CHECKS.length} checks answered
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3">
+        {CANOPY_FOUNDATION_CHECKS.map((check) => {
+          const selected = answers[check.id];
+          return (
+            <div
+              key={check.id}
+              className="rounded-md border border-white/10 bg-black/24 p-3"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.15em] text-emerald-100">
+                    {check.actor}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white">{check.role}</p>
+                </div>
+                {selected ? (
+                  <span className="rounded-md border border-emerald-100/20 bg-emerald-300/12 px-2 py-1 text-[11px] font-semibold text-emerald-50">
+                    Answered
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-3 text-sm font-semibold leading-6 text-slate-100">
+                {check.question}
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {check.options.map((option) => {
+                  const isSelected = selected === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => chooseAnswer(check.id, option)}
+                      className={`min-h-10 rounded-md border px-3 py-2 text-left text-sm transition ${
+                        isSelected
+                          ? "border-emerald-100/70 bg-emerald-300 text-stone-950"
+                          : "border-white/10 bg-stone-950/60 text-slate-200 hover:bg-white/10"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 rounded-md border border-white/10 bg-black/24 p-3">
+        {foundationStarted ? (
+          <>
+            <p className="text-sm font-semibold text-white">
+              Rook has what he needs to build the foundation packet.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-300">
+              The visible check is complete. The next pass can use these answers to shape the
+              Branchworks-ready foundation handoff.
+            </p>
+          </>
+        ) : (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-slate-300">
+              Answer each quick check so Rook can turn the project into a foundation packet.
+            </p>
+            <button
+              type="button"
+              onClick={buildFoundationPacket}
+              disabled={!canBuild}
+              className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md border border-emerald-100/25 bg-emerald-300 px-3 text-sm font-semibold text-stone-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Build Foundation Packet
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
