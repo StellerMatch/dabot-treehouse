@@ -4,7 +4,7 @@ test("Treehouse starts with a free account gate", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByAltText("DaBotTree")).toBeVisible();
-  await expect(page.getByText("TREE HOUSE")).toBeVisible();
+  await expect(page.getByText("DA BOT TREEHOUSE", { exact: true })).toBeVisible();
   await expect(page.getByText("Free Treehouse account").first()).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Give every idea a place to live." }),
@@ -13,7 +13,7 @@ test("Treehouse starts with a free account gate", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
 
   await page.getByRole("link", { name: "Create free account" }).click();
-  await expect(page.getByText("TREE HOUSE")).toBeVisible();
+  await expect(page.getByText("DA BOT TREEHOUSE", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 });
 
@@ -96,7 +96,10 @@ test("Library shelf Continue opens the idea dashboard without the credit modal",
     page.evaluate(() => window.localStorage.getItem("dabottree:ideas:boss@example.com")),
   ).resolves.toContain("Idea Shelf");
 
-  await page.getByRole("button", { name: /^Continue$/ }).click();
+  await page
+    .getByRole("button", { name: /^Continue$/ })
+    .first()
+    .click();
 
   await expect(page.getByText("Start Library Stage?")).toHaveCount(0);
   await expect(page).toHaveURL(/\/dashboard\?ideaId=idea-/);

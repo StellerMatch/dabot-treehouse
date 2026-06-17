@@ -200,7 +200,7 @@ test("fake realtor project runs through local Treehouse packet and Steward recei
   await expect(page.getByText("Weekly outside research is planned")).toBeVisible();
 
   await page.goto("/levels");
-  await clickUntilVisible(page, "Ch 3", "Luma Design Trust");
+  await clickUntilVisible(page, "Ch 4", "Luma Design Trust");
   await clickUntilVisible(page, "Open Luma Design Trust", "Task section starters");
 
   const startedAt = Date.now();

@@ -59,6 +59,9 @@ const chapterLevelKeys: Record<string, string | null> = {
   "future-13": null,
 };
 
+const treehouseRunDir = (runId: string) =>
+  `var/treehouse/chapter-runs/${runId}`;
+
 const backendChapterRuns: Record<
   string,
   {
@@ -72,88 +75,77 @@ const backendChapterRuns: Record<
   "root-room": {
     firstPart: "Echo",
     partCount: 4,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/root-room-runs/root-room-step-six-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("root-room-step-six-local-scaffold-2026-06-12"),
     runId: "root-room-step-six-local-scaffold-2026-06-12",
     status: "root_room_local_scaffold_ready",
   },
   "mud-pit": {
     firstPart: "Crossfire",
     partCount: 4,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/mud-pit-local-scaffold-2026-06-14",
+    runDir: treehouseRunDir("mud-pit-local-scaffold-2026-06-14"),
     runId: "mud-pit-local-scaffold-2026-06-14",
     status: "mud_pit_local_scaffold_ready_waiting_real_content",
   },
   "trunk-ascent": {
     firstPart: "Luma",
     partCount: 4,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/trunk-level-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("trunk-level-local-scaffold-2026-06-12"),
     runId: "trunk-level-local-scaffold-2026-06-12",
     status: "chapter_3_local_closeout_complete_waiting_next_gate",
   },
   "the-name": {
     firstPart: "Moniker",
     partCount: 1,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/the-clearing-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("the-clearing-local-scaffold-2026-06-12"),
     runId: "the-clearing-local-scaffold-2026-06-12",
     status: "chapter_4_local_closeout_complete_waiting_next_gate",
   },
   "canopy-foundation": {
     firstPart: "Rook opens Canopy",
     partCount: 6,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/canopy-level-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("canopy-level-local-scaffold-2026-06-12"),
     runId: "canopy-level-local-scaffold-2026-06-12",
     status: "chapter_5_local_closeout_complete_waiting_next_gate",
   },
   "wind-tunnel": {
     firstPart: "Gauge",
     partCount: 3,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/wind-tunnel-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("wind-tunnel-local-scaffold-2026-06-12"),
     runId: "wind-tunnel-local-scaffold-2026-06-12",
     status: "chapter_6_local_closeout_complete_waiting_next_gate",
   },
   "branchworks-level": {
     firstPart: "Tinker opens Branchworks",
     partCount: 8,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/branchworks-level-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("branchworks-level-local-scaffold-2026-06-12"),
     runId: "branchworks-level-local-scaffold-2026-06-12",
     status: "chapter_7_local_closeout_complete_waiting_next_gate",
   },
   "heavy-crown": {
     firstPart: "Weaver opens Crown",
     partCount: 9,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/crown-level-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("crown-level-local-scaffold-2026-06-12"),
     runId: "crown-level-local-scaffold-2026-06-12",
     status: "chapter_8_local_closeout_complete_waiting_next_gate",
   },
   "clean-sweep": {
     firstPart: "Ghost",
     partCount: 1,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/the-sweep-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("the-sweep-local-scaffold-2026-06-12"),
     runId: "the-sweep-local-scaffold-2026-06-12",
     status: "chapter_9_local_closeout_complete_waiting_next_gate",
   },
   "nest-level": {
     firstPart: "Ward opens Nest",
     partCount: 5,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/nest-level-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("nest-level-local-scaffold-2026-06-12"),
     runId: "nest-level-local-scaffold-2026-06-12",
     status: "chapter_10_local_closeout_complete_waiting_next_gate",
   },
   "seed-level": {
     firstPart: "Bloom opens Seed",
     partCount: 6,
-    runDir:
-      "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/chapter-runs/seed-level-local-scaffold-2026-06-12",
+    runDir: treehouseRunDir("seed-level-local-scaffold-2026-06-12"),
     runId: "seed-level-local-scaffold-2026-06-12",
     status: "chapter_11_local_closeout_complete_sequence_complete",
   },

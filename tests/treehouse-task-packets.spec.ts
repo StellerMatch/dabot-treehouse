@@ -174,7 +174,7 @@ test("Treehouse task buttons create safe local n8n handoff packets", async ({ pa
   await page.goto("/levels");
   await expect(page.getByRole("heading", { name: /Every current chapter/i })).toBeVisible();
 
-  await clickUntilVisible(page, "Ch 3", "Luma Design Trust");
+  await clickUntilVisible(page, "Ch 4", "Luma Design Trust");
   await clickUntilVisible(page, "Open Luma Design Trust", "Task section starters");
   await expect(page.getByText("Task section starters")).toBeVisible();
 
@@ -182,20 +182,20 @@ test("Treehouse task buttons create safe local n8n handoff packets", async ({ pa
   await page.getByRole("button", { name: "Past Pass" }).click();
   const trunkPacket = await waitForPacket("trunk_past_pass", trunkStartedAt);
   expectSafeLocalPacket(trunkPacket, "trunk_past_pass");
-  expect(trunkPacket.treehouse.chapterId).toBe("trunk");
+  expect(trunkPacket.treehouse.chapterId).toBe("trunk-ascent");
   expect(trunkPacket.treehouse.actor).toBe("Luma");
 
-  await clickUntilVisible(page, "Ch 5", "Bones Skeleton Check");
+  await clickUntilVisible(page, "Ch 6", "Bones Skeleton Check");
   await clickUntilVisible(page, "Open Bones Skeleton Check", "Task section starters");
 
   const canopyStartedAt = Date.now();
   await page.getByRole("button", { name: "Send to Bones" }).click();
   const canopyPacket = await waitForPacket("canopy_bones_skeleton_check", canopyStartedAt);
   expectSafeLocalPacket(canopyPacket, "canopy_bones_skeleton_check");
-  expect(canopyPacket.treehouse.chapterId).toBe("canopy");
+  expect(canopyPacket.treehouse.chapterId).toBe("canopy-foundation");
   expect(canopyPacket.treehouse.actor).toBe("Bones");
 
-  await clickUntilVisible(page, "Ch 11", "Bloom Opens Seed");
+  await clickUntilVisible(page, "Ch 12", "Bloom Opens Seed");
   await clickUntilVisible(page, "Open Bloom Opens Seed", "Task section starters");
 
   const seedStartedAt = Date.now();

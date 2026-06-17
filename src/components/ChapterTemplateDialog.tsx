@@ -11,7 +11,12 @@ import demoGuideAsset from "@/assets/trunk-green-guide-cutout.png.asset.json";
 import echoAsset from "@/assets/echo-presenting.png.asset.json";
 import ledgerAsset from "@/assets/ledger-presenting.png.asset.json";
 import shieldAsset from "@/assets/shield-presenting.png.asset.json";
-import { createTreehouseTaskPacket } from "@/lib/api/treehouse-task-packets.functions";
+import {
+  createTreehouseTaskPacket,
+  getTreehouseChapterActivity,
+  requestClarityIntakeQuestions,
+  submitClarityQuestionAnswers,
+} from "@/lib/api/treehouse-task-packets.functions";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   chapterTemplateById,
@@ -19,27 +24,43 @@ import {
   primaryChapterGuideName,
   type TreehouseChapterTemplate,
 } from "@/lib/treehouse-chapter-templates";
-import { treehouseN8nConnectionForChapter } from "@/lib/treehouse-n8n-connections";
 
 type ChapterTemplateDialogProps = {
+  ideaDescription?: string;
   ideaId?: string;
+  ideaIntakeText?: string;
   ideaTitle?: string;
+  ideaType?: string;
   chapterId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDemoComplete?: (chapterId: string) => void;
+  onDemoComplete?: (chapterId: string) => void | Promise<void>;
 };
 
 type RootRoomRunStatus = "idle" | "running" | "complete";
 type RootRoomHandoffStatus = "idle" | "creating" | "created" | "local-fallback";
+type ClarityQuestion = {
+  answerType?: string | null;
+  id: string;
+  prompt: string;
+  reason?: string | null;
+};
+type ClarityAnswer = {
+  answer: string;
+  questionId: string;
+};
+type ClarityRequestStatus = "idle" | "requesting" | "waiting" | "questions-ready" | "submitted" | "error";
 
 const ROOT_ROOM_STORY_STEPS = ["Echo", "Shield", "Ledger", "Chief"];
 const ROOT_ROOM_N8N_TEST_ANCHOR =
   "7.2 Prepare Echo Perspective Scan / 7.3 Prepare Chief Project Setup Packet / 7.4 Prepare Ledger Baseline Record / 7.5 Prepare Shield Safety Review";
 
 export function ChapterTemplateDialog({
+  ideaDescription,
   ideaId,
+  ideaIntakeText,
   ideaTitle,
+  ideaType,
   chapterId,
   open,
   onOpenChange,
@@ -58,10 +79,15 @@ export function ChapterTemplateDialog({
   const [rootRoomRunStep, setRootRoomRunStep] = useState(0);
   const [rootRoomHandoffStatus, setRootRoomHandoffStatus] = useState<RootRoomHandoffStatus>("idle");
   const [rootRoomPacketId, setRootRoomPacketId] = useState<string | null>(null);
+  const [clarityStatus, setClarityStatus] = useState<ClarityRequestStatus>("idle");
+  const [clarityQuestions, setClarityQuestions] = useState<ClarityQuestion[]>([]);
+  const [clarityAnswers, setClarityAnswers] = useState<Record<string, string>>({});
+  const [clarityMessage, setClarityMessage] = useState<string | null>(null);
   const isRootRoomChapter = chapter.id === "root-room";
+  const isClarityChapter = chapter.id === "clarity";
   const nextChapter = nextChapterTemplate(chapter.id);
   const forwardActionLabel = nextChapter
-    ? `Continue to Chapter ${nextChapter.chapter}`
+    ? `Finish Review`
     : `Finish Chapter ${chapter.chapter}`;
 
   useEffect(() => {
@@ -82,59 +108,113 @@ export function ChapterTemplateDialog({
     setRootRoomHandoffStatus(storedPacketId ? "created" : "idle");
   }, [demoStorageKey, isRootRoomChapter, open, rootRoomRunStorageKey]);
 
-  const markDemoComplete = () => {
+  useEffect(() => {
+    if (!open || !isClarityChapter || !ideaId) return;
+    let cancelled = false;
+
+    const requestKey = `${demoStorageKey}:clarity-requested`;
+    const requestClarity = async () => {
+      if (typeof window !== "undefined" && window.localStorage.getItem(requestKey)) {
+        setClarityStatus("waiting");
+        return;
+      }
+
+      setClarityStatus("requesting");
+      setClarityMessage("Clarity is reading the intake.");
+      try {
+        const result = await requestClarityIntakeQuestions({
+          data: {
+            chapterId: chapter.id,
+            chapterTitle: `Chapter ${chapter.chapter}: ${chapter.title}`,
+            project: {
+              description: ideaDescription || ideaIntakeText || "",
+              ideaType: ideaType || "",
+              intakeText: ideaIntakeText || ideaDescription || "",
+              projectId: ideaId,
+              title: ideaTitle || "Untitled idea",
+            },
+            requestedQuestionCount: 5,
+          },
+        });
+        if (cancelled) return;
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(requestKey, result.requestId);
+        }
+        setClarityStatus("waiting");
+        setClarityMessage("Clarity has been pinged. Waiting for her five project questions.");
+      } catch {
+        if (cancelled) return;
+        setClarityStatus("error");
+        setClarityMessage("The Clarity request could not be sent yet.");
+      }
+    };
+
+    void requestClarity();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    chapter.chapter,
+    chapter.id,
+    chapter.title,
+    demoStorageKey,
+    ideaDescription,
+    ideaId,
+    ideaIntakeText,
+    ideaTitle,
+    ideaType,
+    isClarityChapter,
+    open,
+  ]);
+
+  useEffect(() => {
+    if (!open || !isClarityChapter || !ideaId || clarityStatus === "submitted") return;
+    let cancelled = false;
+
+    const syncClarityActivity = async () => {
+      const result = await getTreehouseChapterActivity({
+        data: { projectId: ideaId },
+      }).catch(() => null);
+      if (cancelled || !result?.activity) return;
+
+      const activity = result.activity as {
+        answers?: ClarityAnswer[];
+        message?: string | null;
+        questions?: ClarityQuestion[];
+        status?: string;
+      };
+      if (activity.message) setClarityMessage(activity.message);
+      if (Array.isArray(activity.questions) && activity.questions.length > 0) {
+        setClarityQuestions(activity.questions.slice(0, 5));
+        setClarityStatus(activity.status === "next_ready" ? "submitted" : "questions-ready");
+      } else if (activity.status === "bots_running") {
+        setClarityStatus("waiting");
+      }
+      if (Array.isArray(activity.answers) && activity.answers.length > 0) {
+        setClarityAnswers(
+          Object.fromEntries(activity.answers.map((answer) => [answer.questionId, answer.answer])),
+        );
+      }
+    };
+
+    void syncClarityActivity();
+    const interval = window.setInterval(() => void syncClarityActivity(), 5_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [clarityStatus, ideaId, isClarityChapter, open]);
+
+  const markDemoComplete = async () => {
     setDemoComplete(true);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(demoStorageKey, "complete");
     }
-    onDemoComplete?.(chapter.id);
+    await onDemoComplete?.(chapter.id);
   };
 
-  const createNextChapterHandoff = async (targetChapter: TreehouseChapterTemplate) => {
-    const n8nConnection = treehouseN8nConnectionForChapter(targetChapter.id);
-    if (!n8nConnection) return;
-
-    try {
-      const packet = await createTreehouseTaskPacket({
-        data: {
-          actor: "Treehouse",
-          backendChapterRun: n8nConnection.backendChapterRun,
-          botParticipants: n8nConnection.botParticipants,
-          chapterId: targetChapter.id,
-          chapterTitle: `Chapter ${targetChapter.chapter}: ${targetChapter.title}`,
-          n8nAnchor: n8nConnection.anchor,
-          partId: `${targetChapter.id}-n8n-handoff`,
-          partTitle: n8nConnection.hiddenProcessLabel,
-          project: {
-            projectId: ideaKey,
-            title: ideaTitle || "Untitled idea",
-          },
-          reportSourceKey: n8nConnection.reportSourceKey,
-          requestedAction: n8nConnection.requestedAction,
-        },
-      });
-
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(
-          `dabottree:n8n-handoff:${ideaKey}:${targetChapter.id}`,
-          packet.packetId,
-        );
-      }
-    } catch {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(
-          `dabottree:n8n-handoff:${ideaKey}:${targetChapter.id}`,
-          "local-fallback",
-        );
-      }
-    }
-  };
-
-  const continueChapter = () => {
-    if (nextChapter) {
-      void createNextChapterHandoff(nextChapter);
-    }
-    markDemoComplete();
+  const continueChapter = async () => {
+    await markDemoComplete();
     onOpenChange(false);
   };
 
@@ -194,12 +274,50 @@ export function ChapterTemplateDialog({
         }
 
         window.setTimeout(() => {
-          markDemoComplete();
+          void markDemoComplete();
         }, 650);
       },
       450 * (ROOT_ROOM_STORY_STEPS.length + 1),
     );
   };
+
+  const submitClarityAnswers = async () => {
+    if (!ideaId || clarityQuestions.length === 0) return;
+    const answers = clarityQuestions
+      .map((question) => ({
+        questionId: question.id,
+        answer: clarityAnswers[question.id]?.trim() ?? "",
+      }))
+      .filter((answer) => answer.answer);
+    if (answers.length !== clarityQuestions.length) return;
+
+    setClarityStatus("requesting");
+    setClarityMessage("Sending Clarity your answers.");
+    try {
+      await submitClarityQuestionAnswers({
+        data: {
+          answers,
+          chapterId: chapter.id,
+          project: {
+            description: ideaDescription || ideaIntakeText || "",
+            ideaType: ideaType || "",
+            intakeText: ideaIntakeText || ideaDescription || "",
+            projectId: ideaId,
+            title: ideaTitle || "Untitled idea",
+          },
+          questions: clarityQuestions,
+        },
+      });
+      setClarityStatus("submitted");
+      setClarityMessage("Clarity answers are saved to the Chapter 1 packet.");
+    } catch {
+      setClarityStatus("error");
+      setClarityMessage("The Clarity answers could not be submitted yet.");
+    }
+  };
+
+  const canContinueChapter =
+    !isClarityChapter || clarityStatus === "submitted" || demoComplete;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -226,7 +344,10 @@ export function ChapterTemplateDialog({
               chapter={chapter}
               forwardActionLabel={forwardActionLabel}
               demoComplete={demoComplete}
-              onChapterContinue={continueChapter}
+              canContinueChapter={canContinueChapter}
+              onChapterContinue={() => {
+                if (canContinueChapter) void continueChapter();
+              }}
             />
             <ChapterTemplateBody
               ideaTitle={ideaTitle}
@@ -240,6 +361,15 @@ export function ChapterTemplateDialog({
               rootRoomHandoffStatus={rootRoomHandoffStatus}
               rootRoomPacketId={rootRoomPacketId}
               onStartRootRoomRun={startRootRoomRun}
+              clarityStatus={clarityStatus}
+              clarityQuestions={clarityQuestions}
+              clarityAnswers={clarityAnswers}
+              clarityMessage={clarityMessage}
+              canContinueChapter={canContinueChapter}
+              onClarityAnswerChange={(questionId, answer) =>
+                setClarityAnswers((prev) => ({ ...prev, [questionId]: answer }))
+              }
+              onSubmitClarityAnswers={submitClarityAnswers}
             />
           </div>
         </div>
@@ -259,11 +389,13 @@ function DemoGuidePanel({
   chapter,
   forwardActionLabel,
   demoComplete,
+  canContinueChapter,
   onChapterContinue,
 }: {
   chapter: TreehouseChapterTemplate;
   forwardActionLabel: string;
   demoComplete: boolean;
+  canContinueChapter: boolean;
   onChapterContinue: () => void;
 }) {
   const guideName = primaryChapterGuideName(chapter);
@@ -291,10 +423,10 @@ function DemoGuidePanel({
         <button
           type="button"
           onClick={onChapterContinue}
-          disabled={demoComplete}
+          disabled={demoComplete || !canContinueChapter}
           className="rounded-sm border border-amber-100/45 bg-amber-100/20 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-100/30 disabled:cursor-default disabled:bg-emerald-900/45"
         >
-          {demoComplete ? "Chapter Complete" : forwardActionLabel}
+          {demoComplete ? "Chapter Complete" : !canContinueChapter ? "Answer Clarity" : forwardActionLabel}
         </button>
       </div>
     </aside>
@@ -308,6 +440,13 @@ function ChapterTemplateBody({
   forwardActionLabel,
   demoComplete,
   onChapterContinue,
+  clarityStatus,
+  clarityQuestions,
+  clarityAnswers,
+  clarityMessage,
+  canContinueChapter,
+  onClarityAnswerChange,
+  onSubmitClarityAnswers,
   rootRoomRunStatus,
   rootRoomRunStep,
   rootRoomHandoffStatus,
@@ -320,6 +459,13 @@ function ChapterTemplateBody({
   forwardActionLabel: string;
   demoComplete: boolean;
   onChapterContinue: () => void;
+  clarityStatus: ClarityRequestStatus;
+  clarityQuestions: ClarityQuestion[];
+  clarityAnswers: Record<string, string>;
+  clarityMessage: string | null;
+  canContinueChapter: boolean;
+  onClarityAnswerChange: (questionId: string, answer: string) => void;
+  onSubmitClarityAnswers: () => void;
   rootRoomRunStatus: RootRoomRunStatus;
   rootRoomRunStep: number;
   rootRoomHandoffStatus: RootRoomHandoffStatus;
@@ -327,6 +473,15 @@ function ChapterTemplateBody({
   onStartRootRoomRun: () => void;
 }) {
   const isRootRoomChapter = chapter.id === "root-room";
+  const isClarityChapter = chapter.id === "clarity";
+  const answeredClarityCount = clarityQuestions.filter(
+    (question) => clarityAnswers[question.id]?.trim(),
+  ).length;
+  const canSubmitClarityAnswers =
+    clarityQuestions.length > 0 &&
+    answeredClarityCount === clarityQuestions.length &&
+    clarityStatus !== "requesting" &&
+    clarityStatus !== "submitted";
 
   return (
     <section className="relative p-5 sm:p-6">
@@ -359,8 +514,9 @@ function ChapterTemplateBody({
             {ideaTitle || "Untitled idea"}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-amber-950/75">
-            This is the empty working room for the chapter. Add the real questions, lane notes, and
-            output when this chapter is ready.
+            {isClarityChapter
+              ? "Clarity reads the intake, asks five project-specific questions, and sends the answers back to the source packet."
+              : "This is the empty working room for the chapter. Add the real questions, lane notes, and output when this chapter is ready."}
           </p>
         </div>
 
@@ -369,10 +525,25 @@ function ChapterTemplateBody({
             Chapter status
           </div>
           <div className="mt-2 rounded-sm border border-amber-900/20 bg-amber-50/55 px-3 py-2 font-serif text-sm font-semibold text-amber-950">
-            {demoComplete ? "Chapter marked complete" : "Blank template ready"}
+            {isClarityChapter
+              ? clarityStatus === "submitted" || demoComplete
+                ? "Clarity answers submitted"
+                : clarityStatus === "questions-ready"
+                  ? "Clarity questions ready"
+                  : clarityStatus === "waiting" || clarityStatus === "requesting"
+                    ? "Waiting on Clarity"
+                    : clarityStatus === "error"
+                      ? "Clarity bridge needs attention"
+                      : "Clarity intake ready"
+              : demoComplete
+                ? "Chapter marked complete"
+                : "Blank template ready"}
           </div>
           <p className="mt-2 text-xs leading-relaxed text-amber-950/70">
-            {demoComplete
+            {isClarityChapter
+              ? clarityMessage ||
+                "Opening this chapter sends the idea intake to real Clarity through n8n."
+              : demoComplete
               ? nextChapter
                 ? `The next step is Chapter ${nextChapter.chapter}: ${nextChapter.title}.`
                 : "This is the final chapter shell in the current template list."
@@ -389,6 +560,18 @@ function ChapterTemplateBody({
           packetId={rootRoomPacketId}
           demoComplete={demoComplete}
           onStart={onStartRootRoomRun}
+        />
+      ) : null}
+
+      {isClarityChapter ? (
+        <ClarityQuestionPanel
+          status={clarityStatus}
+          questions={clarityQuestions}
+          answers={clarityAnswers}
+          answeredCount={answeredClarityCount}
+          onAnswerChange={onClarityAnswerChange}
+          onSubmit={onSubmitClarityAnswers}
+          canSubmit={canSubmitClarityAnswers}
         />
       ) : null}
 
@@ -458,20 +641,105 @@ function ChapterTemplateBody({
           </div>
           <p className="mt-1 text-xs leading-relaxed text-amber-950/70">
             {nextChapter
-              ? `Finish Chapter ${chapter.chapter} and move this idea to Chapter ${nextChapter.chapter}: ${nextChapter.title}.`
+              ? `Finish the Chapter ${chapter.chapter} review and send The Crew toward Chapter ${nextChapter.chapter}: ${nextChapter.title}.`
               : `Finish Chapter ${chapter.chapter} and mark the current chapter path complete.`}
           </p>
         </div>
         <button
           type="button"
           onClick={onChapterContinue}
-          disabled={demoComplete}
+          disabled={demoComplete || !canContinueChapter}
           className="rounded-sm border border-amber-950/20 bg-amber-950 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-50 shadow-sm transition hover:bg-amber-900 disabled:cursor-default disabled:bg-emerald-900"
         >
-          {demoComplete ? "Chapter Complete" : forwardActionLabel}
+          {demoComplete
+            ? "Chapter Complete"
+            : !canContinueChapter
+              ? "Answer Clarity First"
+              : forwardActionLabel}
         </button>
       </div>
     </section>
+  );
+}
+
+function ClarityQuestionPanel({
+  status,
+  questions,
+  answers,
+  answeredCount,
+  canSubmit,
+  onAnswerChange,
+  onSubmit,
+}: {
+  status: ClarityRequestStatus;
+  questions: ClarityQuestion[];
+  answers: Record<string, string>;
+  answeredCount: number;
+  canSubmit: boolean;
+  onAnswerChange: (questionId: string, answer: string) => void;
+  onSubmit: () => void;
+}) {
+  const waiting = status === "requesting" || status === "waiting" || questions.length === 0;
+
+  return (
+    <div className="mt-4 rounded-md border border-amber-900/30 bg-amber-50/70 p-4 shadow-inner">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="font-serif text-[11px] uppercase tracking-[0.2em] text-amber-900/60">
+            Real Clarity intake
+          </div>
+          <h4 className="mt-1 font-serif text-base font-semibold text-amber-950">
+            Five project-specific questions
+          </h4>
+        </div>
+        <div className="rounded-sm border border-amber-900/25 bg-amber-100/70 px-2.5 py-1 font-serif text-[11px] font-semibold text-amber-950">
+          {answeredCount}/{questions.length || 5} answered
+        </div>
+      </div>
+
+      {waiting ? (
+        <p className="mt-3 rounded-sm border border-dashed border-amber-900/30 bg-amber-100/45 p-3 text-sm leading-relaxed text-amber-950/75">
+          Clarity has been pinged through the Chapter 1 bridge. Her five questions will appear here
+          when n8n posts the Clarity packet back to this idea.
+        </p>
+      ) : (
+        <div className="mt-3 space-y-3">
+          {questions.map((question, index) => (
+            <label
+              key={question.id}
+              className="block rounded-sm border border-amber-900/25 bg-amber-100/45 p-3"
+            >
+              <span className="font-serif text-[10px] uppercase tracking-[0.18em] text-amber-900/60">
+                Clarity question {index + 1}
+              </span>
+              <span className="mt-1 block font-serif text-sm font-semibold leading-snug text-amber-950">
+                {question.prompt}
+              </span>
+              {question.reason ? (
+                <span className="mt-1 block text-xs leading-relaxed text-amber-950/65">
+                  {question.reason}
+                </span>
+              ) : null}
+              <textarea
+                value={answers[question.id] ?? ""}
+                onChange={(event) => onAnswerChange(question.id, event.target.value)}
+                rows={3}
+                className="mt-2 w-full rounded-sm border border-amber-900/25 bg-amber-50/80 px-3 py-2 text-sm leading-relaxed text-amber-950 outline-none transition focus:border-amber-800 focus:ring-2 focus:ring-amber-600/25"
+                placeholder="Answer this Clarity question..."
+              />
+            </label>
+          ))}
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={!canSubmit}
+            className="rounded-sm border border-emerald-950/20 bg-emerald-800 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-50 shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-amber-950/35"
+          >
+            {status === "submitted" ? "Answers Saved" : "Send Answers To Clarity"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
 {
-  "source_output": "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/internal-run-wedding-photographer-editing-profile-output-20260608T193839Z.json",
+  "source_output": "var/treehouse/source/internal-run-wedding-photographer-editing-profile-output-20260608T193839Z.json",
   "generated_at": "2026-06-08T20:04:15.256Z",
   "level_result_system": {
     "system_type": "dabottree_level_reports_and_doors",
@@ -71,7 +71,7 @@
         },
         "open_questions": [],
         "boundary": "Root Room preserves and closes the baseline only. It does not approve public action, spending, launch, deployment, live n8n expansion, credential use, runtime/config changes, source-truth rewrites, or bot authority changes.",
-        "n8n_anchor": "7.2-7.5 Root Room lane passes / Root Room closeout",
+        "n8n_anchor": "7.2. Prepare Echo Perspective Scan",
         "lovable_page": "/root-room",
         "lovable_section": "Root Room page / five root tunnels / completion report."
       },
@@ -80,7 +80,7 @@
         "level_name": "Mud Pit",
         "order": 3,
         "owner": "Crossfire pressure-test layer",
-        "status": "local_scaffold_ready_waiting_real_content",
+        "status": "local_scaffold_ready_waiting_live_n8n_node",
         "report_source_key": "mud_pit_pressure_test_packet",
         "report_present": true,
         "report_summary": "Pressure-test the Root Room baseline before Trunk Ascent begins. Name weak spots, proof needs, kill risks, and the stronger version.",
@@ -96,7 +96,7 @@
         },
         "open_questions": [],
         "boundary": "Crossfire challenges the idea only. It does not reject ideas, override Boss, approve spending, approve launch, contact n8n, dispatch bots, or change runtime/config/authority.",
-        "n8n_anchor": "Mud Pit: Prepare Pressure-Test Packet",
+        "n8n_anchor": null,
         "lovable_page": "/levels",
         "lovable_section": "Mud Pit chapter card / pressure-test door until a dedicated Mud Pit page exists."
       },
@@ -112,7 +112,7 @@
         "expected_output": null,
         "open_questions": [],
         "boundary": null,
-        "n8n_anchor": "7.6 / 7.7 Trunk Ascent and Lantern Handoffs",
+        "n8n_anchor": "7.6. Prepare Trunk Ascent R&D Handoff",
         "lovable_page": "/trunk",
         "lovable_section": "Trunk Ascent review screen where Luma, Bloom, Vault, and Compass are shown as broad role-based contributors."
       },
@@ -166,7 +166,7 @@
         "level_name": "Wind Tunnel",
         "order": 7,
         "owner": "Gauge / Shield / Stagehand",
-        "status": "wind_tunnel_worthiness_packet_proposed_internal_only",
+        "status": "local_scaffold_ready_waiting_live_n8n_node",
         "report_source_key": "wind_tunnel_worthiness_packet",
         "report_present": true,
         "report_summary": "Pressure-test the Canopy/Rook foundation for worthiness, scope strength, risk, and build readiness before Branchworks turns it into Tinker, Momma, and Bear prototype directions.",
@@ -186,7 +186,7 @@
         },
         "open_questions": [],
         "boundary": "Wind Tunnel is pre-build validation and strengthening only. It does not approve build execution, Lovable submission, deployment, public launch, spending, account access, backend setup, route/config/tool changes, final product selection, or bot authority changes.",
-        "n8n_anchor": "8.4. Wind Tunnel: Prepare Worthiness Packet",
+        "n8n_anchor": null,
         "lovable_page": "/levels",
         "lovable_section": "Wind Tunnel level card / worthiness door until a dedicated Wind Tunnel page exists."
       },

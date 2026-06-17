@@ -1204,8 +1204,11 @@ function LibraryPage() {
       </Dialog>
 
       <ChapterTemplateDialog
+        ideaDescription={chapterTemplateIdea?.description}
         ideaId={chapterTemplateIdea?.id}
+        ideaIntakeText={chapterTemplateIdea?.messy}
         ideaTitle={chapterTemplateIdea?.title}
+        ideaType={chapterTemplateIdea?.ideaType}
         chapterId={
           chapterTemplateIdea
             ? (currentChapterIdForIdea(

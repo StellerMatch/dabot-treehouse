@@ -3,12 +3,16 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 const DEFAULT_PACKET_DIR =
-  "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/treehouse-task-packets";
+  path.resolve(process.cwd(), "var/treehouse/task-packets");
 const DEFAULT_RECEIPT_DIR =
-  "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/treehouse-task-packet-receipts";
+  path.resolve(process.cwd(), "var/treehouse/task-packet-receipts");
 
-const packetDir = path.resolve(process.env.TREEHOUSE_TASK_PACKET_DIR ?? DEFAULT_PACKET_DIR);
-const receiptDir = path.resolve(process.env.TREEHOUSE_TASK_RECEIPT_DIR ?? DEFAULT_RECEIPT_DIR);
+const packetDir = path.resolve(
+  process.env.TREEHOUSE_TASK_PACKET_DIR ?? DEFAULT_PACKET_DIR,
+);
+const receiptDir = path.resolve(
+  process.env.TREEHOUSE_TASK_RECEIPT_DIR ?? DEFAULT_RECEIPT_DIR,
+);
 const now = new Date().toISOString();
 
 function isReceivablePacket(packet) {

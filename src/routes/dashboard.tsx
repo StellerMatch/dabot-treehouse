@@ -58,7 +58,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { RootDescentTransition } from "@/components/RootDescentTransition";
 import { CreditsPill } from "@/components/AccountBadge";
 import { ChapterTemplateDialog } from "@/components/ChapterTemplateDialog";
-import { createTreehouseTaskPacket } from "@/lib/api/treehouse-task-packets.functions";
+import {
+  completeTreehouseChapterReview,
+  createTreehouseTaskPacket,
+  getTreehouseChapterActivity,
+} from "@/lib/api/treehouse-task-packets.functions";
 import {
   TREEHOUSE_CHAPTER_TEMPLATES,
   canonicalChapterNextActionForIdea,
@@ -153,7 +157,7 @@ const LIBRARY_DOOR_QUESTIONS: Record<LibraryDoorId, string[]> = {
   ],
   door2: [
     "What would make this report valuable enough that you would want the project built next?",
-    "What future upgrade, feature, or business path should the bots keep in mind?",
+    "What future upgrade, feature, or business path should The Crew keep in mind?",
     "What risk or unknown would make you nervous before moving forward?",
     "What would make this project feel exciting instead of just practical?",
   ],
@@ -2479,7 +2483,9 @@ function Dashboard() {
     selectedExtras.chapterActivity?.currentChapterId === selectedChapterTemplate.id
       ? selectedExtras.chapterActivity
       : undefined;
-  const chapterGateLocked = selectedChapterActivity?.status === "bots_running";
+  const chapterGateLocked =
+    selectedChapterActivity?.status === "bots_running" ||
+    selectedChapterActivity?.status === "needs_question";
   const chapterGateLabel =
     selectedChapterActivity?.status === "bots_running"
       ? "The Crew working"
@@ -2490,6 +2496,72 @@ function Dashboard() {
           : selectedChapterActivity?.status === "complete"
             ? "Chapter complete"
             : undefined;
+
+  useEffect(() => {
+    if (!selected || selectedChapterActivity?.status !== "bots_running") return;
+    let cancelled = false;
+
+    const syncChapterActivity = async () => {
+      const result = await getTreehouseChapterActivity({
+        data: { projectId: selected.id },
+      }).catch(() => null);
+      if (cancelled || !result?.activity) return;
+
+      const activity = result.activity;
+      const updatedAt = Date.parse(activity.updatedAt) || Date.now();
+      if (
+        activity.status === selectedChapterActivity.status &&
+        activity.nextChapterId === selectedChapterActivity.nextChapterId &&
+        updatedAt <= selectedChapterActivity.updatedAt
+      ) {
+        return;
+      }
+
+      if (activity.status === "needs_question") {
+        updateExtras({
+          currentChapterId: activity.currentChapterId ?? selectedChapterActivity.currentChapterId,
+          chapterActivity: {
+            status: "needs_question",
+            currentChapterId: activity.currentChapterId ?? selectedChapterActivity.currentChapterId,
+            completedChapterId: selectedChapterActivity.completedChapterId,
+            nextChapterId: activity.nextChapterId ?? selectedChapterActivity.nextChapterId,
+            updatedAt,
+          },
+        });
+        return;
+      }
+
+      if (activity.status === "next_ready" && activity.nextChapterId) {
+        updateExtras({
+          currentChapterId: activity.nextChapterId,
+          chapterActivity: {
+            status: "next_ready",
+            currentChapterId: activity.nextChapterId,
+            completedChapterId: selectedChapterActivity.completedChapterId,
+            nextChapterId: activity.nextChapterId,
+            updatedAt,
+          },
+        });
+        updateSelected({
+          stage: "paid-creation",
+          nextAction: chapterTemplateNextAction(activity.nextChapterId),
+        });
+      }
+    };
+
+    void syncChapterActivity();
+    const interval = window.setInterval(() => void syncChapterActivity(), 5_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [
+    selected?.id,
+    selectedChapterActivity?.currentChapterId,
+    selectedChapterActivity?.nextChapterId,
+    selectedChapterActivity?.status,
+    selectedChapterActivity?.updatedAt,
+  ]);
 
   const createSelectedChapterHandoff = async (targetChapter: TreehouseChapterTemplate) => {
     if (!selected || typeof window === "undefined") return;
@@ -2551,6 +2623,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (!selected || !selectedChapterTemplate) return;
+    if (chapterGateLocked) return;
     const canonicalNextAction = chapterTemplateNextAction(selectedChapterTemplate.id);
     if (selected.nextAction === canonicalNextAction) return;
 
@@ -2561,16 +2634,62 @@ function Dashboard() {
           : idea,
       ),
     );
-  }, [selected?.id, selected?.nextAction, selectedChapterTemplate?.id]);
+  }, [chapterGateLocked, selected?.id, selected?.nextAction, selectedChapterTemplate?.id]);
 
-  const advanceSelectedChapterDemo = (completedChapterId: string) => {
+  const finishSelectedChapterReview = async (completedChapterId: string) => {
     if (!selected) return;
+    const completedChapter = TREEHOUSE_CHAPTER_TEMPLATES.find(
+      (chapter) => chapter.id === completedChapterId,
+    );
     const nextChapter = nextChapterTemplate(completedChapterId);
+
+    let receiptId: string | undefined;
+    let n8nTriggerStatus: string | undefined;
+    try {
+      const receipt = await completeTreehouseChapterReview({
+        data: {
+          actor: "Treehouse",
+          chapterId: completedChapterId,
+          chapterTitle: completedChapter
+            ? `Chapter ${completedChapter.chapter}: ${completedChapter.title}`
+            : completedChapterId,
+          nextChapterId: nextChapter?.id ?? null,
+          nextChapterTitle: nextChapter
+            ? `Chapter ${nextChapter.chapter}: ${nextChapter.title}`
+            : null,
+          project: {
+            description: selected.description || selected.messy,
+            ideaType: selected.ideaType,
+            projectId: selected.id,
+            title: selected.title || "Untitled idea",
+          },
+          reviewAction: "user_finished_chapter_review",
+        },
+      });
+      receiptId = receipt.receiptId;
+      n8nTriggerStatus = receipt.n8nTriggerStatus;
+    } catch {
+      receiptId = "local-fallback";
+      n8nTriggerStatus = "local-fallback";
+    }
+
+    updateExtras({
+      currentChapterId: completedChapterId,
+      chapterActivity: {
+        status: nextChapter ? "bots_running" : "complete",
+        currentChapterId: completedChapterId,
+        completedChapterId,
+        nextChapterId: nextChapter?.id,
+        n8nTriggerStatus,
+        receiptId,
+        updatedAt: Date.now(),
+      },
+    });
+
     if (nextChapter) {
-      updateExtras({ currentChapterId: nextChapter.id });
       updateSelected({
         stage: "paid-creation",
-        nextAction: chapterTemplateNextAction(nextChapter.id),
+        nextAction: `Waiting for ${nextChapter.title} to be ready.`,
       });
       return;
     }
@@ -2727,6 +2846,19 @@ function Dashboard() {
           <IdeaBookplate idea={selected} onUpdate={(patch) => updateSelected(patch)} />
         </div>
       )}
+      {selected && selectedChapterTemplate && selectedChapterActivity && (
+        <ChapterActivityStatusCard
+          activity={selectedChapterActivity}
+          currentChapter={selectedChapterTemplate}
+          nextChapter={
+            selectedChapterActivity.nextChapterId
+              ? TREEHOUSE_CHAPTER_TEMPLATES.find(
+                  (chapter) => chapter.id === selectedChapterActivity.nextChapterId,
+                )
+              : undefined
+          }
+        />
+      )}
 
       {/* Center stage — full width, the dashboard workspace */}
       <div className="relative flex flex-1 flex-col px-2 pb-4 pt-1.5 sm:px-3 sm:pt-3 lg:px-6">
@@ -2802,11 +2934,14 @@ function Dashboard() {
       )}
       {selected && (
         <ChapterTemplateDialog
+          ideaDescription={selected.description}
           ideaId={selected.id}
+          ideaIntakeText={selectedExtras.sourceText || selected.messy}
           ideaTitle={selected.title}
+          ideaType={selected.ideaType}
           chapterId={selectedChapterId}
           open={rootRoomTemplateOpen}
-          onDemoComplete={advanceSelectedChapterDemo}
+          onDemoComplete={finishSelectedChapterReview}
           onOpenChange={setRootRoomTemplateOpen}
         />
       )}
@@ -3850,6 +3985,65 @@ function NewLightbulbPopover({ onCreate }: { onCreate: (type?: string) => void }
         </ul>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function ChapterActivityStatusCard({
+  activity,
+  currentChapter,
+  nextChapter,
+}: {
+  activity: ChapterActivity;
+  currentChapter: TreehouseChapterTemplate;
+  nextChapter?: TreehouseChapterTemplate;
+}) {
+  const copy: Record<ChapterActivityStatus, { label: string; detail: string; classes: string }> = {
+    ready: {
+      label: "Ready",
+      detail: `Chapter ${currentChapter.chapter}: ${currentChapter.title} is ready to open.`,
+      classes: "border-emerald-200/40 bg-emerald-950/75 text-emerald-50",
+    },
+    bots_running: {
+      label: "The Crew working",
+      detail: nextChapter
+        ? `Your review is finished. Waiting for Chapter ${nextChapter.chapter}: ${nextChapter.title} to be ready.`
+        : "Your review is finished. Waiting for The Crew to finish.",
+      classes: "border-yellow-200/55 bg-yellow-900/85 text-yellow-50",
+    },
+    needs_question: {
+      label: "Question needed",
+      detail: "The Crew needs one answer before the next chapter can open.",
+      classes: "border-orange-200/50 bg-red-950/85 text-orange-50",
+    },
+    next_ready: {
+      label: "Next chapter ready",
+      detail: nextChapter
+        ? `Chapter ${nextChapter.chapter}: ${nextChapter.title} is ready to continue.`
+        : "The next chapter is ready to continue.",
+      classes: "border-emerald-200/45 bg-emerald-950/80 text-emerald-50",
+    },
+    complete: {
+      label: "Complete",
+      detail: "This chapter path is complete.",
+      classes: "border-violet-200/40 bg-violet-950/75 text-violet-50",
+    },
+  };
+  const status = copy[activity.status] ?? copy.ready;
+
+  return (
+    <div className="relative z-20 mx-auto mt-2 w-[min(94vw,720px)] px-2">
+      <div className={`rounded-md border px-3 py-2 shadow-lg backdrop-blur ${status.classes}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="font-serif text-[11px] uppercase tracking-[0.18em] opacity-75">
+            Chapter activity
+          </div>
+          <div className="rounded-sm border border-current/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em]">
+            {status.label}
+          </div>
+        </div>
+        <p className="mt-1 text-sm leading-relaxed">{status.detail}</p>
+      </div>
+    </div>
   );
 }
 
@@ -6466,7 +6660,7 @@ function PostItCard({
         }}
         title="Open full note"
       >
-        {/* tiny wood tab behind the top edge — treehouse trim */}
+        {/* tiny wood tab behind the top edge. */}
         <span
           aria-hidden
           className="pointer-events-none absolute -top-1 left-1/2 h-1.5 w-10 -translate-x-1/2"

@@ -3,12 +3,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const DEFAULT_PACKET_DIR =
-  "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/treehouse-task-packets";
+  path.resolve(process.cwd(), "var/treehouse/task-packets");
 const DEFAULT_DISPATCH_DIR =
-  "/Users/2ndbrain/.openclaw/workspace/projects/dabottree-n8n/treehouse-manual-dispatch-receipts";
+  path.resolve(process.cwd(), "var/treehouse/manual-dispatch-receipts");
 
-const packetDir = path.resolve(process.env.TREEHOUSE_TASK_PACKET_DIR ?? DEFAULT_PACKET_DIR);
-const dispatchDir = path.resolve(process.env.TREEHOUSE_MANUAL_DISPATCH_DIR ?? DEFAULT_DISPATCH_DIR);
+const packetDir = path.resolve(
+  process.env.TREEHOUSE_TASK_PACKET_DIR ?? DEFAULT_PACKET_DIR,
+);
+const dispatchDir = path.resolve(
+  process.env.TREEHOUSE_MANUAL_DISPATCH_DIR ?? DEFAULT_DISPATCH_DIR,
+);
 const now = new Date().toISOString();
 
 function isChiefReviewCandidate(packet) {

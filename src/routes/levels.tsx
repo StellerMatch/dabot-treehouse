@@ -288,7 +288,9 @@ function canonSayingFor(actor: string): string | null {
 
 function n8nConnectionFor(chapterId: string): N8nLevelConnection | null {
   const key = n8nChapterKeyAliases[chapterId] ?? chapterId;
-  return N8N_LEVEL_CONNECTIONS[key] ?? null;
+  const connection = N8N_LEVEL_CONNECTIONS[key];
+  if (!connection?.anchor) return null;
+  return connection;
 }
 
 function treehouseActionsFor(chapterId: string): TreehouseActionBundle[] {

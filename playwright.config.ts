@@ -5,6 +5,7 @@ export default defineConfig({
   outputDir: "./test-results",
   reporter: "line",
   timeout: 45_000,
+  workers: 1,
   use: {
     baseURL: "http://127.0.0.1:8091",
     trace: "retain-on-failure",

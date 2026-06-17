@@ -37,9 +37,83 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+async function handleTreehouseChapterActivity(request: Request): Promise<Response | null> {
+  const url = new URL(request.url);
+  if (url.pathname !== "/api/treehouse/chapter-activity") return null;
+
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const requiredToken = process.env.TREEHOUSE_CHAPTER_ACTIVITY_TOKEN?.trim();
+  if (requiredToken) {
+    const auth = request.headers.get("authorization") ?? "";
+    if (auth !== `Bearer ${requiredToken}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+  }
+
+  const body = (await request.json().catch(() => null)) as {
+    answers?: Array<{ questionId: string; answer: string }>;
+    currentChapterId?: string | null;
+    message?: string | null;
+    nextChapterId?: string | null;
+    projectId?: string;
+    question?: string | null;
+    questions?: Array<{
+      id: string;
+      prompt: string;
+      reason?: string | null;
+      answerType?: string | null;
+    }>;
+    source?: string;
+    status?: string;
+  } | null;
+  if (
+    !body?.projectId ||
+    !body.status ||
+    !["bots_running", "needs_question", "next_ready"].includes(body.status)
+  ) {
+    return new Response(JSON.stringify({ error: "Invalid chapter activity payload" }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  }
+  const status = body.status as "bots_running" | "needs_question" | "next_ready";
+
+  const { writeTreehouseChapterActivity } = await import(
+    "./lib/treehouse-chapter-activity.server"
+  );
+  const activity = await writeTreehouseChapterActivity({
+    answers: Array.isArray(body.answers) ? body.answers : undefined,
+    currentChapterId: body.currentChapterId ?? null,
+    message: body.message ?? null,
+    nextChapterId: body.nextChapterId ?? null,
+    projectId: body.projectId,
+    question: body.question ?? null,
+    questions: Array.isArray(body.questions) ? body.questions : undefined,
+    source: body.source ?? "treehouse-chapter-activity-api",
+    status,
+  });
+
+  return new Response(JSON.stringify({ activity, ok: true }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const chapterActivityResponse = await handleTreehouseChapterActivity(request);
+      if (chapterActivityResponse) return chapterActivityResponse;
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

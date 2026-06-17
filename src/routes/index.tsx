@@ -246,7 +246,7 @@ function Index() {
             }}
           />
           <p className="-mt-5 text-3xl font-semibold tracking-[0.22em] text-amber-50 drop-shadow-[0_2px_16px_rgba(255,170,70,0.5)] sm:text-5xl">
-            TREE HOUSE
+            DA BOT TREEHOUSE
           </p>
         </div>
 

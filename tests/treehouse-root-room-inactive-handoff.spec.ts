@@ -87,10 +87,10 @@ test("Chapter 2 Go creates an inactive Root Room n8n handoff packet", async ({ p
 
   await page.goto("/library");
   await expect(page.getByText("Step Four Root Room Test").first()).toBeVisible();
-  await expect(page.getByText("Chapter 2 of 11")).toBeVisible();
+  await expect(page.getByText("Chapter 2 of 13")).toBeVisible();
 
   await page.getByRole("button", { name: "Open Chapter 2" }).click();
-  await expect(page.getByRole("heading", { name: "Chapter 2: The Root Room" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Chapter 2: .*Root Room/ })).toBeVisible();
   await expect(page.getByText("n8n listener waiting")).toBeVisible();
   await expect(page.getByText("Parked gate: n8n Execute workflow listener")).toBeVisible();
 

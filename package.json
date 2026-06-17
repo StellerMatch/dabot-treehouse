@@ -11,6 +11,7 @@
     "sync:levels": "node scripts/sync-level-system-data.mjs",
     "prep:treehouse-dispatch": "node scripts/chief-manual-dispatch-prep.mjs",
     "watch:treehouse-packets": "node scripts/steward-task-packet-watcher.mjs",
+    "watch:treehouse-activity": "node scripts/steward-chapter-activity-watcher.mjs",
     "test:treehouse-fake-project": "playwright test tests/treehouse-fake-project-proof.spec.ts",
     "test:treehouse-naming": "playwright test tests/treehouse-intake-naming.spec.ts",
     "test:treehouse-packets": "playwright test tests/treehouse-task-packets.spec.ts",
