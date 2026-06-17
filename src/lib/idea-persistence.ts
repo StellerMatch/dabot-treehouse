@@ -3,6 +3,8 @@ import type { LightbulbIdea } from "@/lib/dabottree-state";
 export const IDEAS_STORAGE_KEY = "dabottree:ideas";
 export const EXTRAS_STORAGE_KEY = "dabottree:ideaExtras";
 
+const blockedDemoIdeaTitles = new Set(["pop-up event crew", "popup event crew"]);
+
 function safeAccountScope(): string {
   if (typeof window === "undefined") return "local-preview";
   const email = window.localStorage.getItem("dabottree:accountEmail")?.trim().toLowerCase();
@@ -42,7 +44,9 @@ export function loadPersistedIdeas(
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return null;
-    const ideas = parsed as LightbulbIdea[];
+    const ideas = (parsed as LightbulbIdea[]).filter(
+      (idea) => !blockedDemoIdeaTitles.has((idea.title ?? "").trim().toLowerCase()),
+    );
     return normalizeIdea ? ideas.map(normalizeIdea) : ideas;
   } catch {
     return null;
