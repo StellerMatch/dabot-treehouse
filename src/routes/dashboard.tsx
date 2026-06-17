@@ -898,15 +898,17 @@ function questionTextFor(question: ClarityQuestion, idea: LightbulbIdea | undefi
 function requiredFollowupQuestionFor(
   answeredCount: number,
   idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
   skippedQuestions: string[] = [],
 ): ClarityQuestion | undefined {
   if (answeredCount >= MIN_CLARITY_FOLLOWUPS) return undefined;
   const skipped = new Set(skippedQuestions);
-  const startingStep = Math.min(answeredCount, MIN_FOLLOWUP_SEQUENCE.length - 1);
-  const cat =
-    MIN_FOLLOWUP_SEQUENCE.slice(startingStep).find(
-      (candidate) => !skipped.has(`required-${answeredCount + 1}-${candidate}`),
-    ) ?? MIN_FOLLOWUP_SEQUENCE[startingStep];
+  const cat = MIN_FOLLOWUP_SEQUENCE.find(
+    (candidate) =>
+      !skipped.has(`required-${answeredCount + 1}-${candidate}`) &&
+      !hasUsefulCategoryAnswer(idea, extras, candidate),
+  );
+  if (!cat) return undefined;
   return {
     id: `required-${answeredCount + 1}-${cat}`,
     prompt: requiredFollowupTextFor(cat, idea),
@@ -941,6 +943,62 @@ function requiredFollowupTextFor(cat: CategoryKey, idea: LightbulbIdea | undefin
     design: `How should ${name} look, feel, or behave so it is easy to use?`,
     business: `How could ${name} make money, save money, or become worth paying for?`,
     concerns: `What should we watch, validate, or protect before ${name} moves forward?`,
+  };
+  return questions[cat];
+}
+
+function categoryAnswerSnippetFor(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+  cat: CategoryKey,
+): string {
+  const text = categoryProgressTextFor(idea, extras, cat)
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^[-•·\s]+/, "")
+        .replace(/^Verbatim intake notes Clarity found for this folder:\s*/i, "")
+        .replace(/^Clarity readout:\s*/i, "")
+        .trim(),
+    )
+    .filter((line) => line.length >= 18 && !line.startsWith(CATEGORY_MISSING[cat]))[0];
+  if (!text) return "";
+  return text.length > 92 ? text.slice(0, 90).replace(/\s+\S*$/, "") + "..." : text;
+}
+
+function hasUsefulCategoryAnswer(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+  cat: CategoryKey,
+): boolean {
+  return categoryAnswerSnippetFor(idea, extras, cat).length > 0;
+}
+
+function coveredEssentialQuestionCount(
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+): number {
+  return MIN_FOLLOWUP_SEQUENCE.filter((cat) => hasUsefulCategoryAnswer(idea, extras, cat)).length;
+}
+
+function deeperCategoryQuestionFor(
+  cat: CategoryKey,
+  idea: LightbulbIdea | undefined,
+  extras: IdeaExtras,
+): string {
+  const name = projectQuestionName(idea);
+  const snippet = categoryAnswerSnippetFor(idea, extras, cat);
+  if (!snippet) return categoryQuestionFor(cat, idea);
+  const questions: Record<CategoryKey, string> = {
+    "core-idea": `Clarity already found this core idea: “${snippet}.” What is the cleanest one-sentence promise underneath it?`,
+    clarity: `Clarity already found this signal: “${snippet}.” What still needs to be decided before ${name} moves forward?`,
+    problem: `Clarity already found this problem signal: “${snippet}.” What is the sharpest pain point inside that problem?`,
+    audience: `Clarity already found this audience signal: “${snippet}.” Who is the first real person who would care most?`,
+    features: `Clarity already found this feature signal: “${snippet}.” Which one action should version one do first?`,
+    workflow: `Clarity already found this workflow signal: “${snippet}.” What is the next step after that in the user's path?`,
+    design: `Clarity already found this design signal: “${snippet}.” What should the first screen or moment feel like?`,
+    business: `Clarity already found this money signal: “${snippet}.” What would make someone pay, save money, or say it is worth using?`,
+    concerns: `Clarity already found this risk signal: “${snippet}.” What is the main thing to protect, test, or avoid?`,
   };
   return questions[cat];
 }
@@ -1608,7 +1666,7 @@ function weakestCategoryQuestionFor(
   if (!weakest) return undefined;
   return {
     ...weakest,
-    prompt: categoryQuestionFor(weakest.category, idea),
+    prompt: deeperCategoryQuestionFor(weakest.category, idea, extras),
   };
 }
 
@@ -2007,6 +2065,16 @@ function Dashboard() {
         ideaType: metadata.ideaType,
         description: metadata.description || mainSummaryFrom(draft, title),
       };
+      const initialExtras: IdeaExtras = {
+        sourceText: draft,
+        notes: {},
+        attachments: [],
+        posts,
+        answeredQuestions: answered,
+        skippedQuestions: [],
+        clarityFollowupCount: 0,
+      };
+      const coveredEssentials = coveredEssentialQuestionCount(newIdea, initialExtras);
       setIdeas((prev) => [newIdea, ...prev]);
       // Do NOT auto-select the new idea — the user should land on the library
       // view and intentionally open the saved idea to enter its workflow.
@@ -2014,13 +2082,8 @@ function Dashboard() {
       setExtras((prev) => ({
         ...prev,
         [id]: {
-          sourceText: draft,
-          notes: {},
-          attachments: [],
-          posts,
-          answeredQuestions: answered,
-          skippedQuestions: [],
-          clarityFollowupCount: 0,
+          ...initialExtras,
+          clarityFollowupCount: coveredEssentials,
         },
       }));
       try {
@@ -2134,6 +2197,7 @@ function Dashboard() {
     const requiredFollowup = requiredFollowupQuestionFor(
       selectedExtras.clarityFollowupCount ?? 0,
       selected,
+      selectedExtras,
       selectedExtras.skippedQuestions,
     );
     if (requiredFollowup) return requiredFollowup;
@@ -6180,7 +6244,7 @@ function ClarityGuide({
     fallbackTip ??
     (needsDepthPass
       ? answeredCount === 0
-        ? `We have a starting point. I’ll ask the five essential questions first, using words from the idea so this does not feel generic.\n\n${currentQuestion!.prompt}`
+        ? `Clarity has a starting point. I’ll ask only for missing or deeper pieces, using words from the idea so this does not feel generic.\n\n${currentQuestion!.prompt}`
         : currentQuestion!.prompt
       : answeredCount >= ESSENTIAL_CLARITY_QUESTIONS && currentQuestion
         ? `I can move this forward, but I see room to make it stronger. This is one of the five bonus questions.\n\n${currentQuestion.prompt}`
