@@ -54,6 +54,21 @@ test("Treehouse names ideas from meaning instead of opening filler words", async
   ).toBeVisible();
 });
 
+test("Treehouse strips pasted intake labels from working names", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("dabottree:authed", "1");
+  });
+
+  await page.goto("/");
+  const ideaInput = page.locator("#idea");
+  await expect(ideaInput).toBeVisible();
+
+  await ideaInput.fill("Name: Mobile dog grooming for busy pet owners");
+
+  await expect(page.getByText("Working name:")).toBeVisible();
+  await expect(page.locator("div", { hasText: /^Working name:\s+Pet Care Tool$/ })).toBeVisible();
+});
+
 test("Library shelf Continue opens the idea dashboard without the credit modal", async ({
   page,
 }) => {

@@ -152,8 +152,20 @@ const FILLER_WORDS = new Set([
   "sort",
 ]);
 
+function stripIntakeFieldLabels(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .map((line) =>
+      line.replace(
+        /^\s*(?:idea\s+name|project\s+name|working\s+name|name|title)\s*[:\-–—]\s*/i,
+        "",
+      ),
+    )
+    .join(" ");
+}
+
 function cleanText(text: string): string {
-  return text.trim().replace(/\s+/g, " ");
+  return stripIntakeFieldLabels(text).trim().replace(/\s+/g, " ");
 }
 
 function stripPromptLead(text: string): string {
