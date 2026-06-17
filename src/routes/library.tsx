@@ -38,7 +38,18 @@ import {
   nextChapterTemplate,
   primaryChapterGuideName,
 } from "@/lib/treehouse-chapter-templates";
-import { BookOpen, FileText, XCircle, Tag, Plus, Mic, Save } from "lucide-react";
+import {
+  AlertTriangle,
+  BookOpen,
+  FileText,
+  Play,
+  Plus,
+  Mic,
+  Save,
+  Tag,
+  TriangleAlert,
+  XCircle,
+} from "lucide-react";
 
 const libraryBg = libraryBgImage;
 
@@ -60,6 +71,11 @@ type IdeaExtrasRecord = {
   skippedQuestions?: string[];
   clarityFollowupCount?: number;
   currentChapterId?: string;
+  chapterActivity?: {
+    status?: "ready" | "bots_running" | "needs_question" | "next_ready" | "complete";
+    currentChapterId?: string;
+    nextChapterId?: string;
+  };
 };
 type NotebookEntry = {
   id: string;
@@ -227,6 +243,34 @@ function currentChapterForIdea(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
   });
 }
 
+function chapterActivityStatusFor(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
+  const chapter = currentChapterForIdea(idea, extras);
+  const activity = extras?.chapterActivity;
+  if (!chapter || activity?.currentChapterId !== chapter.id) return undefined;
+  return activity.status;
+}
+
+function chapterActionFor(idea: LightbulbIdea, extras?: IdeaExtrasRecord) {
+  const chapter = currentChapterForIdea(idea, extras);
+  const activityStatus = chapterActivityStatusFor(idea, extras);
+  const hold = activityStatus === "bots_running";
+  const answer = activityStatus === "needs_question";
+
+  return {
+    disabled: hold,
+    icon: hold ? "hold" : answer ? "answer" : chapter ? "ready" : "default",
+    label: chapter ? (hold ? "HOLD" : answer ? "ANSWER" : "LET'S GO!") : "Continue",
+    title: chapter
+      ? hold
+        ? "The Crew is still working. This chapter is not ready to open yet."
+        : answer
+          ? "Answer the question needed before the next chapter opens."
+          : `Open Chapter ${chapter.chapter}: ${chapter.title}`
+      : "Continue",
+    tone: hold ? "hold" : answer ? "answer" : chapter ? "ready" : "default",
+  } as const;
+}
+
 function chapterProgressLabel(chapter: (typeof TREEHOUSE_CHAPTER_TEMPLATES)[number]) {
   const finalChapter =
     TREEHOUSE_CHAPTER_TEMPLATES[TREEHOUSE_CHAPTER_TEMPLATES.length - 1]?.chapter ?? chapter.chapter;
@@ -377,10 +421,13 @@ const stageCharacterMap: Record<LightbulbIdea["stage"], { name: string; src: str
   "operating-path": { name: "Chief", src: stampPresentingAsset.url },
 };
 
-function ideaCardStatus(idea: LightbulbIdea): {
+function ideaCardStatus(
+  idea: LightbulbIdea,
+  extras?: IdeaExtrasRecord,
+): {
   label: string;
   detail: string;
-  tone: "ready" | "working" | "waiting" | "complete";
+  tone: "ready" | "working" | "waiting" | "answer" | "complete";
 } {
   if (isCompletedIdea(idea)) {
     return {
@@ -399,7 +446,27 @@ function ideaCardStatus(idea: LightbulbIdea): {
   }
 
   if (idea.stage === "paid-creation") {
-    const chapter = currentChapterForIdea(idea, loadExtrasMap()[idea.id]);
+    const chapter = currentChapterForIdea(idea, extras);
+    const activityStatus = chapterActivityStatusFor(idea, extras);
+
+    if (activityStatus === "bots_running") {
+      return {
+        label: "Chapter working",
+        detail: chapter
+          ? `The Crew is preparing Chapter ${chapter.chapter}: ${chapter.title}.`
+          : "The Crew is preparing the next chapter.",
+        tone: "working",
+      };
+    }
+
+    if (activityStatus === "needs_question") {
+      return {
+        label: "Answer needed",
+        detail: "The Crew needs one answer before this can move forward.",
+        tone: "answer",
+      };
+    }
+
     return {
       label: chapter ? `Chapter ${chapter.chapter} ready` : "Chapter ready",
       detail: chapter
@@ -427,8 +494,9 @@ function ideaCardStatus(idea: LightbulbIdea): {
 function ideaStatusClass(tone: ReturnType<typeof ideaCardStatus>["tone"]) {
   const classes: Record<ReturnType<typeof ideaCardStatus>["tone"], string> = {
     ready: "border-emerald-100/45 bg-emerald-950/45 text-emerald-50",
-    working: "border-sky-100/45 bg-sky-950/45 text-sky-50",
+    working: "border-yellow-100/50 bg-yellow-900/50 text-yellow-50",
     waiting: "border-amber-100/45 bg-amber-950/50 text-amber-50",
+    answer: "border-orange-100/50 bg-red-950/55 text-orange-50",
     complete: "border-violet-100/45 bg-violet-950/45 text-violet-50",
   };
 
@@ -609,7 +677,11 @@ function LibraryPage() {
   };
 
   const continueIdea = (idea: LightbulbIdea) => {
-    if (currentChapterForIdea(idea, loadExtrasMap()[idea.id])) {
+    const extras = loadExtrasMap()[idea.id];
+    const action = chapterActionFor(idea, extras);
+    if (action.disabled) return;
+
+    if (currentChapterForIdea(idea, extras)) {
       setChapterTemplateIdea(idea);
       return;
     }
@@ -917,7 +989,7 @@ function LibraryPage() {
                 : idea.stage
                   ? `Stage: ${stageLabels[idea.stage]}`
                   : "Stage: Idea";
-              const chapterCta = chapter ? `Open Chapter ${chapter.chapter}: ${chapter.title}` : "Continue";
+              const chapterAction = chapterActionFor(idea, extras);
               const ideaType = ideaTypeFor(idea);
               const character = chapter
                 ? {
@@ -928,7 +1000,7 @@ function LibraryPage() {
                         : stageCharacterMap.lightbulb.src,
                   }
                 : (stageCharacterMap[idea.stage] ?? stageCharacterMap.lightbulb);
-              const status = ideaCardStatus(idea);
+              const status = ideaCardStatus(idea, extras);
               const notebookEntryCount = notebookEntriesFor(idea, extras).length;
               return (
                 <li
@@ -1016,10 +1088,30 @@ function LibraryPage() {
                       <button
                         type="button"
                         onClick={() => continueIdea(idea)}
-                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
+                        disabled={chapterAction.disabled}
+                        title={chapterAction.title}
+                        className={`relative z-10 mx-auto flex h-12 w-[220px] items-center justify-center gap-2 rounded-sm border px-4 py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] shadow-[inset_0_1px_0_rgba(255,232,188,0.28),0_10px_20px_-14px_rgba(0,0,0,0.9)] transition disabled:cursor-not-allowed disabled:opacity-85 sm:w-[240px] ${
+                          chapterAction.tone === "hold"
+                            ? "border-yellow-100/60 bg-gradient-to-b from-[#f0c94f] via-[#b98216] to-[#664007] text-[#241202]"
+                            : chapterAction.tone === "answer"
+                              ? "border-orange-100/55 bg-gradient-to-b from-[#9b3720] via-[#72210f] to-[#3d1008] text-orange-50 hover:from-[#ad4329] hover:via-[#842917] hover:to-[#4b160c]"
+                              : chapterAction.tone === "ready"
+                                ? "border-emerald-100/55 bg-gradient-to-b from-[#2f8f5b] via-[#1d653d] to-[#0f3820] text-emerald-50 hover:from-[#3aa86c] hover:via-[#237247] hover:to-[#124627]"
+                                : "border-amber-200/45 bg-gradient-to-b from-[#8b663d] via-[#6f4a28] to-[#3f2716] text-amber-50 hover:from-[#9a7348] hover:via-[#795330] hover:to-[#4c301c]"
+                        }`}
                       >
-                        <BookOpen className="h-4 w-4" />
-                        <span>{chapterCta}</span>
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                          {chapterAction.icon === "hold" ? (
+                            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                          ) : chapterAction.icon === "answer" ? (
+                            <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+                          ) : chapterAction.icon === "ready" ? (
+                            <Play className="h-4 w-4 fill-current" aria-hidden="true" />
+                          ) : (
+                            <BookOpen className="h-4 w-4" aria-hidden="true" />
+                          )}
+                        </span>
+                        <span className="min-w-0 truncate">{chapterAction.label}</span>
                       </button>
                     </div>
                   </div>
