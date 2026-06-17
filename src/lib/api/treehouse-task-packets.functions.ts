@@ -119,7 +119,7 @@ async function triggerLiveN8n(packet: unknown): Promise<TreehouseN8nTriggerResul
 }
 
 export const createTreehouseTaskPacket = createServerFn({ method: "POST" })
-  .validator(taskPacketInputSchema)
+  .inputValidator(taskPacketInputSchema)
   .handler(async ({ data }) => {
     const packetId = `treehouse-task-${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID()}`;
     const filename = `${packetId}-${safeSlug(data.chapterId)}-${safeSlug(data.partId)}.json`;
