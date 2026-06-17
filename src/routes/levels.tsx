@@ -1034,8 +1034,8 @@ function readActiveTreehouseProject(): LocalTreehouseProject | null {
     return {
       description: typeof active.description === "string" ? active.description : undefined,
       ideaType: typeof active.ideaType === "string" ? active.ideaType : undefined,
-      projectId: active.id,
-      title: active.title,
+      projectId: active.id as string,
+      title: active.title as string,
     };
   } catch {
     return null;
