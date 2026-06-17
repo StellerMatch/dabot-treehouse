@@ -9,6 +9,8 @@ import {
   DoorOpen,
   FileText,
   Layers3,
+  Search,
+  X,
 } from "lucide-react";
 import rootRoomBgAsset from "@/assets/root-room-bg-v2.png.asset.json";
 import genericBotAsset from "@/assets/echo-presenting.png.asset.json";
@@ -1018,6 +1020,19 @@ type MudPitQuestion = {
 
 const ROOT_ROOM_BOT_QUESTIONS_KEY = "dabottree:rootRoomBotQuestions";
 const MUD_PIT_ANSWERS_KEY = "dabottree:mudPitPressureAnswers";
+const THE_NAME_DIRECTION_KEY = "dabottree:theNameDirection";
+
+const MONIKER_PRIMARY_NAME_SLOTS = Array.from({ length: 10 }, (_, index) => ({
+  id: `primary-${index + 1}`,
+  label: `Name candidate ${index + 1}`,
+  status: "Primary list",
+}));
+
+const MONIKER_RESERVE_NAME_SLOTS = Array.from({ length: 10 }, (_, index) => ({
+  id: `reserve-${index + 1}`,
+  label: `Reserve name ${index + 1}`,
+  status: "Reserve bench",
+}));
 
 const MUD_PIT_QUESTION_BUCKETS: Array<{
   id: string;
@@ -1530,6 +1545,7 @@ function ChapterOverview({
 }) {
   const n8nConnection = n8nConnectionFor(chapter.id);
   const showMudPitGuide = chapter.id === "mud-pit";
+  const showTheNameGuide = chapter.id === "the-name";
 
   return (
     <div className="relative z-10 flex h-full min-h-[460px] flex-col justify-between p-5 sm:p-6">
@@ -1580,6 +1596,7 @@ function ChapterOverview({
         {showMudPitGuide ? (
           <MudPitMiniCrossfirePanel project={project} rootRoomNotes={rootRoomNotes} />
         ) : null}
+        {showTheNameGuide ? <TheNameMonikerPanel project={project} /> : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1591,6 +1608,185 @@ function ChapterOverview({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function TheNameMonikerPanel({ project }: { project: LocalTreehouseProject | null }) {
+  const [tone, setTone] = useState("");
+  const [shape, setShape] = useState("");
+  const [avoid, setAvoid] = useState("");
+  const [sentToMoniker, setSentToMoniker] = useState(false);
+  const [showReserve, setShowReserve] = useState(false);
+  const [removedNames, setRemovedNames] = useState<Record<string, boolean>>({});
+  const canSend = tone.trim().length > 0 && shape.trim().length > 0;
+  const visibleNames = showReserve ? MONIKER_RESERVE_NAME_SLOTS : MONIKER_PRIMARY_NAME_SLOTS;
+  const keptCount = visibleNames.filter((name) => !removedNames[name.id]).length;
+
+  const sendToMoniker = () => {
+    if (!canSend) return;
+    try {
+      window.localStorage.setItem(
+        THE_NAME_DIRECTION_KEY,
+        JSON.stringify({
+          completedAt: new Date().toISOString(),
+          projectId: project?.projectId ?? null,
+          tone,
+          shape,
+          avoid,
+        }),
+      );
+    } catch {
+      // The level can still show the process if local storage is unavailable.
+    }
+    setSentToMoniker(true);
+  };
+
+  return (
+    <div className="mt-4 rounded-md border border-fuchsia-200/22 bg-fuchsia-300/10 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-100">Moniker</p>
+          <h4 className="mt-1 text-lg font-semibold text-white">The Name process</h4>
+          <p className="mt-1 text-sm leading-6 text-slate-200">
+            A good name has to fit the project, sound right, and have a path to being used.
+            Moniker asks for direction first, then works on a real shortlist.
+          </p>
+        </div>
+        <div className="rounded-md border border-fuchsia-100/20 bg-black/24 px-3 py-2 text-right">
+          <p className="text-xs text-fuchsia-100">
+            {sentToMoniker ? "Names in review" : "Direction needed"}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">10 primary · 10 reserve</p>
+        </div>
+      </div>
+
+      {!sentToMoniker ? (
+        <div className="mt-3 grid gap-3">
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-fuchsia-100">
+              How should it sound?
+            </span>
+            <input
+              value={tone}
+              onChange={(event) => setTone(event.target.value)}
+              placeholder="Clear, clever, professional, playful, emotional, mythic..."
+              className="mt-2 min-h-10 w-full rounded-md border border-fuchsia-100/20 bg-stone-950/75 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-fuchsia-100/45 focus:ring-2 focus:ring-fuchsia-200/15"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-fuchsia-100">
+              What kind of name should it be?
+            </span>
+            <input
+              value={shape}
+              onChange={(event) => setShape(event.target.value)}
+              placeholder="Descriptive, brand-like, story-based, short URL-friendly..."
+              className="mt-2 min-h-10 w-full rounded-md border border-fuchsia-100/20 bg-stone-950/75 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-fuchsia-100/45 focus:ring-2 focus:ring-fuchsia-200/15"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-fuchsia-100">
+              Anything to avoid or lean toward?
+            </span>
+            <textarea
+              value={avoid}
+              onChange={(event) => setAvoid(event.target.value)}
+              placeholder="Words, feelings, examples, names you dislike, names you like..."
+              className="mt-2 min-h-[76px] w-full resize-none rounded-md border border-fuchsia-100/20 bg-stone-950/75 px-3 py-2 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-fuchsia-100/45 focus:ring-2 focus:ring-fuchsia-200/15"
+            />
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-slate-300">
+              Sending starts the level. Moniker works in the background before names return.
+            </p>
+            <button
+              type="button"
+              onClick={sendToMoniker}
+              disabled={!canSend}
+              className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md border border-fuchsia-100/25 bg-fuchsia-300 px-3 text-sm font-semibold text-stone-950 transition hover:bg-fuchsia-200 disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
+            >
+              <Search className="h-4 w-4" />
+              Send to Moniker
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-3">
+          <div className="rounded-md border border-fuchsia-100/20 bg-black/28 p-3">
+            <p className="text-sm font-semibold text-white">
+              Moniker is checking fit, sound, and usable URL direction.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-300">
+              Domain status here is direction only. Actual ownership or purchase would require a
+              later approved registrar action.
+            </p>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-100">
+              {showReserve ? "Reserve names" : "Primary shortlist"} · {keptCount} still visible
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowReserve((current) => !current)}
+              className="rounded-md border border-white/12 bg-black/30 px-3 py-2 text-xs font-semibold text-white/85 transition hover:bg-white/10"
+            >
+              {showReserve ? "Back to primary" : "Show reserve names"}
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {visibleNames.map((name) => {
+              const removed = removedNames[name.id];
+              return (
+                <div
+                  key={name.id}
+                  className={`rounded-md border p-3 ${
+                    removed
+                      ? "border-white/8 bg-black/18 opacity-45"
+                      : "border-white/10 bg-black/28"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{name.label}</p>
+                      <p className="mt-1 text-xs text-fuchsia-100">{name.status}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setRemovedNames((current) => ({ ...current, [name.id]: !removed }))
+                      }
+                      className="inline-flex min-h-7 items-center justify-center gap-1 rounded-md border border-white/12 bg-white/8 px-2 py-1 text-xs text-white/85 transition hover:bg-white/14"
+                      aria-label={removed ? `Restore ${name.label}` : `Remove ${name.label}`}
+                    >
+                      {removed ? (
+                        "Restore"
+                      ) : (
+                        <>
+                          <X className="h-3.5 w-3.5" />
+                          <span className="sr-only">Remove</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-slate-300">
+                    Meaning, vibe, URL direction, and availability check will appear here when
+                    Moniker returns the real list.
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 rounded-md border border-white/10 bg-black/24 p-3">
+            <p className="text-sm font-semibold text-white">If none of these feel right</p>
+            <p className="mt-1 text-xs leading-5 text-slate-300">
+              Ask what missed: too plain, too weird, too corporate, too cute, too long, not clear
+              enough, not unique enough, or the wrong feeling. Moniker can then use the reserve set
+              or create a tighter round.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
