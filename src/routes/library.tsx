@@ -647,7 +647,7 @@ function LibraryPage() {
             ? {
                 ...candidate,
                 updatedAt: Date.now(),
-                stage: "paid-creation",
+                stage: "paid-creation" as const,
                 nextAction: chapterTemplateNextAction(nextChapter.id),
               }
             : candidate,
