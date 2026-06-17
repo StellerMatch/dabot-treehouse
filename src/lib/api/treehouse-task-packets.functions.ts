@@ -282,17 +282,19 @@ export const requestClarityIntakeQuestions = createServerFn({ method: "POST" })
       event: "treehouse_clarity_intake_requested",
       requestId,
       source: "dabottree-app-server",
-      triggerIntent: "chapter_1_real_clarity_questions",
+      triggerIntent: "chapter_1_steward_ping_clarity_questions",
       chapterId: data.chapterId,
       chapterTitle: data.chapterTitle,
-      requestedBot: "Clarity",
+      requestedBot: "Steward",
+      stewardAction: "ping_clarity_for_five_unique_questions",
+      targetBot: "Clarity",
       requestedQuestionCount: data.requestedQuestionCount,
       requiredOutput: {
         format: "json",
         questions: [
           {
             id: "string",
-            prompt: "project-specific question from real Clarity",
+            prompt: "project-specific question from real Clarity via Steward",
             reason: "why this question strengthens the project base",
             answerType: "short_text | paragraph | choice | list",
           },
@@ -305,7 +307,8 @@ export const requestClarityIntakeQuestions = createServerFn({ method: "POST" })
 
     await writeTreehouseChapterActivity({
       currentChapterId: data.chapterId,
-      message: "Clarity is reading the intake and preparing five project-specific questions.",
+      message:
+        "Steward is sending the intake to Clarity for five project-specific questions.",
       projectId: data.project.projectId,
       source: "dabottree-clarity-intake-request",
       status: "bots_running",
@@ -332,9 +335,11 @@ export const submitClarityQuestionAnswers = createServerFn({ method: "POST" })
       event: "treehouse_clarity_answers_submitted",
       submissionId,
       source: "dabottree-app-server",
-      triggerIntent: "chapter_1_real_clarity_answers",
+      triggerIntent: "chapter_1_steward_clarity_answers",
       chapterId: data.chapterId,
-      requestedBot: "Clarity",
+      requestedBot: "Steward",
+      stewardAction: "send_clarity_answers_to_admin_packet",
+      targetBot: "Clarity",
       project: data.project,
       questions: data.questions ?? [],
       answers: data.answers,

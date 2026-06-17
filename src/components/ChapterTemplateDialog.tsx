@@ -120,7 +120,7 @@ export function ChapterTemplateDialog({
       }
 
       setClarityStatus("requesting");
-      setClarityMessage("Clarity is reading the intake.");
+      setClarityMessage("Steward is sending the intake to Clarity.");
       try {
         const result = await requestClarityIntakeQuestions({
           data: {
@@ -141,7 +141,9 @@ export function ChapterTemplateDialog({
           window.localStorage.setItem(requestKey, result.requestId);
         }
         setClarityStatus("waiting");
-        setClarityMessage("Clarity has been pinged. Waiting for her five project questions.");
+        setClarityMessage(
+          "Steward has pinged Clarity. Waiting for her five project questions.",
+        );
       } catch {
         if (cancelled) return;
         setClarityStatus("error");
@@ -699,8 +701,8 @@ function ClarityQuestionPanel({
 
       {waiting ? (
         <p className="mt-3 rounded-sm border border-dashed border-amber-900/30 bg-amber-100/45 p-3 text-sm leading-relaxed text-amber-950/75">
-          Clarity has been pinged through the Chapter 1 bridge. Her five questions will appear here
-          when n8n posts the Clarity packet back to this idea.
+          Steward has been pinged through the Chapter 1 bridge. Clarity's five questions will
+          appear here when n8n posts the Clarity packet back to this idea.
         </p>
       ) : (
         <div className="mt-3 space-y-3">
