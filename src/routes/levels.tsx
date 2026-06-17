@@ -1022,6 +1022,7 @@ const ROOT_ROOM_BOT_QUESTIONS_KEY = "dabottree:rootRoomBotQuestions";
 const MUD_PIT_ANSWERS_KEY = "dabottree:mudPitPressureAnswers";
 const THE_NAME_DIRECTION_KEY = "dabottree:theNameDirection";
 const CANOPY_FOUNDATION_CHECK_KEY = "dabottree:canopyFoundationChecks";
+const WIND_TUNNEL_REVIEW_KEY = "dabottree:windTunnelReview";
 
 const MONIKER_PRIMARY_NAME_SLOTS = Array.from({ length: 10 }, (_, index) => ({
   id: `primary-${index + 1}`,
@@ -1162,6 +1163,18 @@ const CANOPY_FOUNDATION_CHECKS = [
       "Bot involvement",
     ],
   },
+];
+
+const WIND_TUNNEL_EXCITING_THINGS = [
+  "The project has enough collected direction to test against.",
+  "The foundation now has a name, structure, and early user signals.",
+  "The next chapter can turn this into clearer build directions.",
+];
+
+const WIND_TUNNEL_LOOK_MORE_INTO = [
+  "Which assumption could break first when real users touch it.",
+  "Which risk needs a stronger boundary before build work moves too far.",
+  "What proof would make the project feel ready instead of just promising.",
 ];
 
 const MUD_PIT_QUESTION_BUCKETS: Array<{
@@ -1677,6 +1690,7 @@ function ChapterOverview({
   const showMudPitGuide = chapter.id === "mud-pit";
   const showTheNameGuide = chapter.id === "the-name";
   const showCanopyGuide = chapter.id === "canopy-foundation";
+  const showWindTunnelGuide = chapter.id === "wind-tunnel";
 
   return (
     <div className="relative z-10 flex h-full min-h-[460px] flex-col justify-between p-5 sm:p-6">
@@ -1729,6 +1743,7 @@ function ChapterOverview({
         ) : null}
         {showTheNameGuide ? <TheNameMonikerPanel project={project} /> : null}
         {showCanopyGuide ? <CanopyFoundationPanel project={project} /> : null}
+        {showWindTunnelGuide ? <WindTunnelStagehandPanel project={project} /> : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1740,6 +1755,171 @@ function ChapterOverview({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function WindTunnelStagehandPanel({ project }: { project: LocalTreehouseProject | null }) {
+  const [status, setStatus] = useState<"idle" | "running" | "complete">("idle");
+  const [showReview, setShowReview] = useState(false);
+
+  useEffect(() => {
+    if (status !== "running") return undefined;
+    const timer = window.setTimeout(() => {
+      setStatus("complete");
+      setShowReview(true);
+      try {
+        window.localStorage.setItem(
+          WIND_TUNNEL_REVIEW_KEY,
+          JSON.stringify({
+            completedAt: new Date().toISOString(),
+            projectId: project?.projectId ?? null,
+            excitingThings: WIND_TUNNEL_EXCITING_THINGS,
+            lookMoreInto: WIND_TUNNEL_LOOK_MORE_INTO,
+          }),
+        );
+      } catch {
+        // The reveal can still work if local storage is unavailable.
+      }
+    }, 3200);
+
+    return () => window.clearTimeout(timer);
+  }, [project?.projectId, status]);
+
+  const runWindTest = () => {
+    setStatus("running");
+    setShowReview(false);
+  };
+
+  return (
+    <div className="mt-4 rounded-md border border-cyan-200/22 bg-cyan-300/10 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.16em] text-cyan-100">Stagehand</p>
+          <h4 className="mt-1 text-lg font-semibold text-white">Wind Tunnel test bench</h4>
+          <p className="mt-1 text-sm leading-6 text-slate-200">
+            This is the first time your project goes through real stress. Stagehand shakes the
+            foundation a little and sees what still holds.
+          </p>
+        </div>
+        <div className="rounded-md border border-cyan-100/20 bg-black/24 px-3 py-2 text-right">
+          <p className="text-xs text-cyan-100">
+            {status === "complete" ? "Review ready" : status === "running" ? "Testing" : "Ready"}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">Stagehand scene</p>
+        </div>
+      </div>
+
+      <div className="mt-3 overflow-hidden rounded-md border border-white/10 bg-stone-950/70 p-3">
+        <div className="relative min-h-[230px] rounded-md border border-cyan-100/10 bg-[radial-gradient(circle_at_50%_20%,rgba(125,211,252,0.18),rgba(12,10,9,0.05)_44%,rgba(0,0,0,0.22)_100%)] p-4">
+          <div className="absolute left-4 top-4 flex gap-2">
+            {[0, 1, 2].map((index) => (
+              <span
+                key={index}
+                className={`h-3 w-3 rounded-sm border border-cyan-100/25 bg-cyan-200/25 ${
+                  status === "running" ? "animate-pulse" : ""
+                }`}
+                style={{ animationDelay: `${index * 180}ms` }}
+              />
+            ))}
+          </div>
+          <div className="absolute right-4 top-4 h-12 w-12 rounded-full border border-cyan-100/20 bg-cyan-200/10">
+            <div
+              className={`mx-auto mt-2 h-8 w-8 rounded-full border border-cyan-100/30 border-t-cyan-200 ${
+                status === "running" ? "animate-spin" : ""
+              }`}
+            />
+          </div>
+          <div className="flex min-h-[198px] flex-col items-center justify-center text-center">
+            <div
+              className={`relative grid h-24 w-24 place-items-center rounded-md border transition ${
+                status === "complete"
+                  ? "border-cyan-100/60 bg-cyan-200/30 shadow-[0_0_36px_rgba(125,211,252,0.34)]"
+                  : "border-white/12 bg-white/8"
+              } ${status === "running" ? "animate-pulse" : ""}`}
+            >
+              <div className="h-12 w-12 rounded-sm border border-cyan-100/35 bg-cyan-100/20" />
+              <div className="absolute -left-8 top-9 h-2 w-6 rounded-full bg-cyan-100/30" />
+              <div className="absolute -right-8 top-9 h-2 w-6 rounded-full bg-cyan-100/30" />
+              <div className="absolute -bottom-6 left-1/2 h-5 w-2 -translate-x-1/2 rounded-full bg-cyan-100/30" />
+            </div>
+            <p className="mt-5 text-sm font-semibold text-white">
+              {status === "complete"
+                ? "All right. Looks like we have something here."
+                : status === "running"
+                  ? "Stagehand is testing the foundation..."
+                  : "Stagehand is ready at the bench."}
+            </p>
+            <p className="mt-2 max-w-sm text-xs leading-5 text-slate-300">
+              {status === "running"
+                ? "Checking weak spots, tightening loose boards, and preparing the first test result."
+                : "Run the test to reveal a quick review of what looks exciting and what needs more attention."}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-slate-300">
+          Wind Tunnel is a reveal moment. The user starts the test, then Stagehand brings back the
+          review.
+        </p>
+        <button
+          type="button"
+          onClick={status === "complete" ? () => setShowReview(true) : runWindTest}
+          disabled={status === "running"}
+          className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md border border-cyan-100/25 bg-cyan-300 px-3 text-sm font-semibold text-stone-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
+        >
+          <Activity className="h-4 w-4" />
+          {status === "complete" ? "Open Wind Test Review" : "Run Wind Test"}
+        </button>
+      </div>
+
+      {showReview ? (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black p-4">
+          <div className="max-h-[86vh] w-full max-w-lg overflow-y-auto rounded-md border border-cyan-100/25 bg-stone-950 p-4 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-cyan-100">Wind Test Review</p>
+                <h4 className="mt-1 text-xl font-semibold text-white">First stress result</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReview(false)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/12 bg-white/8 text-white/85 transition hover:bg-white/14"
+                aria-label="Close Wind Test Review"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-md border border-emerald-100/20 bg-emerald-300/10 p-3">
+                <p className="text-sm font-semibold text-emerald-50">Top 3 exciting things</p>
+                <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-200">
+                  {WIND_TUNNEL_EXCITING_THINGS.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ol>
+              </div>
+              <div className="rounded-md border border-amber-100/20 bg-amber-300/10 p-3">
+                <p className="text-sm font-semibold text-amber-50">Top 3 things to look into</p>
+                <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-200">
+                  {WIND_TUNNEL_LOOK_MORE_INTO.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowReview(false)}
+              className="mt-4 inline-flex min-h-9 w-full items-center justify-center rounded-md border border-cyan-100/25 bg-cyan-300 px-3 text-sm font-semibold text-stone-950 transition hover:bg-cyan-200"
+            >
+              Continue to Branchworks
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
