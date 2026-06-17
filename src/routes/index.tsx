@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import logoImage from "@/assets/dabottree-logo.png";
 import { AccountBadge, CreditsPill } from "@/components/AccountBadge";
 import { BackgroundMedia } from "@/components/BackgroundMedia";
-import { IDEA_SHELF_NEXT_ACTION, seedIdeas, type LightbulbIdea } from "@/lib/dabottree-state";
+import { IDEA_SHELF_NEXT_ACTION, type LightbulbIdea } from "@/lib/dabottree-state";
 import { buildIntakeFolderPosts } from "@/lib/intake-folder-breakdown";
 import { accountEntryBackground } from "@/lib/backgrounds";
 import {
@@ -88,7 +88,7 @@ function createIntakeExtras(text: string, ts: number) {
 function saveIdeaToLibraryStorage(text: string, ideaType?: string): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const existingIdeas = loadPersistedIdeas() ?? seedIdeas;
+    const existingIdeas = loadPersistedIdeas() ?? [];
     const newIdea = createLibraryIdea(text, ideaType);
     const ts = Number(newIdea.id.replace("idea-", "")) || Date.now();
     savePersistedIdeas([newIdea, ...existingIdeas]);

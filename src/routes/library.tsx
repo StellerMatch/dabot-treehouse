@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   IDEA_SHELF_NEXT_ACTION,
   LIBRARY_STAGE_NEXT_ACTION,
-  seedIdeas,
   stageLabels,
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
@@ -603,7 +602,7 @@ export const Route = createFileRoute("/library")({
 
 function LibraryPage() {
   const navigate = useNavigate();
-  const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
+  const [ideas, setIdeas] = useState<LightbulbIdea[]>([]);
   const [ready, setReady] = useState(false);
   const [notebookIdea, setNotebookIdea] = useState<LightbulbIdea | null>(null);
   const [chapterTemplateIdea, setChapterTemplateIdea] = useState<LightbulbIdea | null>(null);
@@ -636,7 +635,7 @@ function LibraryPage() {
 
   useEffect(() => {
     const stored = loadStoredIdeas();
-    let nextIdeas = stored ?? seedIdeas;
+    let nextIdeas = stored ?? [];
     try {
       const draft = sessionStorage.getItem("dabottree:draftIdea") ?? "";
       const draftType = sessionStorage.getItem("dabottree:draftIdeaType") ?? "";

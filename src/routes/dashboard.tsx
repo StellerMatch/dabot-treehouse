@@ -3,7 +3,6 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import {
   IDEA_SHELF_NEXT_ACTION,
   LIBRARY_STAGE_NEXT_ACTION,
-  seedIdeas,
   stageLabels,
   type LightbulbIdea,
 } from "@/lib/dabottree-state";
@@ -1861,7 +1860,7 @@ function shortIdeaSummary(idea: LightbulbIdea): string {
 function Dashboard() {
   const navigate = useNavigate();
   const { ideaId } = Route.useSearch();
-  const [ideas, setIdeas] = useState<LightbulbIdea[]>(seedIdeas);
+  const [ideas, setIdeas] = useState<LightbulbIdea[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [extras, setExtras] = useState<Record<string, IdeaExtras>>({});
   const [storageReady, setStorageReady] = useState(false);
